@@ -8,11 +8,13 @@
     "start": "next start -p 3000"
   },
   "dependencies": {
+    "draft-js": "^0.11.7",
     "file-saver": "^2.0.5",
     "next": "13.4.10",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-draggable": "^4.5.0"
   }
 }
