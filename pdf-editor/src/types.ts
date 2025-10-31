@@ -1,0 +1,40 @@
+export interface TextElement {
+  type: 'text';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string;
+  page: number;
+}
+
+export interface ImageElement {
+  type: 'image';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  imageData: string; // base64
+  page: number;
+}
+
+export interface SignatureElement {
+  type: 'signature';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  imageData: string; // base64
+  page: number;
+}
+
+export type CanvasElement = TextElement | ImageElement | SignatureElement;
+
+export interface PageInfo {
+  width: number;
+  height: number;
+  scale: number;
+}

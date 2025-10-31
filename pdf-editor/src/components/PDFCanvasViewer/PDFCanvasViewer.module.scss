@@ -1,0 +1,57 @@
+.viewerWrapper {
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.09);
+  max-width: 900px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  border-radius: 8px;
+  min-height: 600px;
+  position: relative;
+}
+
+.pdfCanvas {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  display: block;
+  margin: 0 auto;
+  max-width: 800px;
+}
+
+.elementsOverlay {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  right: 2rem;
+  bottom: 2rem;
+  pointer-events: none;
+
+  .canvasElement {
+    pointer-events: all;
+    box-sizing: border-box;
+
+    .resizeHandle {
+      pointer-events: all;
+      border-radius: 50%;
+
+      &.nw {
+        cursor: nw-resize;
+      }
+
+      &.ne {
+        cursor: ne-resize;
+      }
+
+      &.sw {
+        cursor: sw-resize;
+      }
+
+      &.se {
+        cursor: se-resize;
+      }
+    }
+  }
+}
