@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-import styles from './PDFCanvasViewer.module.scss';
+import styles from '../styles/PDFCanvasViewer.module.scss';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;

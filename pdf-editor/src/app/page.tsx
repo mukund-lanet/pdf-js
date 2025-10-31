@@ -1,5 +1,5 @@
 'use client';
-import PdfEditor from "@/components/PdfEditor/PdfEditor";
+import PdfEditor from "@/components/PdfEditor";
 import styles from "./Home.module.scss";
 
 import setupLocatorUI from "@locator/runtime";

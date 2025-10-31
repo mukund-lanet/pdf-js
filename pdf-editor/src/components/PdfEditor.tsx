@@ -1,9 +1,9 @@
 'use client';
 import { useState, useRef } from 'react';
-import styles from './PdfEditor.module.scss';
+import styles from '../styles/PdfEditor.module.scss';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import SignaturePad from '../SignaturePad/SignaturePad';
-import PDFCanvasViewer from '../PDFCanvasViewer/PDFCanvasViewer';
+import SignaturePad from './SignaturePad';
+import PDFCanvasViewer from './PDFCanvasViewer';
 
 const PdfEditor = () => {
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);

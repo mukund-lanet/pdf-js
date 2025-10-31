@@ -1,7 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import styles from './SignaturePad.module.scss';
+import styles from '../styles/SignaturePad.module.scss';
 
 interface SignaturePadProps {
   onSave: (signature: string) => void;
