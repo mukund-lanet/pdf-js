@@ -32,9 +32,9 @@ export interface SignatureElement {
 }
 
 export type CanvasElement = TextElement | ImageElement | SignatureElement;
-
+  
 export interface PageInfo {
-  width: number;
-  height: number;
+  pageWidth: number;
+  pageHeight: number;
   scale: number;
 }

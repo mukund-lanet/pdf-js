@@ -1,0 +1,436 @@
+'use client';
+import { useState, useRef, useEffect } from 'react';
+import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+
+interface DraggableElementProps {
+  element: CanvasElement;
+  onUpdate: (element: CanvasElement) => void;
+  onDelete: (id: string) => void;
+  onImageUpload: (elementId: string) => void;
+  onSignatureDraw: (elementId: string) => void;
+  pageInfo: { pageWidth: number; pageHeight: number };
+  scale: number;
+}
+
+const DraggableElement = ({ 
+  element, 
+  onUpdate, 
+  onDelete, 
+  onImageUpload, 
+  onSignatureDraw,
+  pageInfo, 
+  scale 
+}: DraggableElementProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
+  const [tempContent, setTempContent] = useState(element.type === 'text' ? element.content : '');
+  
+  const elementRef = useRef<HTMLDivElement>(null);
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Use element coordinates directly
+  const position = { x: element.x, y: element.y };
+  const size = { width: element.width, height: element.height };
+
+  useEffect(() => {
+    if (isEditing && textInputRef.current) {
+      textInputRef.current.focus();
+      textInputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTempContent(e.target.value);
+  };
+
+  const handleTextBlur = () => {
+    if (element.type === 'text') {
+      onUpdate({
+        ...element,
+        content: tempContent
+      } as TextElement);
+    }
+    setIsEditing(false);
+  };
+
+  const handleTextKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handleTextBlur();
+    }
+    if (e.key === 'Escape') {
+      setTempContent(element.type === 'text' ? element.content : '');
+      setIsEditing(false);
+    }
+  };
+
+  // Fixed drag handling
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isEditing || isResizing) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startPosX = position.x;
+    const startPosY = position.y;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDragging) return;
+      
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      // Calculate new position with bounds checking
+      const newX = Math.max(0, Math.min(startPosX + deltaX, pageInfo.pageWidth - size.width));
+      const newY = Math.max(0, Math.min(startPosY + deltaY, pageInfo.pageHeight - size.height));
+      
+      // Update element position immediately
+      onUpdate({
+        ...element,
+        x: newX,
+        y: newY
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Fixed resize handling
+  const startResize = (corner: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = element.width;
+    const startHeight = element.height;
+    const startXPos = element.x;
+    const startYPos = element.y;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      let newX = startXPos;
+      let newY = startYPos;
+
+      const minSize = {
+        text: { width: 50, height: 20 },
+        image: { width: 30, height: 30 },
+        signature: { width: 50, height: 30 }
+      };
+
+      const min = minSize[element.type] || { width: 30, height: 20 };
+
+      switch (corner) {
+        case 'topLeft':
+          newWidth = Math.max(min.width, startWidth - deltaX);
+          newHeight = Math.max(min.height, startHeight - deltaY);
+          newX = startXPos + deltaX;
+          newY = startYPos + deltaY;
+          break;
+        case 'topRight':
+          newWidth = Math.max(min.width, startWidth + deltaX);
+          newHeight = Math.max(min.height, startHeight - deltaY);
+          newY = startYPos + deltaY;
+          break;
+        case 'bottomLeft':
+          newWidth = Math.max(min.width, startWidth - deltaX);
+          newHeight = Math.max(min.height, startHeight + deltaY);
+          newX = startXPos + deltaX;
+          break;
+        case 'bottomRight':
+          newWidth = Math.max(min.width, startWidth + deltaX);
+          newHeight = Math.max(min.height, startHeight + deltaY);
+          break;
+      }
+
+      // Ensure element stays within page bounds
+      newX = Math.max(0, Math.min(newX, pageInfo.pageWidth - newWidth));
+      newY = Math.max(0, Math.min(newY, pageInfo.pageHeight - newHeight));
+
+      // Update element immediately
+      onUpdate({
+        ...element,
+        x: newX,
+        y: newY,
+        width: newWidth,
+        height: newHeight
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Deleting element:', element.id);
+    onDelete(element.id);
+  };
+
+  const handleElementClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (element.type === 'image' && !element.imageData) {
+      onImageUpload(element.id);
+    } else if (element.type === 'signature' && !element.imageData) {
+      onSignatureDraw(element.id);
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (!isEditing && !isDragging && !isResizing) {
+      setShowDeleteButton(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setShowDeleteButton(false);
+  };
+
+  const renderContent = () => {
+    switch (element.type) {
+      case 'text':
+        if (isEditing) {
+          return (
+            <textarea
+              ref={textInputRef}
+              value={tempContent}
+              onChange={handleTextChange}
+              onBlur={handleTextBlur}
+              onKeyDown={handleTextKeyDown}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                outline: '2px solid #007bff',
+                resize: 'none',
+                background: 'white',
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '14px',
+                padding: '4px',
+                boxSizing: 'border-box'
+              }}
+            />
+          );
+        }
+        return (
+          <div 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              padding: '4px', 
+              wordWrap: 'break-word', 
+              overflow: 'hidden',
+              cursor: isDragging ? 'grabbing' : 'move',
+              boxSizing: 'border-box',
+              userSelect: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onDoubleClick={() => setIsEditing(true)}
+          >
+            {element.content || 'Double click to edit text'}
+          </div>
+        );
+
+      case 'image':
+        return (
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            position: 'relative',
+            border: element.imageData ? 'none' : '2px dashed #ccc',
+            background: element.imageData ? 'transparent' : '#f9f9f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: isDragging ? 'grabbing' : 'move',
+            userSelect: 'none'
+          }}>
+            {element.imageData ? (
+              <img 
+                src={element.imageData} 
+                alt="Uploaded" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain' 
+                }}
+                draggable={false}
+              />
+            ) : (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#666',
+                padding: '10px'
+              }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>📷</div>
+                <div style={{ fontSize: '12px' }}>Click to upload image</div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'signature':
+        return (
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            position: 'relative',
+            border: element.imageData ? 'none' : '2px dashed #ccc',
+            background: element.imageData ? 'transparent' : '#f9f9f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: isDragging ? 'grabbing' : 'move',
+            userSelect: 'none'
+          }}>
+            {element.imageData ? (
+              <img 
+                src={element.imageData} 
+                alt="Signature" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain' 
+                }}
+                draggable={false}
+              />
+            ) : (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#666',
+                padding: '10px'
+              }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>✍️</div>
+                <div style={{ fontSize: '12px' }}>Click to sign</div>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: position.x,
+    top: position.y,
+    width: size.width,
+    height: size.height,
+    border: (isDragging || isResizing) ? '2px solid #007bff' : '2px dashed #007bff',
+    background: 'rgba(255, 255, 255, 0.95)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    cursor: isEditing ? 'text' : (isDragging ? 'grabbing' : 'grab'),
+    zIndex: (isDragging || isResizing) ? 100 : 10,
+    userSelect: 'none',
+  };
+
+  const resizeHandleStyle: React.CSSProperties = {
+    position: 'absolute',
+    width: '12px',
+    height: '12px',
+    background: '#007bff',
+    border: '2px solid white',
+    borderRadius: '50%',
+    zIndex: 101,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+    cursor: 'pointer'
+  };
+
+  return (
+    <div
+      ref={elementRef}
+      style={elementStyle}
+      onMouseDown={handleMouseDown}
+      onClick={handleElementClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Resize handles - always show when not editing */}
+      {!isEditing && (
+        <>
+          <div 
+            style={{ ...resizeHandleStyle, top: '-6px', left: '-6px', cursor: 'nw-resize' }}
+            onMouseDown={(e) => startResize('topLeft', e)}
+          />
+          <div 
+            style={{ ...resizeHandleStyle, top: '-6px', right: '-6px', cursor: 'ne-resize' }}
+            onMouseDown={(e) => startResize('topRight', e)}
+          />
+          <div 
+            style={{ ...resizeHandleStyle, bottom: '-6px', left: '-6px', cursor: 'sw-resize' }}
+            onMouseDown={(e) => startResize('bottomLeft', e)}
+          />
+          <div 
+            style={{ ...resizeHandleStyle, bottom: '-6px', right: '-6px', cursor: 'se-resize' }}
+            onMouseDown={(e) => startResize('bottomRight', e)}
+          />
+        </>
+      )}
+
+      {/* Delete button - show on hover */}
+      {showDeleteButton && !isEditing && !isDragging && !isResizing && (
+        <button 
+          style={{
+            position: 'absolute',
+            top: '-15px',
+            right: '-15px',
+            width: '24px',
+            height: '24px',
+            background: '#ff4444',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            zIndex: 102,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: 1
+          }}
+          onClick={handleDelete}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          ×
+        </button>
+      )}
+
+      {/* Element content */}
+      {renderContent()}
+    </div>
+  );
+};
+
+export default DraggableElement;

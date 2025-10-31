@@ -1,103 +1,287 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import styles from '../styles/PdfEditor.module.scss';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import SignaturePad from './SignaturePad';
 import PDFCanvasViewer from './PDFCanvasViewer';
+import DragDropToolbar from './DragDropToolbar';
+import DraggableElement from './DraggableElement';
+import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+
+interface PageDimension {
+  pageWidth: number;
+  pageHeight: number;
+}
 
 const PdfEditor = () => {
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
   const [totalPages, setTotalPages] = useState<number>(1);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-  const imageUploadInputRef = useRef<HTMLInputElement>(null);
   const [isSignaturePadOpen, setIsSignaturePadOpen] = useState(false);
+  const [signatureForElement, setSignatureForElement] = useState<string | null>(null);
 
   const [activeTool, setActiveTool] = useState<null | 'text' | 'image' | 'signature'>(null);
-  const stagedImageFile = useRef<File | null>(null);
-  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
+  const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
+  const [pageDimensions, setPageDimensions] = useState<{ [key: number]: PageDimension }>({});
+
+  // Generate unique ID
+  const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   const createNewPdf = async () => {
-    const pdfDoc = await PDFDocument.create();
-    pdfDoc.addPage();
-    const bytes = await pdfDoc.save();
-    setTotalPages(1);
-    setPdfBytes(bytes);
+    try {
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([600, 800]);
+      const bytes = await pdfDoc.save();
+      setTotalPages(1);
+      setPdfBytes(bytes);
+      setCanvasElements([]);
+      setPageDimensions({ 1: { pageWidth: 600, pageHeight: 800 } });
+    } catch (error) {
+      console.error('Error creating new PDF:', error);
+    }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-    setTotalPages(pdfDoc.getPageCount());
-    const bytes = await pdfDoc.save();
-    setPdfBytes(bytes);
+    
+    try {
+      console.log('Loading PDF file:', file.name, file.size);
+      
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Validate PDF header
+      const header = new Uint8Array(arrayBuffer, 0, 5);
+      const headerStr = String.fromCharCode(...header);
+      console.log('PDF header:', headerStr);
+      
+      if (!headerStr.includes('%PDF')) {
+        throw new Error('Invalid PDF file: No PDF header found');
+      }
+      
+      // Load with pdf-lib to get page info
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const pageCount = pdfDoc.getPageCount();
+      console.log('PDF loaded with pages:', pageCount);
+      
+      // Get dimensions of all pages
+      const dimensions: { [key: number]: PageDimension } = {};
+      for (let i = 0; i < pageCount; i++) {
+        const page = pdfDoc.getPages()[i];
+        const { width, height } = page.getSize();
+        dimensions[i + 1] = { pageWidth: width, pageHeight: height };
+        console.log(`Page ${i + 1}: ${width} x ${height}`);
+      }
+      
+      setTotalPages(pageCount);
+      // Create a fresh copy to avoid detached ArrayBuffer
+      setPdfBytes(new Uint8Array(arrayBuffer));
+      setCanvasElements([]);
+      setPageDimensions(dimensions);
+      
+      console.log('PDF successfully loaded');
+    } catch (error) {
+      console.error('Error loading PDF:', error);
+      alert('Failed to load PDF. Please make sure it is a valid PDF file.');
+    }
   };
+
   const openFileUpload = () => uploadInputRef.current?.click();
 
-  const handleImageToolbarClick = () => imageUploadInputRef.current?.click();
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    stagedImageFile.current = file || null;
-    if (file) setActiveTool('image');
+  const handleDragStart = (type: 'text' | 'image' | 'signature') => {
+    setActiveTool(type);
   };
 
-  const addTextField = () => setActiveTool('text');
+  const handleDrop = useCallback((x: number, y: number, info: PageDimension, pageNumber: number, type: string) => {
+    const elementType = type as 'text' | 'image' | 'signature';
+    
+    console.log(`Dropping ${elementType} at ${x}, ${y} on page ${pageNumber}`);
 
-  const handleSignatureToolbarClick = () => setIsSignaturePadOpen(true);
+    // Update page dimensions
+    setPageDimensions(prev => ({
+      ...prev,
+      [pageNumber]: info
+    }));
+
+    const defaultSize = {
+      text: { width: 200, height: 40 },
+      image: { width: 150, height: 100 },
+      signature: { width: 150, height: 80 }
+    };
+
+    switch (elementType) {
+      case 'text':
+        const textElement: TextElement = {
+          type: 'text',
+          id: generateId(),
+          x: x,
+          y: y, // Use direct Y coordinate (not inverted)
+          width: defaultSize.text.width,
+          height: defaultSize.text.height,
+          content: 'Double click to edit text',
+          page: pageNumber
+        };
+        setCanvasElements(prev => [...prev, textElement]);
+        break;
+
+      case 'image':
+        const imageElement: ImageElement = {
+          type: 'image',
+          id: generateId(),
+          x: x - defaultSize.image.width / 2, // Center the element on drop point
+          y: y - defaultSize.image.height / 2,
+          width: defaultSize.image.width,
+          height: defaultSize.image.height,
+          imageData: '', // Empty initially - user will upload
+          page: pageNumber
+        };
+        setCanvasElements(prev => [...prev, imageElement]);
+        break;
+
+      case 'signature':
+        const signatureElement: SignatureElement = {
+          type: 'signature',
+          id: generateId(),
+          x: x - defaultSize.signature.width / 2, // Center the element on drop point
+          y: y - defaultSize.signature.height / 2,
+          width: defaultSize.signature.width,
+          height: defaultSize.signature.height,
+          imageData: '', // Empty initially - user will draw
+          page: pageNumber
+        };
+        setCanvasElements(prev => [...prev, signatureElement]);
+        break;
+    }
+
+    setActiveTool(null);
+  }, []);
+
+  const handleElementUpdate = (updatedElement: CanvasElement) => {
+    console.log('Updating element:', updatedElement);
+    setCanvasElements(prev => 
+      prev.map(el => el.id === updatedElement.id ? updatedElement : el)
+    );
+  };
+
+  const handleElementDelete = (id: string) => {
+    console.log('Deleting element:', id);
+    setCanvasElements(prev => prev.filter(el => el.id !== id));
+  };
+
+  const handleImageUpload = (elementId: string) => {
+    console.log('Image upload for element:', elementId);
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png, image/jpeg';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageData = event.target?.result as string;
+          setCanvasElements(prev => 
+            prev.map(el => 
+              el.id === elementId && (el.type === 'image' || el.type === 'signature') 
+                ? { ...el, imageData } 
+                : el
+            )
+          );
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleSignatureDraw = (elementId: string) => {
+    console.log('Signature draw for element:', elementId);
+    setSignatureForElement(elementId);
+    setIsSignaturePadOpen(true);
+  };
+
   const handleSaveSignature = (signature: string) => {
     setIsSignaturePadOpen(false);
-    setPendingSignature(signature);
-    setActiveTool('signature');
-  };
-  const handleCancelSignature = () => setIsSignaturePadOpen(false);
-
-  const handleCanvasClick = async (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number) => {
-    if (!activeTool || !pdfBytes) return;
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const page = pdfDoc.getPages()[pageNumber - 1];
-    const pdfY = info.pageHeight - y;
-    if (activeTool === 'text') {
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      page.drawText('This is a text field!', {
-        x,
-        y: pdfY,
-        font: helveticaFont,
-        size: 24,
-        color: rgb(0, 0, 0),
-      });
-      setActiveTool(null);
-    } else if (activeTool === 'image' && stagedImageFile.current) {
-      const file = stagedImageFile.current;
-      const imgBuff = await file.arrayBuffer();
-      let image;
-      if (file.type === 'image/jpeg') image = await pdfDoc.embedJpg(imgBuff);
-      else image = await pdfDoc.embedPng(imgBuff);
-      page.drawImage(image, {
-        x,
-        y: pdfY - (image.height / 4),
-        width: image.width / 4,
-        height: image.height / 4
-      });
-      stagedImageFile.current = null;
-      setActiveTool(null);
-    } else if (activeTool === 'signature' && pendingSignature) {
-      const b64 = pendingSignature.split(',')[1];
-      const binStr = atob(b64);
-      const uint8 = new Uint8Array(binStr.length);
-      for (let i = 0; i < binStr.length; i++) uint8[i] = binStr.charCodeAt(i);
-      const pngImage = await pdfDoc.embedPng(uint8);
-      page.drawImage(pngImage, {
-        x,
-        y: pdfY - (pngImage.height / 2),
-        width: pngImage.width / 2,
-        height: pngImage.height / 2,
-      });
-      setPendingSignature(null);
-      setActiveTool(null);
+    if (signatureForElement) {
+      setCanvasElements(prev => 
+        prev.map(el => 
+          el.id === signatureForElement && el.type === 'signature'
+            ? { ...el, imageData: signature }
+            : el
+        )
+      );
+      setSignatureForElement(null);
     }
-    const bytes = await pdfDoc.save();
-    setPdfBytes(bytes);
+  };
+
+  const handleCancelSignature = () => {
+    setIsSignaturePadOpen(false);
+    setSignatureForElement(null);
+  };
+
+  // Export PDF with all elements
+  const exportPdf = async () => {
+    if (!pdfBytes) return;
+    
+    try {
+      // Create a fresh copy to avoid detached ArrayBuffer
+      const pdfBytesCopy = new Uint8Array(pdfBytes);
+      const pdfDoc = await PDFDocument.load(pdfBytesCopy);
+      
+      // Add all canvas elements to the PDF
+      for (const element of canvasElements) {
+        const page = pdfDoc.getPages()[element.page - 1];
+        const pageInfo = pageDimensions[element.page];
+        
+        if (!pageInfo) continue;
+
+        if (element.type === 'text') {
+          const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          page.drawText(element.content, {
+            x: element.x,
+            y: pageInfo.pageHeight - element.y - element.height, // Invert Y for PDF coordinate system
+            font: helveticaFont,
+            size: 12,
+            color: rgb(0, 0, 0),
+            maxWidth: element.width,
+          });
+        } else if ((element.type === 'image' || element.type === 'signature') && element.imageData) {
+          const b64 = element.imageData.split(',')[1];
+          const binStr = atob(b64);
+          const uint8 = new Uint8Array(binStr.length);
+          for (let i = 0; i < binStr.length; i++) uint8[i] = binStr.charCodeAt(i);
+          
+          let image;
+          if (element.imageData.startsWith('data:image/jpeg')) {
+            image = await pdfDoc.embedJpg(uint8);
+          } else {
+            image = await pdfDoc.embedPng(uint8);
+          }
+          
+          page.drawImage(image, {
+            x: element.x,
+            y: pageInfo.pageHeight - element.y - element.height, // Invert Y for PDF coordinate system
+            width: element.width,
+            height: element.height,
+          });
+        }
+      }
+      
+      const finalBytes = await pdfDoc.save();
+      const blob = new Blob([finalBytes], { type: 'application/pdf' });
+      
+      // Download the PDF
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'document-with-elements.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Error exporting PDF. Please try again.');
+    }
   };
 
   return (
@@ -122,33 +306,77 @@ const PdfEditor = () => {
         <button className={styles.button} onClick={openFileUpload}>
           Upload PDF
         </button>
+        <button className={styles.button} onClick={exportPdf} disabled={!pdfBytes}>
+          Export PDF
+        </button>
       </div>
       <div className={styles.main}>
         <div className={styles.previewPanel}>
           <h2>Preview</h2>
+          <div style={{ padding: '10px', background: '#f5f5f5', borderRadius: '4px' }}>
+            <p>Total Pages: {totalPages}</p>
+            <p>Elements: {canvasElements.length}</p>
+            <p>PDF Loaded: {pdfBytes ? 'Yes' : 'No'}</p>
+          </div>
         </div>
         <div className={styles.editorPanel}>
-          <div className={styles.editorToolbar}>
-            <button onClick={addTextField} style={activeTool === 'text' ? { background: '#e0e0ff' } : undefined}>Add Text</button>
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              ref={imageUploadInputRef}
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-            />
-            <button onClick={handleImageToolbarClick} style={activeTool === 'image' ? { background: '#e0e0ff' } : undefined}>Add Image</button>
-            <button onClick={handleSignatureToolbarClick} style={activeTool === 'signature' ? { background: '#e0e0ff' } : undefined}>Add Signature</button>
-          </div>
-          <div className={styles.pdfViewer} style={{ background: '#fff', minHeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
-            {pdfBytes && Array.from({ length: totalPages }, (_, i) => (
-              <PDFCanvasViewer
-                key={i + 1}
-                pdfBytes={pdfBytes}
-                pageNumber={i + 1}
-                onCanvasClick={activeTool ? (x, y, info) => handleCanvasClick(x, y, info, i + 1) : undefined}
-              />
-            ))}
+          <DragDropToolbar 
+            onDragStart={handleDragStart}
+            activeTool={activeTool}
+          />
+
+          <div className={styles.pdfViewer} style={{ 
+            background: '#fff', 
+            padding: '20px',
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0',
+            minHeight: '600px'
+          }}>
+            {pdfBytes ? (
+              Array.from({ length: totalPages }, (_, i) => {
+                const pageNum = i + 1;
+                const pageInfo = pageDimensions[pageNum] || { pageWidth: 600, pageHeight: 800 };
+                
+                console.log(`Rendering page ${pageNum} with dimensions:`, pageInfo);
+                
+                return (
+                  <PDFCanvasViewer
+                    key={`page-${pageNum}`}
+                    pdfBytes={pdfBytes}
+                    pageNumber={pageNum}
+                    onDrop={handleDrop}
+                  >
+                    {/* Render draggable elements for this page */}
+                    {canvasElements
+                      .filter(el => el.page === pageNum)
+                      .map(element => (
+                        <DraggableElement
+                          key={element.id}
+                          element={element}
+                          onUpdate={handleElementUpdate}
+                          onDelete={handleElementDelete}
+                          onImageUpload={handleImageUpload}
+                          onSignatureDraw={handleSignatureDraw}
+                          pageInfo={pageInfo}
+                          scale={1}
+                        />
+                      ))
+                    }
+                  </PDFCanvasViewer>
+                );
+              })
+            ) : (
+              <div style={{ 
+                padding: '60px 20px', 
+                textAlign: 'center', 
+                color: '#666',
+                border: '2px dashed #ccc',
+                borderRadius: '8px'
+              }}>
+                <h3>No PDF Loaded</h3>
+                <p>Create a new document or upload a PDF to get started</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

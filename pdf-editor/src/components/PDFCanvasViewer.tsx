@@ -1,65 +1,298 @@
-import { useEffect, useRef } from 'react';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-import styles from '../styles/PDFCanvasViewer.module.scss';
+'use client';
+import { useEffect, useRef, useState } from 'react';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
   pageNumber: number;
   onCanvasClick?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }) => void;
+  onDrop?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number, type: string) => void;
+  children?: React.ReactNode;
 }
 
-const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, pageNumber }: PDFCanvasViewerProps) => {
+const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children }: PDFCanvasViewerProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pageSizeRef = useRef<{ pageWidth: number; pageHeight: number }>({ pageWidth: 0, pageHeight: 0 });
+  const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pdfjsLib, setPdfjsLib] = useState<any>(null);
+
+  // Load PDF.js library on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Dynamically import PDF.js
+      import('pdfjs-dist').then((pdfjs) => {
+        // Set worker path - use the version that matches your package.json
+        const workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+        pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+        
+        console.log('PDF.js worker configured with:', workerSrc);
+        setPdfjsLib(pdfjs);
+      }).catch((error) => {
+        console.error('Failed to load PDF.js:', error);
+        setError('PDF.js library failed to load');
+      });
+    }
+  }, []);
 
   useEffect(() => {
-    if (!pdfBytes || !canvasRef.current) return;
-    let renderTask: any = null;
-    let cancelled = false;
-    const renderPage = async () => {
-      const clonedBytes = new Uint8Array(pdfBytes);
-      const loadingTask = pdfjsLib.getDocument({ data: clonedBytes });
-      const pdf = await loadingTask.promise;
-      if (pageNumber < 1 || pageNumber > pdf.numPages) return;
-      const page = await pdf.getPage(pageNumber);
-      const maxDisplayWidth = 900;
-      const originalViewport = page.getViewport({ scale: 1 });
-      const scale = maxDisplayWidth / originalViewport.width;
-      const viewport = page.getViewport({ scale: 2.0 });
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const context = canvas.getContext('2d');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      pageSizeRef.current = { pageWidth: viewport.width, pageHeight: viewport.height };
-      renderTask = page.render({ canvasContext: context, viewport });
+    const renderPDF = async () => {
+      if (!pdfBytes || !pdfjsLib || !canvasRef.current) {
+        renderPlaceholder();
+        return;
+      }
+
       try {
-        await renderTask.promise;
-      } catch { }
+        setIsLoading(true);
+        setError(null);
+        
+        console.log('Rendering PDF page', pageNumber, 'with bytes length:', pdfBytes.length);
+        
+        // Create a fresh copy of the ArrayBuffer to prevent detachment issues
+        const pdfBytesCopy = new Uint8Array(pdfBytes);
+        
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
+        const pdf = await loadingTask.promise;
+        
+        console.log(`PDF loaded with ${pdf.numPages} pages`);
+        
+        if (pageNumber < 1 || pageNumber > pdf.numPages) {
+          throw new Error(`Page ${pageNumber} is out of range. Total pages: ${pdf.numPages}`);
+        }
+        
+        const page = await pdf.getPage(pageNumber);
+        const viewport = page.getViewport({ scale: 1.5 });
+        
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if (!context) {
+          throw new Error('Could not get canvas context');
+        }
+        
+        // Set canvas dimensions
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+
+        // Clear canvas
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        
+        setPageSize({ 
+          pageWidth: viewport.width, 
+          pageHeight: viewport.height 
+        });
+        
+        await page.render(renderContext).promise;
+        console.log(`PDF page ${pageNumber} rendered successfully`);
+        setIsLoading(false);
+        
+      } catch (error) {
+        console.error('Error rendering PDF:', error);
+        setError(`Failed to render PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        renderPlaceholder();
+      }
     };
-    renderPage();
-    return () => {
-      cancelled = true;
-      if (renderTask && renderTask.cancel) renderTask.cancel();
+
+    const renderPlaceholder = () => {
+      if (!canvasRef.current) return;
+      
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const width = 600;
+      const height = 800;
+      
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      // Clear canvas
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Draw border
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, width, height);
+      
+      // Draw page content
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      
+      if (pdfBytes) {
+        ctx.fillText(`PDF Page ${pageNumber}`, width / 2, height / 2 - 40);
+        ctx.font = '16px Arial';
+        ctx.fillStyle = '#666';
+        
+        if (error) {
+          ctx.fillStyle = '#ff4444';
+          ctx.fillText('Error loading PDF', width / 2, height / 2);
+          ctx.font = '12px Arial';
+          ctx.fillText(error, width / 2, height / 2 + 30);
+        } else if (isLoading) {
+          ctx.fillText('Loading PDF...', width / 2, height / 2);
+        } else {
+          ctx.fillText('PDF content will appear here', width / 2, height / 2);
+        }
+      } else {
+        ctx.fillText(`PDF Page ${pageNumber}`, width / 2, height / 2 - 40);
+        ctx.font = '16px Arial';
+        ctx.fillStyle = '#666';
+        ctx.fillText('PDF rendering placeholder', width / 2, height / 2);
+        ctx.font = '14px Arial';
+        ctx.fillText('Upload a PDF to see actual content', width / 2, height / 2 + 30);
+      }
+      
+      // Draw a simple document outline
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(50, 100, width - 100, height - 200);
+      
+      ctx.fillStyle = '#999';
+      ctx.font = '12px Arial';
+      ctx.fillText('Document content area', width / 2, 90);
+
+      setPageSize({ pageWidth: width, pageHeight: height });
+      setIsLoading(false);
     };
-  }, [pdfBytes, pageNumber]);
+
+    renderPDF();
+  }, [pdfBytes, pageNumber, pdfjsLib, error]);
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!onDrop || !canvasRef.current) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const type = e.dataTransfer.getData('application/pdf-editor');
+    
+    console.log(`Drop at: ${x}, ${y} on page ${pageNumber}, type: ${type}`);
+    
+    if (type) {
+      onDrop(x, y, pageSize, pageNumber, type);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!onCanvasClick || !canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    onCanvasClick(x, y, pageSizeRef.current);
+    onCanvasClick(x, y, pageSize);
   };
 
+  if (!pdfBytes) {
+    return (
+      <div style={{ 
+        marginBottom: '20px', 
+        padding: '40px',
+        textAlign: 'center',
+        border: '2px dashed #ccc',
+        borderRadius: '8px',
+        background: '#f9f9f9'
+      }}>
+        <div>No PDF loaded</div>
+      </div>
+    );
+  }
+
   return (
-    <div className={styles.viewerWrapper}>
-      <canvas
-        ref={canvasRef}
-        className={styles.pdfCanvas}
-        onClick={handleCanvasClick}
-      />
+    <div style={{ 
+      marginBottom: '20px', 
+      position: 'relative',
+      border: '1px solid #e0e0e0',
+      borderRadius: '8px',
+      padding: '10px',
+      background: '#fafafa'
+    }}>
+      <div 
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        style={{ 
+          position: 'relative', 
+          display: 'inline-block'
+        }}
+      >
+        {isLoading && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '10px 20px',
+            background: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            borderRadius: '4px',
+            zIndex: 5
+          }}>
+            Loading page {pageNumber}...
+          </div>
+        )}
+        
+        {error && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '10px 20px',
+            background: '#ff4444',
+            color: 'white',
+            borderRadius: '4px',
+            textAlign: 'center',
+            zIndex: 5,
+            maxWidth: '300px'
+          }}>
+            {error}
+          </div>
+        )}
+        
+        <canvas
+          ref={canvasRef}
+          onClick={handleCanvasClick}
+          style={{ 
+            display: 'block', 
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            background: 'white',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'crosshair'
+          }}
+        />
+        {children}
+      </div>
+      <div style={{ 
+        textAlign: 'center', 
+        marginTop: '8px', 
+        fontSize: '14px', 
+        color: '#666',
+        fontWeight: 'bold'
+      }}>
+        Page {pageNumber}
+        {pageSize.pageWidth > 0 && (
+          <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
+            ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
+          </span>
+        )}
+      </div>
     </div>
   );
 };
