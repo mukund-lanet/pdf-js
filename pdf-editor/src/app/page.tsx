@@ -1,6 +1,5 @@
 'use client';
 import PdfEditor from "@/components/PdfEditor";
-import styles from "./Home.module.scss";
 
 import setupLocatorUI from "@locator/runtime";
 
@@ -10,8 +9,6 @@ if (process.env.NODE_ENV === "development") {
 
 export default function Home() {
   return (
-    <main className={styles.container}>
       <PdfEditor />
-    </main>
   );
 }

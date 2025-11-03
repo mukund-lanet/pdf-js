@@ -1,12 +1,12 @@
 'use client';
 import { useState, useRef, useCallback } from 'react';
-import styles from '../styles/PdfEditor.module.scss';
+import styles from '../app/pdfEditor.module.scss';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import SignaturePad from './SignaturePad';
 import PDFCanvasViewer from './PDFCanvasViewer';
 import DragDropToolbar from './DragDropToolbar';
 import DraggableElement from './DraggableElement';
-import { CanvasElement, TextElement, ImageElement, SignatureElement } from '../types';
+import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
 
 interface PageDimension {
   pageWidth: number;
@@ -276,7 +276,7 @@ const PdfEditor = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.pdfEditorContainer}>
       {isSignaturePadOpen && (
         <SignaturePad
           onSave={handleSaveSignature}
@@ -292,7 +292,7 @@ const PdfEditor = () => {
           accept="application/pdf"
           ref={uploadInputRef}
           onChange={handleFileUpload}
-          style={{ display: 'none' }}
+          className={styles.input}
         />
         <button className={styles.button} onClick={openFileUpload}>
           Upload PDF
@@ -301,10 +301,10 @@ const PdfEditor = () => {
           Export PDF
         </button>
       </div>
-      <div className={styles.main}>
+      <div className={styles.mainContainer}>
         <div className={styles.previewPanel}>
           <h2>Preview</h2>
-          <div style={{ padding: '10px', background: '#f5f5f5', borderRadius: '4px' }}>
+          <div className={styles.previewTexts} >
             <p>Total Pages: {totalPages}</p>
             <p>Elements: {canvasElements.length}</p>
             <p>PDF Loaded: {pdfBytes ? 'Yes' : 'No'}</p>
@@ -316,20 +316,12 @@ const PdfEditor = () => {
             activeTool={activeTool}
           />
 
-          <div className={styles.pdfViewer} style={{ 
-            background: '#fff', 
-            padding: '20px',
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0',
-            minHeight: '600px'
-          }}>
+          <div className={styles.pdfViewer}>
             {pdfBytes ? (
               Array.from({ length: totalPages }, (_, i) => {
                 const pageNum = i + 1;
                 const pageInfo = pageDimensions[pageNum] || { pageWidth: 600, pageHeight: 800 };
-                
-                // console.log(`Rendering page ${pageNum} with dimensions:`, pageInfo);
-                
+                                
                 return (
                   <PDFCanvasViewer
                     key={`page-${pageNum}`}
@@ -357,13 +349,7 @@ const PdfEditor = () => {
                 );
               })
             ) : (
-              <div style={{ 
-                padding: '60px 20px', 
-                textAlign: 'center', 
-                color: '#666',
-                border: '2px dashed #ccc',
-                borderRadius: '8px'
-              }}>
+              <div className={styles.noPdfLoaded} >
                 <h3>No PDF Loaded</h3>
                 <p>Create a new document or upload a PDF to get started</p>
               </div>

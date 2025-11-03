@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { CanvasElement, TextElement, ImageElement, SignatureElement } from '../types';
-import styles from '../styles/DraggableElement.module.scss'
+import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+import styles from '../app/pdfEditor.module.scss';
 
 interface DraggableElementProps {
   element: CanvasElement;
@@ -241,7 +241,7 @@ const DraggableElement = ({
         }
         return (
           <div 
-            className={`${styles.renderContentDiv} ${isDragging ? styles.dragging : ''}`}
+            className={`${styles.renderTextOverley} ${isDragging ? styles.dragging : ''}`}
             onDoubleClick={() => setIsEditing(true)}
           >
             {element.content || 'Double click to edit text'}
@@ -274,13 +274,9 @@ const DraggableElement = ({
                 draggable={true}
               />
             ) : (
-              <div style={{ 
-                textAlign: 'center', 
-                color: '#666',
-                padding: '10px'
-              }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>📷</div>
-                <div style={{ fontSize: '12px' }}>Click to upload image</div>
+              <div className={styles.renderImageOverley} >
+                <div className={styles.contentPic} >📷</div>
+                <div className={styles.label} >Click to upload image</div>
               </div>
             )}
           </div>
@@ -288,37 +284,19 @@ const DraggableElement = ({
 
       case 'signature':
         return (
-          <div style={{ 
-            width: '100%', 
-            height: '100%', 
-            position: 'relative',
-            border: element.imageData ? 'none' : '2px dashed #ccc',
-            background: element.imageData ? 'transparent' : '#f9f9f9',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: isDragging ? 'grabbing' : 'move',
-            userSelect: 'none'
-          }}>
+          <div 
+            className={`${styles.renderContentSignature} ${isDragging ? styles.dragging : ''} ${element.imageData ? styles.hasImage : ''} `} >
             {element.imageData ? (
               <img 
                 src={element.imageData} 
                 alt="Signature" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'contain' 
-                }}
+                className={styles.imageContainer}
                 draggable={false}
               />
             ) : (
-              <div style={{ 
-                textAlign: 'center', 
-                color: '#666',
-                padding: '10px'
-              }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>✍️</div>
-                <div style={{ fontSize: '12px' }}>Click to sign</div>
+              <div className={styles.renderImageOverley} >
+                <div className={styles.signImg} >✍️</div>
+                <div className={styles.label} >Click to sign</div>
               </div>
             )}
           </div>
@@ -387,26 +365,7 @@ const DraggableElement = ({
 
       {showDeleteButton && !isEditing && !isDragging && !isResizing && (
         <button 
-          style={{
-            position: 'absolute',
-            top: '-15px',
-            right: '-15px',
-            width: '24px',
-            height: '24px',
-            background: '#ff4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            zIndex: 102,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            lineHeight: 1
-          }}
+          className={styles.deleteButtonBadge}
           onClick={handleDelete}
           onMouseDown={(e) => e.stopPropagation()}
         >

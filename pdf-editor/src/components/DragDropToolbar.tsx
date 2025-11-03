@@ -1,5 +1,5 @@
 'use client';
-import styles from '../styles/DragDropToolbar.module.scss';
+import styles from '../app/pdfEditor.module.scss';
 
 interface DragDropToolbarProps {
   onDragStart: (type: 'text' | 'image' | 'signature') => void;
@@ -13,7 +13,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
   };
 
   return (
-    <div className={styles.toolbar}>
+    <div className={styles.dragDropToolbar}>
       <div 
         className={`${styles.toolbarItem} ${activeTool === 'text' ? styles.active : ''}`}
         draggable

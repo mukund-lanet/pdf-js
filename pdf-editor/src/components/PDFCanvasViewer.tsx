@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import styles from '../app/pdfEditor.module.scss';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
@@ -196,66 +197,27 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
 
   if (!pdfBytes) {
     return (
-      <div style={{ 
-        marginBottom: '20px', 
-        padding: '40px',
-        textAlign: 'center',
-        border: '2px dashed #ccc',
-        borderRadius: '8px',
-        background: '#f9f9f9'
-      }}>
+      <div className={styles.noPdfLoaded} >
         <div>No PDF loaded</div>
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      marginBottom: '20px', 
-      position: 'relative',
-      border: '1px solid #e0e0e0',
-      borderRadius: '8px',
-      padding: '10px',
-      background: '#fafafa'
-    }}>
+    <div className={styles.pdfCanvasViewer} >
       <div 
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        style={{ 
-          position: 'relative', 
-          display: 'inline-block'
-        }}
+        className={styles.canvasContainer}
       >
         {isLoading && (
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            padding: '10px 20px',
-            background: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            borderRadius: '4px',
-            zIndex: 5
-          }}>
+          <div className={styles.loadingDiv}>
             Loading page {pageNumber}...
           </div>
         )}
         
         {error && (
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            padding: '10px 20px',
-            background: '#ff4444',
-            color: 'white',
-            borderRadius: '4px',
-            textAlign: 'center',
-            zIndex: 5,
-            maxWidth: '300px'
-          }}>
+          <div className={styles.errorDiv} >
             {error}
           </div>
         )}
@@ -263,24 +225,11 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
         <canvas
           ref={canvasRef}
           onClick={handleCanvasClick}
-          style={{ 
-            display: 'block', 
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            background: 'white',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            // cursor: 'crosshair'
-          }}
+          className={styles.canvasWrapper}
         />
         {children}
       </div>
-      <div style={{ 
-        textAlign: 'center', 
-        marginTop: '8px', 
-        fontSize: '14px', 
-        color: '#666',
-        fontWeight: 'bold'
-      }}>
+      <div className={styles.pagesDiv} >
         Page {pageNumber}
         {pageSize.pageWidth > 0 && (
           <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
