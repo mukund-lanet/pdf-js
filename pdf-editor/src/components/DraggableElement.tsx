@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+import { CanvasElement, TextElement, ImageElement, SignatureElement } from '../types';
+import styles from '../styles/DraggableElement.module.scss'
 
 interface DraggableElementProps {
   element: CanvasElement;
@@ -65,7 +66,7 @@ const DraggableElement = ({
     }
   };
 
-  // Fixed drag handling
+  // drag handling
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isEditing || isResizing) return;
     
@@ -75,11 +76,10 @@ const DraggableElement = ({
     
     const startX = e.clientX;
     const startY = e.clientY;
-    const startPosX = position.x;
-    const startPosY = position.y;
+    const startPosX = elementRef.current ? parseInt(elementRef.current.style.left, 10) : position.x;
+    const startPosY = elementRef.current ? parseInt(elementRef.current.style.top, 10) : position.y;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isDragging) return;
       
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
@@ -88,16 +88,22 @@ const DraggableElement = ({
       const newX = Math.max(0, Math.min(startPosX + deltaX, pageInfo.pageWidth - size.width));
       const newY = Math.max(0, Math.min(startPosY + deltaY, pageInfo.pageHeight - size.height));
       
-      // Update element position immediately
-      onUpdate({
-        ...element,
-        x: newX,
-        y: newY
-      });
+      // Update element position
+      if (elementRef.current) {
+        elementRef.current.style.left = `${newX}px`;
+        elementRef.current.style.top = `${newY}px`;
+      }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      if (elementRef.current) {
+        onUpdate({
+          ...element,
+          x: parseInt(elementRef.current.style.left, 10),
+          y: parseInt(elementRef.current.style.top, 10)
+        });
+      }
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -106,11 +112,11 @@ const DraggableElement = ({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Fixed resize handling
+  // resize handling
   const startResize = (corner: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsResizing(true);
+    setIsResizing(true);  
     
     const startX = e.clientX;
     const startY = e.clientY;
@@ -120,7 +126,6 @@ const DraggableElement = ({
     const startYPos = element.y;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isResizing) return;
       
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
@@ -165,18 +170,26 @@ const DraggableElement = ({
       newX = Math.max(0, Math.min(newX, pageInfo.pageWidth - newWidth));
       newY = Math.max(0, Math.min(newY, pageInfo.pageHeight - newHeight));
 
-      // Update element immediately
-      onUpdate({
-        ...element,
-        x: newX,
-        y: newY,
-        width: newWidth,
-        height: newHeight
-      });
+      // Update element
+      if (elementRef.current) {
+        elementRef.current.style.left = `${newX}px`;
+        elementRef.current.style.top = `${newY}px`;
+        elementRef.current.style.width = `${newWidth}px`;
+        elementRef.current.style.height = `${newHeight}px`;
+      }
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
+      if (elementRef.current) {
+        onUpdate({
+          ...element,
+          x: parseInt(elementRef.current.style.left, 10),
+          y: parseInt(elementRef.current.style.top, 10),
+          width: parseInt(elementRef.current.style.width, 10),
+          height: parseInt(elementRef.current.style.height, 10),
+        });
+      }
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -188,7 +201,6 @@ const DraggableElement = ({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Deleting element:', element.id);
     onDelete(element.id);
   };
 
@@ -223,36 +235,13 @@ const DraggableElement = ({
               onChange={handleTextChange}
               onBlur={handleTextBlur}
               onKeyDown={handleTextKeyDown}
-              style={{
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                outline: '2px solid #007bff',
-                resize: 'none',
-                background: 'white',
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '14px',
-                padding: '4px',
-                boxSizing: 'border-box'
-              }}
+              className={styles.renderContentTextArea}
             />
           );
         }
         return (
           <div 
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              padding: '4px', 
-              wordWrap: 'break-word', 
-              overflow: 'hidden',
-              cursor: isDragging ? 'grabbing' : 'move',
-              boxSizing: 'border-box',
-              userSelect: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+            className={`${styles.renderContentDiv} ${isDragging ? styles.dragging : ''}`}
             onDoubleClick={() => setIsEditing(true)}
           >
             {element.content || 'Double click to edit text'}
@@ -282,7 +271,7 @@ const DraggableElement = ({
                   height: '100%', 
                   objectFit: 'contain' 
                 }}
-                draggable={false}
+                draggable={true}
               />
             ) : (
               <div style={{ 
@@ -375,7 +364,6 @@ const DraggableElement = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Resize handles - always show when not editing */}
       {!isEditing && (
         <>
           <div 
@@ -397,7 +385,6 @@ const DraggableElement = ({
         </>
       )}
 
-      {/* Delete button - show on hover */}
       {showDeleteButton && !isEditing && !isDragging && !isResizing && (
         <button 
           style={{
@@ -427,7 +414,6 @@ const DraggableElement = ({
         </button>
       )}
 
-      {/* Element content */}
       {renderContent()}
     </div>
   );

@@ -6,7 +6,7 @@ import SignaturePad from './SignaturePad';
 import PDFCanvasViewer from './PDFCanvasViewer';
 import DragDropToolbar from './DragDropToolbar';
 import DraggableElement from './DraggableElement';
-import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+import { CanvasElement, TextElement, ImageElement, SignatureElement } from '../types';
 
 interface PageDimension {
   pageWidth: number;
@@ -45,15 +45,12 @@ const PdfEditor = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    try {
-      console.log('Loading PDF file:', file.name, file.size);
-      
+    try {      
       const arrayBuffer = await file.arrayBuffer();
       
       // Validate PDF header
       const header = new Uint8Array(arrayBuffer, 0, 5);
       const headerStr = String.fromCharCode(...header);
-      console.log('PDF header:', headerStr);
       
       if (!headerStr.includes('%PDF')) {
         throw new Error('Invalid PDF file: No PDF header found');
@@ -62,7 +59,6 @@ const PdfEditor = () => {
       // Load with pdf-lib to get page info
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const pageCount = pdfDoc.getPageCount();
-      console.log('PDF loaded with pages:', pageCount);
       
       // Get dimensions of all pages
       const dimensions: { [key: number]: PageDimension } = {};
@@ -70,7 +66,6 @@ const PdfEditor = () => {
         const page = pdfDoc.getPages()[i];
         const { width, height } = page.getSize();
         dimensions[i + 1] = { pageWidth: width, pageHeight: height };
-        console.log(`Page ${i + 1}: ${width} x ${height}`);
       }
       
       setTotalPages(pageCount);
@@ -79,7 +74,6 @@ const PdfEditor = () => {
       setCanvasElements([]);
       setPageDimensions(dimensions);
       
-      console.log('PDF successfully loaded');
     } catch (error) {
       console.error('Error loading PDF:', error);
       alert('Failed to load PDF. Please make sure it is a valid PDF file.');
@@ -94,8 +88,6 @@ const PdfEditor = () => {
 
   const handleDrop = useCallback((x: number, y: number, info: PageDimension, pageNumber: number, type: string) => {
     const elementType = type as 'text' | 'image' | 'signature';
-    
-    console.log(`Dropping ${elementType} at ${x}, ${y} on page ${pageNumber}`);
 
     // Update page dimensions
     setPageDimensions(prev => ({
@@ -128,11 +120,11 @@ const PdfEditor = () => {
         const imageElement: ImageElement = {
           type: 'image',
           id: generateId(),
-          x: x - defaultSize.image.width / 2, // Center the element on drop point
+          x: x - defaultSize.image.width / 2,
           y: y - defaultSize.image.height / 2,
           width: defaultSize.image.width,
           height: defaultSize.image.height,
-          imageData: '', // Empty initially - user will upload
+          imageData: '', 
           page: pageNumber
         };
         setCanvasElements(prev => [...prev, imageElement]);
@@ -142,11 +134,11 @@ const PdfEditor = () => {
         const signatureElement: SignatureElement = {
           type: 'signature',
           id: generateId(),
-          x: x - defaultSize.signature.width / 2, // Center the element on drop point
+          x: x - defaultSize.signature.width / 2, 
           y: y - defaultSize.signature.height / 2,
           width: defaultSize.signature.width,
           height: defaultSize.signature.height,
-          imageData: '', // Empty initially - user will draw
+          imageData: '', 
           page: pageNumber
         };
         setCanvasElements(prev => [...prev, signatureElement]);
@@ -156,19 +148,18 @@ const PdfEditor = () => {
     setActiveTool(null);
   }, []);
 
-  const handleElementUpdate = (updatedElement: CanvasElement) => {
-    console.log('Updating element:', updatedElement);
+  const handleElementUpdate = useCallback((updatedElement: CanvasElement) => {
     setCanvasElements(prev => 
       prev.map(el => el.id === updatedElement.id ? updatedElement : el)
     );
-  };
+  }, []);
 
-  const handleElementDelete = (id: string) => {
+  const handleElementDelete = useCallback((id: string) => {
     console.log('Deleting element:', id);
     setCanvasElements(prev => prev.filter(el => el.id !== id));
-  };
+  }, []);
 
-  const handleImageUpload = (elementId: string) => {
+  const handleImageUpload = useCallback((elementId: string) => {
     console.log('Image upload for element:', elementId);
     const input = document.createElement('input');
     input.type = 'file';
@@ -191,13 +182,13 @@ const PdfEditor = () => {
       }
     };
     input.click();
-  };
+  }, []);
 
-  const handleSignatureDraw = (elementId: string) => {
+  const handleSignatureDraw = useCallback((elementId: string) => {
     console.log('Signature draw for element:', elementId);
     setSignatureForElement(elementId);
     setIsSignaturePadOpen(true);
-  };
+  }, []);
 
   const handleSaveSignature = (signature: string) => {
     setIsSignaturePadOpen(false);
@@ -337,7 +328,7 @@ const PdfEditor = () => {
                 const pageNum = i + 1;
                 const pageInfo = pageDimensions[pageNum] || { pageWidth: 600, pageHeight: 800 };
                 
-                console.log(`Rendering page ${pageNum} with dimensions:`, pageInfo);
+                // console.log(`Rendering page ${pageNum} with dimensions:`, pageInfo);
                 
                 return (
                   <PDFCanvasViewer

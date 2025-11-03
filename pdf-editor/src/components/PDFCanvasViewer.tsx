@@ -44,17 +44,13 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
       try {
         setIsLoading(true);
         setError(null);
-        
-        console.log('Rendering PDF page', pageNumber, 'with bytes length:', pdfBytes.length);
-        
+                
         // Create a fresh copy of the ArrayBuffer to prevent detachment issues
         const pdfBytesCopy = new Uint8Array(pdfBytes);
         
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
-        
-        console.log(`PDF loaded with ${pdf.numPages} pages`);
-        
+                
         if (pageNumber < 1 || pageNumber > pdf.numPages) {
           throw new Error(`Page ${pageNumber} is out of range. Total pages: ${pdf.numPages}`);
         }
@@ -89,7 +85,6 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
         });
         
         await page.render(renderContext).promise;
-        console.log(`PDF page ${pageNumber} rendered successfully`);
         setIsLoading(false);
         
       } catch (error) {
@@ -274,7 +269,7 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
             borderRadius: '4px',
             background: 'white',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            cursor: 'crosshair'
+            // cursor: 'crosshair'
           }}
         />
         {children}
