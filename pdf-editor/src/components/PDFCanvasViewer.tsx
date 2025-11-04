@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import styles from '../app/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
@@ -232,7 +232,7 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
       <div className={styles.pagesDiv} >
         Page {pageNumber}
         {pageSize.pageWidth > 0 && (
-          <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
+          <span className={styles.pageSpan} >
             ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
           </span>
         )}

@@ -7,6 +7,8 @@ export interface TextElement {
   height: number;
   content: string;
   page: number;
+  fontSize?: number;
+  color?: string;
 }
 
 export interface ImageElement {

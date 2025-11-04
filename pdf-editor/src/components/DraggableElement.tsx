@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
-import styles from '../app/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 
 interface DraggableElementProps {
   element: CanvasElement;

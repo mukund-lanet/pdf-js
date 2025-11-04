@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useCallback } from 'react';
-import styles from '../app/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import SignaturePad from './SignaturePad';
 import PDFCanvasViewer from './PDFCanvasViewer';
@@ -25,7 +25,7 @@ const PdfEditor = () => {
   const [pageDimensions, setPageDimensions] = useState<{ [key: number]: PageDimension }>({});
 
   // Generate unique ID
-  const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
   const createNewPdf = async () => {
     try {
@@ -106,12 +106,14 @@ const PdfEditor = () => {
         const textElement: TextElement = {
           type: 'text',
           id: generateId(),
-          x: x,
-          y: y, // Use direct Y coordinate (not inverted)
+          x: x - defaultSize.text.width / 2, // Center the element
+          y: y - defaultSize.text.height / 2,
           width: defaultSize.text.width,
           height: defaultSize.text.height,
           content: 'Double click to edit text',
-          page: pageNumber
+          page: pageNumber,
+          fontSize: 12,
+          color: '#000000'
         };
         setCanvasElements(prev => [...prev, textElement]);
         break;
@@ -134,7 +136,7 @@ const PdfEditor = () => {
         const signatureElement: SignatureElement = {
           type: 'signature',
           id: generateId(),
-          x: x - defaultSize.signature.width / 2, 
+          x: x - defaultSize.signature.width / 2,
           y: y - defaultSize.signature.height / 2,
           width: defaultSize.signature.width,
           height: defaultSize.signature.height,
@@ -213,8 +215,10 @@ const PdfEditor = () => {
   const exportPdf = async () => {
     if (!pdfBytes) return;
     
+    console.log('Starting PDF export...');
+    console.log('Elements to export:', canvasElements);
+    
     try {
-      // Create a fresh copy to avoid detached ArrayBuffer
       const pdfBytesCopy = new Uint8Array(pdfBytes);
       const pdfDoc = await PDFDocument.load(pdfBytesCopy);
       
@@ -225,35 +229,52 @@ const PdfEditor = () => {
         
         if (!pageInfo) continue;
 
+        // Convert coordinates from top-left to bottom-left origin
+        const pdfY = pageInfo.pageHeight - element.y - element.height;
+
         if (element.type === 'text') {
           const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          
           page.drawText(element.content, {
             x: element.x,
-            y: pageInfo.pageHeight - element.y - element.height, // Invert Y for PDF coordinate system
+            y: pdfY, // Use converted Y coordinate
             font: helveticaFont,
             size: 12,
             color: rgb(0, 0, 0),
             maxWidth: element.width,
+            lineHeight: 12,
           });
         } else if ((element.type === 'image' || element.type === 'signature') && element.imageData) {
-          const b64 = element.imageData.split(',')[1];
-          const binStr = atob(b64);
-          const uint8 = new Uint8Array(binStr.length);
-          for (let i = 0; i < binStr.length; i++) uint8[i] = binStr.charCodeAt(i);
-          
-          let image;
-          if (element.imageData.startsWith('data:image/jpeg')) {
-            image = await pdfDoc.embedJpg(uint8);
-          } else {
-            image = await pdfDoc.embedPng(uint8);
+          try {
+            const imageData = element.imageData.split(',')[1];
+            const imageBytes = Uint8Array.from(atob(imageData), c => c.charCodeAt(0));
+            
+            let image;
+            if (element.imageData.startsWith('data:image/jpeg')) {
+              image = await pdfDoc.embedJpg(imageBytes);
+            } else {
+              image = await pdfDoc.embedPng(imageBytes);
+            }
+            
+            page.drawImage(image, {
+              x: element.x,
+              y: pdfY, // Use converted Y coordinate
+              width: element.width,
+              height: element.height,
+            });
+          } catch (imageError) {
+            console.error('Error embedding image:', imageError);
+            // Fallback: draw a placeholder rectangle
+            page.drawRectangle({
+              x: element.x,
+              y: pdfY,
+              width: element.width,
+              height: element.height,
+              color: rgb(0.9, 0.9, 0.9),
+              borderColor: rgb(0, 0, 0),
+              borderWidth: 1,
+            });
           }
-          
-          page.drawImage(image, {
-            x: element.x,
-            y: pageInfo.pageHeight - element.y - element.height, // Invert Y for PDF coordinate system
-            width: element.width,
-            height: element.height,
-          });
         }
       }
       
@@ -269,8 +290,16 @@ const PdfEditor = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      console.log('PDF export completed successfully');
+
     } catch (error) {
       console.error('Error exporting PDF:', error);
+      console.error('Error details:', {
+        pdfBytesLength: pdfBytes?.length,
+        canvasElementsCount: canvasElements.length,
+        pageDimensions
+      });
       alert('Error exporting PDF. Please try again.');
     }
   };
@@ -315,45 +344,46 @@ const PdfEditor = () => {
             onDragStart={handleDragStart}
             activeTool={activeTool}
           />
-
-          <div className={styles.pdfViewer}>
-            {pdfBytes ? (
-              Array.from({ length: totalPages }, (_, i) => {
-                const pageNum = i + 1;
-                const pageInfo = pageDimensions[pageNum] || { pageWidth: 600, pageHeight: 800 };
-                                
-                return (
-                  <PDFCanvasViewer
-                    key={`page-${pageNum}`}
-                    pdfBytes={pdfBytes}
-                    pageNumber={pageNum}
-                    onDrop={handleDrop}
-                  >
-                    {/* Render draggable elements for this page */}
-                    {canvasElements
-                      .filter(el => el.page === pageNum)
-                      .map(element => (
-                        <DraggableElement
-                          key={element.id}
-                          element={element}
-                          onUpdate={handleElementUpdate}
-                          onDelete={handleElementDelete}
-                          onImageUpload={handleImageUpload}
-                          onSignatureDraw={handleSignatureDraw}
-                          pageInfo={pageInfo}
-                          scale={1}
-                        />
-                      ))
-                    }
-                  </PDFCanvasViewer>
-                );
-              })
-            ) : (
-              <div className={styles.noPdfLoaded} >
-                <h3>No PDF Loaded</h3>
-                <p>Create a new document or upload a PDF to get started</p>
-              </div>
-            )}
+          <div className={styles.pdfViderWrapper} >
+            <div className={` ${pdfBytes ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
+              {pdfBytes ? (
+                Array.from({ length: totalPages }, (_, i) => {
+                  const pageNum = i + 1;
+                  const pageInfo = pageDimensions[pageNum] || { pageWidth: 600, pageHeight: 800 };
+                                  
+                  return (
+                    <PDFCanvasViewer
+                      key={`page-${pageNum}`}
+                      pdfBytes={pdfBytes}
+                      pageNumber={pageNum}
+                      onDrop={handleDrop}
+                    >
+                      {/* Render draggable elements for this page */}
+                      {canvasElements
+                        .filter(el => el.page === pageNum)
+                        .map(element => (
+                          <DraggableElement
+                            key={element.id}
+                            element={element}
+                            onUpdate={handleElementUpdate}
+                            onDelete={handleElementDelete}
+                            onImageUpload={handleImageUpload}
+                            onSignatureDraw={handleSignatureDraw}
+                            pageInfo={pageInfo}
+                            scale={1}
+                          />
+                        ))
+                      }
+                    </PDFCanvasViewer>
+                  );
+                })
+              ) : (
+                <div className={styles.noPdfLoaded} >
+                  <h3>No PDF Loaded</h3>
+                  <p>Create a new document or upload a PDF to get started</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

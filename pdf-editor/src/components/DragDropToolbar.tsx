@@ -1,5 +1,5 @@
 'use client';
-import styles from '../app/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 
 interface DragDropToolbarProps {
   onDragStart: (type: 'text' | 'image' | 'signature') => void;

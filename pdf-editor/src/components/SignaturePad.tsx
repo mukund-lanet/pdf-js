@@ -1,7 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import styles from '../app/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 
 interface SignaturePadProps {
   onSave: (signature: string) => void;
