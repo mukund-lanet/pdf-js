@@ -227,26 +227,67 @@ const PdfEditor = () => {
         const page = pdfDoc.getPages()[element.page - 1];
         const pageInfo = pageDimensions[element.page];
         
-        if (!pageInfo) continue;
+        if (!pageInfo) {
+          console.warn(`No page dimensions found for page ${element.page}`);
+          continue;
+        }
 
-        // Convert coordinates from top-left to bottom-left origin
-        const pdfY = pageInfo.pageHeight - element.y - element.height;
+        // Get actual PDF page dimensions
+        const pdfPageSize = page.getSize();
+        const pdfPageWidth = pdfPageSize.width;
+        const pdfPageHeight = pdfPageSize.height;
+
+        // Calculate scaling factors between canvas and actual PDF
+        const scaleX = pdfPageWidth / pageInfo.pageWidth;
+        const scaleY = pdfPageHeight / pageInfo.pageHeight;
+
+        // Convert coordinates from canvas space to PDF space
+        const pdfX = element.x * scaleX;
+        const pdfY = pdfPageHeight - (element.y * scaleY) - (element.height * scaleY);
+        
+        // Validate element bounds
+        const elementRight = pdfX + (element.width * scaleX);
+        const elementBottom = pdfY + (element.height * scaleY);
+        
+        // Skip elements that are completely outside the page
+        if (pdfX >= pdfPageWidth || pdfY >= pdfPageHeight || elementRight <= 0 || elementBottom <= 0) {
+          console.warn(`Element ${element.id} is outside page bounds, skipping`);
+          continue;
+        }
+
+        // Clamp element to page bounds
+        const clampedX = Math.max(0, Math.min(pdfX, pdfPageWidth - 10));
+        const clampedY = Math.max(0, Math.min(pdfY, pdfPageHeight - 10));
+        const clampedWidth = Math.min(element.width * scaleX, pdfPageWidth - clampedX);
+        const clampedHeight = Math.min(element.height * scaleY, pdfPageHeight - clampedY);
 
         if (element.type === 'text') {
           const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          const textElement = element as TextElement;
           
-          page.drawText(element.content, {
-            x: element.x,
-            y: pdfY, // Use converted Y coordinate
+          // Calculate font size scaling
+          const baseFontSize = textElement.fontSize || 12;
+          const scaledFontSize = baseFontSize * Math.min(scaleX, scaleY);
+          
+          page.drawText(textElement.content, {
+            x: clampedX,
+            y: clampedY,
             font: helveticaFont,
-            size: 12,
+            size: scaledFontSize,
             color: rgb(0, 0, 0),
-            maxWidth: element.width,
-            lineHeight: 12,
+            maxWidth: clampedWidth,
+            lineHeight: scaledFontSize,
           });
+          
+          console.log(`Text element placed at: ${clampedX}, ${clampedY} with size ${scaledFontSize}`);
+
         } else if ((element.type === 'image' || element.type === 'signature') && element.imageData) {
           try {
             const imageData = element.imageData.split(',')[1];
+            if (!imageData) {
+              throw new Error('Invalid image data format');
+            }
+            
             const imageBytes = Uint8Array.from(atob(imageData), c => c.charCodeAt(0));
             
             let image;
@@ -256,20 +297,40 @@ const PdfEditor = () => {
               image = await pdfDoc.embedPng(imageBytes);
             }
             
+            const imageDims = image.scale(1);
+            const aspectRatio = imageDims.width / imageDims.height;
+            
+            // Calculate final dimensions maintaining aspect ratio
+            let finalWidth = clampedWidth;
+            let finalHeight = clampedHeight;
+            
+            if (finalWidth / finalHeight > aspectRatio) {
+              finalWidth = finalHeight * aspectRatio;
+            } else {
+              finalHeight = finalWidth / aspectRatio;
+            }
+            
+            // Ensure final dimensions don't exceed available space
+            finalWidth = Math.min(finalWidth, clampedWidth);
+            finalHeight = Math.min(finalHeight, clampedHeight);
+            
             page.drawImage(image, {
-              x: element.x,
-              y: pdfY, // Use converted Y coordinate
-              width: element.width,
-              height: element.height,
+              x: clampedX,
+              y: clampedY,
+              width: finalWidth,
+              height: finalHeight,
             });
+            
+            console.log(`Image element placed at: ${clampedX}, ${clampedY} with size ${finalWidth}x${finalHeight}`);
+
           } catch (imageError) {
             console.error('Error embedding image:', imageError);
             // Fallback: draw a placeholder rectangle
             page.drawRectangle({
-              x: element.x,
-              y: pdfY,
-              width: element.width,
-              height: element.height,
+              x: clampedX,
+              y: clampedY,
+              width: clampedWidth,
+              height: clampedHeight,
               color: rgb(0.9, 0.9, 0.9),
               borderColor: rgb(0, 0, 0),
               borderWidth: 1,
@@ -313,7 +374,7 @@ const PdfEditor = () => {
         />
       )}
       <div className={styles.header}>
-        <button className={styles.button} onClick={createNewPdf}>
+        <button className={styles.toolbarItem} onClick={createNewPdf}>
           New Document
         </button>
         <input
@@ -321,14 +382,18 @@ const PdfEditor = () => {
           accept="application/pdf"
           ref={uploadInputRef}
           onChange={handleFileUpload}
-          className={styles.input}
+          className={styles.toolbarItem}
         />
-        <button className={styles.button} onClick={openFileUpload}>
+        <button className={styles.toolbarItem} onClick={openFileUpload}>
           Upload PDF
         </button>
-        <button className={styles.button} onClick={exportPdf} disabled={!pdfBytes}>
+        <button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
           Export PDF
         </button>
+        <DragDropToolbar 
+          onDragStart={handleDragStart}
+          activeTool={activeTool}
+        />
       </div>
       <div className={styles.mainContainer}>
         <div className={styles.previewPanel}>
@@ -340,10 +405,6 @@ const PdfEditor = () => {
           </div>
         </div>
         <div className={styles.editorPanel}>
-          <DragDropToolbar 
-            onDragStart={handleDragStart}
-            activeTool={activeTool}
-          />
           <div className={styles.pdfViderWrapper} >
             <div className={` ${pdfBytes ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
               {pdfBytes ? (
