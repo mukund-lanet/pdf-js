@@ -1,5 +1,6 @@
 'use client';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 
 interface DragDropToolbarProps {
   onDragStart: (type: 'text' | 'image' | 'signature') => void;
@@ -20,7 +21,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
         onDragStart={(e) => handleDragStart(e, 'text')}
         onClick={() => onDragStart('text')}
       >
-        📝 Text
+        <Typography className={styles.label} >📝 Text</Typography>
       </div>
       
       <div 
@@ -29,7 +30,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
         onDragStart={(e) => handleDragStart(e, 'image')}
         onClick={() => onDragStart('image')}
       >
-        🖼️ Image
+        <Typography className={styles.label} >📷 Image</Typography>
       </div>
       
       <div 
@@ -38,7 +39,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
         onDragStart={(e) => handleDragStart(e, 'signature')}
         onClick={() => onDragStart('signature')}
       >
-        ✍️ Signature
+        <Typography className={styles.label} >✍️ Signature</Typography>
       </div>
     </div>
   );

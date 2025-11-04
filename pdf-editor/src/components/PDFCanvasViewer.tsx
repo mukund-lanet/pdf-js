@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
@@ -198,7 +199,9 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
   if (!pdfBytes) {
     return (
       <div className={styles.noPdfLoaded} >
-        <div>No PDF loaded</div>
+        <Typography>
+          No PDF loaded
+        </Typography>
       </div>
     );
   }
@@ -211,15 +214,15 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
         className={styles.canvasContainer}
       >
         {isLoading && (
-          <div className={styles.loadingDiv}>
+          <Typography className={styles.loadingDiv}>
             Loading page {pageNumber}...
-          </div>
+          </Typography>
         )}
         
         {error && (
-          <div className={styles.errorDiv} >
+          <Typography className={styles.errorDiv} >
             {error}
-          </div>
+          </Typography>
         )}
         
         <canvas
@@ -229,14 +232,14 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
         />
         {children}
       </div>
-      <div className={styles.pagesDiv} >
+      <Typography className={styles.pagesDiv} >
         Page {pageNumber}
         {pageSize.pageWidth > 0 && (
           <span className={styles.pageSpan} >
             ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
           </span>
         )}
-      </div>
+      </Typography>
     </div>
   );
 };

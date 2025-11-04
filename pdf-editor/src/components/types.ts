@@ -1,4 +1,8 @@
 export interface TextElement {
+  textDecoration?: string;
+  textAlign?: string;
+  fontStyle?: string;
+  fontWeight?: string;
   type: 'text';
   id: string;
   x: number;

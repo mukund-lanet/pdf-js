@@ -2,6 +2,8 @@
 import { useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 
 interface SignaturePadProps {
   onSave: (signature: string) => void;
@@ -30,10 +32,16 @@ const SignaturePad = ({ onSave, onClose }: SignaturePadProps) => {
           penColor="black"
           canvasProps={{ className: styles.signatureCanvas }}
         />
-        <div className={styles.buttons}>
-          <button onClick={clear}>Clear</button>
-          <button onClick={save}>Save</button>
-          <button onClick={onClose}>Close</button>
+        <div className={styles.signatureButtonGroup}>
+          <Button className={styles.signatureButton} onClick={clear}>
+            <Typography className={styles.label} >Clear</Typography>
+          </Button>
+          <Button className={styles.signatureButton} onClick={save}>
+            <Typography className={styles.label} >Save</Typography>
+          </Button>
+          <Button className={styles.signatureButton} onClick={onClose}>
+            <Typography className={styles.label} >Close</Typography>
+          </Button>
         </div>
       </div>
     </div>

@@ -6,7 +6,10 @@ import SignaturePad from './SignaturePad';
 import PDFCanvasViewer from './PDFCanvasViewer';
 import DragDropToolbar from './DragDropToolbar';
 import DraggableElement from './DraggableElement';
+import TextPropertiesToolbar from './TextPropertiesToolbar';
 import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 
 interface PageDimension {
   pageWidth: number;
@@ -23,6 +26,7 @@ const PdfEditor = () => {
   const [activeTool, setActiveTool] = useState<null | 'text' | 'image' | 'signature'>(null);
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [pageDimensions, setPageDimensions] = useState<{ [key: number]: PageDimension }>({});
+  const [selectedTextElement, setSelectedTextElement] = useState<TextElement | null>(null);
 
   // Generate unique ID
   const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
@@ -36,6 +40,7 @@ const PdfEditor = () => {
       setPdfBytes(bytes);
       setCanvasElements([]);
       setPageDimensions({ 1: { pageWidth: 600, pageHeight: 800 } });
+      setSelectedTextElement(null);
     } catch (error) {
       console.error('Error creating new PDF:', error);
     }
@@ -73,6 +78,7 @@ const PdfEditor = () => {
       setPdfBytes(new Uint8Array(arrayBuffer));
       setCanvasElements([]);
       setPageDimensions(dimensions);
+      setSelectedTextElement(null);
       
     } catch (error) {
       console.error('Error loading PDF:', error);
@@ -106,14 +112,18 @@ const PdfEditor = () => {
         const textElement: TextElement = {
           type: 'text',
           id: generateId(),
-          x: x - defaultSize.text.width / 2, // Center the element
+          x: x - defaultSize.text.width / 2,
           y: y - defaultSize.text.height / 2,
           width: defaultSize.text.width,
           height: defaultSize.text.height,
           content: 'Double click to edit text',
           page: pageNumber,
           fontSize: 12,
-          color: '#000000'
+          color: '#000000',
+          fontWeight: 'normal',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          textAlign: 'left'
         };
         setCanvasElements(prev => [...prev, textElement]);
         break;
@@ -154,11 +164,29 @@ const PdfEditor = () => {
     setCanvasElements(prev => 
       prev.map(el => el.id === updatedElement.id ? updatedElement : el)
     );
-  }, []);
+    
+    // Update selected text element if it's the one being updated
+    if (selectedTextElement && selectedTextElement.id === updatedElement.id && updatedElement.type === 'text') {
+      setSelectedTextElement(updatedElement as TextElement);
+    }
+  }, [selectedTextElement]);
 
   const handleElementDelete = useCallback((id: string) => {
     console.log('Deleting element:', id);
     setCanvasElements(prev => prev.filter(el => el.id !== id));
+    
+    // Clear selection if deleted element was selected
+    if (selectedTextElement && selectedTextElement.id === id) {
+      setSelectedTextElement(null);
+    }
+  }, [selectedTextElement]);
+
+  const handleElementSelect = useCallback((element: CanvasElement) => {
+    if (element.type === 'text') {
+      setSelectedTextElement(element as TextElement);
+    } else {
+      setSelectedTextElement(null);
+    }
   }, []);
 
   const handleImageUpload = useCallback((elementId: string) => {
@@ -209,6 +237,11 @@ const PdfEditor = () => {
   const handleCancelSignature = () => {
     setIsSignaturePadOpen(false);
     setSignatureForElement(null);
+  };
+
+  const handleCanvasClick = () => {
+    // Deselect text element when clicking on canvas
+    setSelectedTextElement(null);
   };
 
   // Export PDF with all elements
@@ -262,22 +295,60 @@ const PdfEditor = () => {
         const clampedHeight = Math.min(element.height * scaleY, pdfPageHeight - clampedY);
 
         if (element.type === 'text') {
-          const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
           const textElement = element as TextElement;
+          
+          // Select font based on style
+          let font;
+          if (textElement.fontWeight === 'bold' && textElement.fontStyle === 'italic') {
+            font = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique);
+          } else if (textElement.fontWeight === 'bold') {
+            font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+          } else if (textElement.fontStyle === 'italic') {
+            font = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+          } else {
+            font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          }
           
           // Calculate font size scaling
           const baseFontSize = textElement.fontSize || 12;
           const scaledFontSize = baseFontSize * Math.min(scaleX, scaleY);
           
+          // Parse color
+          const color = textElement.color || '#000000';
+          const r = parseInt(color.slice(1, 3), 16) / 255;
+          const g = parseInt(color.slice(3, 5), 16) / 255;
+          const b = parseInt(color.slice(5, 7), 16) / 255;
+          
+          // Handle text alignment
+          let textX = clampedX;
+          const textWidth = font.widthOfTextAtSize(textElement.content, scaledFontSize);
+          
+          if (textElement.textAlign === 'center') {
+            textX = clampedX + (clampedWidth - textWidth) / 2;
+          } else if (textElement.textAlign === 'right') {
+            textX = clampedX + clampedWidth - textWidth;
+          }
+          
           page.drawText(textElement.content, {
-            x: clampedX,
+            x: textX,
             y: clampedY,
-            font: helveticaFont,
+            font: font,
             size: scaledFontSize,
-            color: rgb(0, 0, 0),
+            color: rgb(r, g, b),
             maxWidth: clampedWidth,
             lineHeight: scaledFontSize,
           });
+          
+          // Draw underline if needed
+          if (textElement.textDecoration === 'underline') {
+            const underlineY = clampedY - 2;
+            page.drawLine({
+              start: { x: textX, y: underlineY },
+              end: { x: textX + textWidth, y: underlineY },
+              thickness: 1,
+              color: rgb(r, g, b),
+            });
+          }
           
           console.log(`Text element placed at: ${clampedX}, ${clampedY} with size ${scaledFontSize}`);
 
@@ -366,30 +437,44 @@ const PdfEditor = () => {
   };
 
   return (
-    <div className={styles.pdfEditorContainer}>
+    <div className={styles.pdfEditorContainer} onClick={handleCanvasClick}>
       {isSignaturePadOpen && (
         <SignaturePad
           onSave={handleSaveSignature}
           onClose={handleCancelSignature}
         />
       )}
+      
+      {/* Text Properties Toolbar - Floating at top of editor */}
+      {selectedTextElement && (
+        <div style={{ position: 'relative' }}>
+          <TextPropertiesToolbar
+            element={selectedTextElement}
+            onUpdate={handleElementUpdate}
+            position={{ x: 20, y: 100 }}
+            isEdit={selectedTextElement.type === 'text'}
+          />
+        </div>
+      )}
+      
       <div className={styles.header}>
-        <button className={styles.toolbarItem} onClick={createNewPdf}>
-          New Document
-        </button>
+        <Button className={styles.toolbarItem} onClick={createNewPdf}>
+          <Typography className={styles.label} >New Document</Typography>
+        </Button>
         <input
           type="file"
           accept="application/pdf"
           ref={uploadInputRef}
           onChange={handleFileUpload}
           className={styles.toolbarItem}
+          style={{ display: 'none' }}
         />
-        <button className={styles.toolbarItem} onClick={openFileUpload}>
-          Upload PDF
-        </button>
-        <button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
-          Export PDF
-        </button>
+        <Button className={styles.toolbarItem} onClick={openFileUpload}>
+          <Typography className={styles.label} >Upload PDF</Typography>
+        </Button>
+        <Button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
+          <Typography className={styles.label} >Export PDF</Typography>
+        </Button>
         <DragDropToolbar 
           onDragStart={handleDragStart}
           activeTool={activeTool}
@@ -397,11 +482,13 @@ const PdfEditor = () => {
       </div>
       <div className={styles.mainContainer}>
         <div className={styles.previewPanel}>
-          <h2>Preview</h2>
-          <div className={styles.previewTexts} >
-            <p>Total Pages: {totalPages}</p>
-            <p>Elements: {canvasElements.length}</p>
-            <p>PDF Loaded: {pdfBytes ? 'Yes' : 'No'}</p>
+          <div className={styles.previewWrapper} >
+            <Typography className={styles.previewTitle} >Preview</Typography>
+            <div className={styles.previewTexts} >
+              <Typography className={styles.label} >Total Pages: {pdfBytes ? totalPages : 0}</Typography>
+              <Typography className={styles.label} >Elements: {canvasElements.length}</Typography>
+              <Typography className={styles.label} >PDF Loaded: {pdfBytes ? 'Yes' : 'No'}</Typography>
+            </div>
           </div>
         </div>
         <div className={styles.editorPanel}>
@@ -430,6 +517,7 @@ const PdfEditor = () => {
                             onDelete={handleElementDelete}
                             onImageUpload={handleImageUpload}
                             onSignatureDraw={handleSignatureDraw}
+                            onSelect={handleElementSelect}
                             pageInfo={pageInfo}
                             scale={1}
                           />
@@ -440,8 +528,8 @@ const PdfEditor = () => {
                 })
               ) : (
                 <div className={styles.noPdfLoaded} >
-                  <h3>No PDF Loaded</h3>
-                  <p>Create a new document or upload a PDF to get started</p>
+                  <Typography className={styles.noPdfTitle} >No PDF Loaded</Typography>
+                  <Typography className={styles.noPdfDescription} >Create a new document or upload a PDF to get started</Typography>
                 </div>
               )}
             </div>

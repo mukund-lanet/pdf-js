@@ -1,7 +1,11 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+import TextPropertiesToolbar from './TextPropertiesToolbar';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 
 interface DraggableElementProps {
   element: CanvasElement;
@@ -9,6 +13,7 @@ interface DraggableElementProps {
   onDelete: (id: string) => void;
   onImageUpload: (elementId: string) => void;
   onSignatureDraw: (elementId: string) => void;
+  onSelect: (element: CanvasElement) => void;
   pageInfo: { pageWidth: number; pageHeight: number };
   scale: number;
 }
@@ -26,6 +31,8 @@ const DraggableElement = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
+  const [showEditButton, setShowEditButton] = useState(false);
+  const [showPropertiesToolbar, setShowPropertiesToolbar] = useState(false);
   const [tempContent, setTempContent] = useState(element.type === 'text' ? element.content : '');
   
   const elementRef = useRef<HTMLDivElement>(null);
@@ -204,10 +211,22 @@ const DraggableElement = ({
     onDelete(element.id);
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (element.type === 'image') {
+      onImageUpload(element.id);
+    } else if (element.type === 'signature') {
+      onSignatureDraw(element.id);
+    }
+  };
+
   const handleElementClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (element.type === 'image' && !element.imageData) {
+    if (element.type === 'text') {
+      setShowPropertiesToolbar(true);
+    } else if (element.type === 'image' && !element.imageData) {
       onImageUpload(element.id);
     } else if (element.type === 'signature' && !element.imageData) {
       onSignatureDraw(element.id);
@@ -217,16 +236,35 @@ const DraggableElement = ({
   const handleMouseEnter = () => {
     if (!isEditing && !isDragging && !isResizing) {
       setShowDeleteButton(true);
+      if (element.type === 'image' || element.type === 'signature') {
+        setShowEditButton(true);
+      }
     }
   };
 
   const handleMouseLeave = () => {
     setShowDeleteButton(false);
+    setShowEditButton(false);
   };
 
   const renderContent = () => {
     switch (element.type) {
       case 'text':
+        const textElement = element as TextElement;
+        const textStyle: React.CSSProperties = {
+          fontSize: `${textElement.fontSize || 12}px`,
+          color: textElement.color || '#000000',
+          fontWeight: textElement.fontWeight || 'normal',
+          fontStyle: textElement.fontStyle || 'normal',
+          textDecoration: textElement.textDecoration || 'none',
+          textAlign: textElement.textAlign || 'left',
+          width: '100%',
+          height: '100%',
+          padding: '4px',
+          wordWrap: 'break-word',
+          overflow: 'hidden'
+        };
+
         if (isEditing) {
           return (
             <textarea
@@ -236,6 +274,7 @@ const DraggableElement = ({
               onBlur={handleTextBlur}
               onKeyDown={handleTextKeyDown}
               className={styles.renderContentTextArea}
+              style={textStyle}
             />
           );
         }
@@ -243,8 +282,11 @@ const DraggableElement = ({
           <div 
             className={`${styles.renderTextOverley} ${isDragging ? styles.dragging : ''}`}
             onDoubleClick={() => setIsEditing(true)}
+            style={textStyle}
           >
-            {element.content || 'Double click to edit text'}
+            <Typography>
+              {element.content || 'Double click to edit text'}
+            </Typography>
           </div>
         );
 
@@ -276,7 +318,9 @@ const DraggableElement = ({
             ) : (
               <div className={styles.renderImageOverley} >
                 <div className={styles.contentPic} >📷</div>
-                <div className={styles.label} >Click to upload image</div>
+                <Typography className={styles.label} >
+                  Click to upload image
+                </Typography>
               </div>
             )}
           </div>
@@ -295,8 +339,10 @@ const DraggableElement = ({
               />
             ) : (
               <div className={styles.renderImageOverley} >
-                <div className={styles.signImg} >✍️</div>
-                <div className={styles.label} >Click to sign</div>
+                <div className={styles.signImg} >✏️</div>
+                <Typography className={styles.label} >
+                  Click to sign
+                </Typography>
               </div>
             )}
           </div>
@@ -334,47 +380,69 @@ const DraggableElement = ({
   };
 
   return (
-    <div
-      ref={elementRef}
-      style={elementStyle}
-      onMouseDown={handleMouseDown}
-      onClick={handleElementClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {!isEditing && (
-        <>
-          <div 
-            style={{ ...resizeHandleStyle, top: '-6px', left: '-6px', cursor: 'nw-resize' }}
-            onMouseDown={(e) => startResize('topLeft', e)}
-          />
-          <div 
-            style={{ ...resizeHandleStyle, top: '-6px', right: '-6px', cursor: 'ne-resize' }}
-            onMouseDown={(e) => startResize('topRight', e)}
-          />
-          <div 
-            style={{ ...resizeHandleStyle, bottom: '-6px', left: '-6px', cursor: 'sw-resize' }}
-            onMouseDown={(e) => startResize('bottomLeft', e)}
-          />
-          <div 
-            style={{ ...resizeHandleStyle, bottom: '-6px', right: '-6px', cursor: 'se-resize' }}
-            onMouseDown={(e) => startResize('bottomRight', e)}
-          />
-        </>
+    <>
+      {showPropertiesToolbar && element.type === 'text' && (
+        <TextPropertiesToolbar
+          element={element as TextElement}
+          onUpdate={onUpdate}
+          position={{ x: position.x, y: position.y }}
+          isEdit={isEditing}
+        />
       )}
+      
+      <div
+        ref={elementRef}
+        style={elementStyle}
+        onMouseDown={handleMouseDown}
+        onClick={handleElementClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {!isEditing && (
+          <>
+            <div 
+              style={{ ...resizeHandleStyle, top: '-6px', left: '-6px', cursor: 'nw-resize' }}
+              onMouseDown={(e) => startResize('topLeft', e)}
+            />
+            <div 
+              style={{ ...resizeHandleStyle, top: '-6px', right: '-6px', cursor: 'ne-resize' }}
+              onMouseDown={(e) => startResize('topRight', e)}
+            />
+            <div 
+              style={{ ...resizeHandleStyle, bottom: '-6px', left: '-6px', cursor: 'sw-resize' }}
+              onMouseDown={(e) => startResize('bottomLeft', e)}
+            />
+            <div 
+              style={{ ...resizeHandleStyle, bottom: '-6px', right: '-6px', cursor: 'se-resize' }}
+              onMouseDown={(e) => startResize('bottomRight', e)}
+            />
+          </>
+        )}
 
-      {showDeleteButton && !isEditing && !isDragging && !isResizing && (
-        <button 
-          className={styles.deleteButtonBadge}
-          onClick={handleDelete}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          ×
-        </button>
-      )}
+        {showEditButton && !isEditing && !isDragging && !isResizing && (
+          <Button 
+            className={styles.editButtonBadge}
+            onClick={handleEdit}
+            onMouseDown={(e: any) => e.stopPropagation()}
+            title="Edit"
+          >
+            <CustomIcon iconName="square-pen" width={12} height={12} customColor="#000000" />
+          </Button>
+        )}
 
-      {renderContent()}
-    </div>
+        {showDeleteButton && !isEditing && !isDragging && !isResizing && (
+          <Button 
+            className={styles.deleteButtonBadge}
+            onClick={handleDelete}
+            onMouseDown={(e: any) => e.stopPropagation()}
+          >
+            <CustomIcon iconName="x" width={12} height={12} customColor="#ffffff" />
+          </Button>
+        )}
+
+        {renderContent()}
+      </div>
+    </>
   );
 };
 
