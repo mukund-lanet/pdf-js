@@ -1,6 +1,7 @@
 'use client';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import React from 'react';
 
 interface DragDropToolbarProps {
   onDragStart: (type: 'text' | 'image' | 'signature') => void;
@@ -18,7 +19,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
       <div 
         className={`${styles.toolbarItem} ${activeTool === 'text' ? styles.active : ''}`}
         draggable
-        onDragStart={(e) => handleDragStart(e, 'text')}
+        onDragStart={(e: React.DragEvent) => handleDragStart(e, 'text')}
         onClick={() => onDragStart('text')}
       >
         <Typography className={styles.label} >📝 Text</Typography>
@@ -27,7 +28,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
       <div 
         className={`${styles.toolbarItem} ${activeTool === 'image' ? styles.active : ''}`}
         draggable
-        onDragStart={(e) => handleDragStart(e, 'image')}
+        onDragStart={(e: React.DragEvent) => handleDragStart(e, 'image')}
         onClick={() => onDragStart('image')}
       >
         <Typography className={styles.label} >📷 Image</Typography>
@@ -36,7 +37,7 @@ const DragDropToolbar = ({ onDragStart, activeTool }: DragDropToolbarProps) => {
       <div 
         className={`${styles.toolbarItem} ${activeTool === 'signature' ? styles.active : ''}`}
         draggable
-        onDragStart={(e) => handleDragStart(e, 'signature')}
+        onDragStart={(e: React.DragEvent) => handleDragStart(e, 'signature')}
         onClick={() => onDragStart('signature')}
       >
         <Typography className={styles.label} >✍️ Signature</Typography>

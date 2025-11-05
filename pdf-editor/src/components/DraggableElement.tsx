@@ -23,7 +23,8 @@ const DraggableElement = ({
   onUpdate, 
   onDelete, 
   onImageUpload, 
-  onSignatureDraw,
+  onSignatureDraw, 
+  onSelect,
   pageInfo, 
   scale 
 }: DraggableElementProps) => {
@@ -32,7 +33,6 @@ const DraggableElement = ({
   const [isResizing, setIsResizing] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showEditButton, setShowEditButton] = useState(false);
-  const [showPropertiesToolbar, setShowPropertiesToolbar] = useState(false);
   const [tempContent, setTempContent] = useState(element.type === 'text' ? element.content : '');
   
   const elementRef = useRef<HTMLDivElement>(null);
@@ -225,13 +225,20 @@ const DraggableElement = ({
     e.stopPropagation();
     
     if (element.type === 'text') {
-      setShowPropertiesToolbar(true);
+      onSelect(element);
     } else if (element.type === 'image' && !element.imageData) {
       onImageUpload(element.id);
     } else if (element.type === 'signature' && !element.imageData) {
       onSignatureDraw(element.id);
     }
   };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if (element.type === 'text') {
+      onSelect(element);
+      setIsEditing(true);
+    }
+  }
 
   const handleMouseEnter = () => {
     if (!isEditing && !isDragging && !isResizing) {
@@ -252,17 +259,26 @@ const DraggableElement = ({
       case 'text':
         const textElement = element as TextElement;
         const textStyle: React.CSSProperties = {
+          display: 'flex',
+          alignItems: 'center',
           fontSize: `${textElement.fontSize || 12}px`,
           color: textElement.color || '#000000',
           fontWeight: textElement.fontWeight || 'normal',
           fontStyle: textElement.fontStyle || 'normal',
           textDecoration: textElement.textDecoration || 'none',
           textAlign: textElement.textAlign || 'left',
+          justifyContent: textElement.textAlign === 'center' 
+            ? 'center' 
+            : textElement.textAlign === 'right' 
+              ? 'flex-end' 
+              : 'flex-start',
           width: '100%',
           height: '100%',
           padding: '4px',
           wordWrap: 'break-word',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          whiteSpace: 'break-spaces',
+          lineHeight: '24px'
         };
 
         if (isEditing) {
@@ -280,13 +296,10 @@ const DraggableElement = ({
         }
         return (
           <div 
-            className={`${styles.renderTextOverley} ${isDragging ? styles.dragging : ''}`}
-            onDoubleClick={() => setIsEditing(true)}
-            style={textStyle}
+          onDoubleClick={handleDoubleClick}
+          style={textStyle}
           >
-            <Typography>
-              {element.content || 'Double click to edit text'}
-            </Typography>
+            {element.content || 'Double click to edit text'}
           </div>
         );
 
@@ -381,15 +394,6 @@ const DraggableElement = ({
 
   return (
     <>
-      {showPropertiesToolbar && element.type === 'text' && (
-        <TextPropertiesToolbar
-          element={element as TextElement}
-          onUpdate={onUpdate}
-          position={{ x: position.x, y: position.y }}
-          isEdit={isEditing}
-        />
-      )}
-      
       <div
         ref={elementRef}
         style={elementStyle}
@@ -402,19 +406,19 @@ const DraggableElement = ({
           <>
             <div 
               style={{ ...resizeHandleStyle, top: '-6px', left: '-6px', cursor: 'nw-resize' }}
-              onMouseDown={(e) => startResize('topLeft', e)}
+              onMouseDown={(e: React.MouseEvent) => startResize('topLeft', e)}
             />
             <div 
               style={{ ...resizeHandleStyle, top: '-6px', right: '-6px', cursor: 'ne-resize' }}
-              onMouseDown={(e) => startResize('topRight', e)}
+              onMouseDown={(e: React.MouseEvent) => startResize('topRight', e)}
             />
             <div 
               style={{ ...resizeHandleStyle, bottom: '-6px', left: '-6px', cursor: 'sw-resize' }}
-              onMouseDown={(e) => startResize('bottomLeft', e)}
+              onMouseDown={(e: React.MouseEvent) => startResize('bottomLeft', e)}
             />
             <div 
               style={{ ...resizeHandleStyle, bottom: '-6px', right: '-6px', cursor: 'se-resize' }}
-              onMouseDown={(e) => startResize('bottomRight', e)}
+              onMouseDown={(e: React.MouseEvent) => startResize('bottomRight', e)}
             />
           </>
         )}
@@ -423,7 +427,7 @@ const DraggableElement = ({
           <Button 
             className={styles.editButtonBadge}
             onClick={handleEdit}
-            onMouseDown={(e: any) => e.stopPropagation()}
+            onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
             title="Edit"
           >
             <CustomIcon iconName="square-pen" width={12} height={12} customColor="#000000" />
@@ -434,7 +438,7 @@ const DraggableElement = ({
           <Button 
             className={styles.deleteButtonBadge}
             onClick={handleDelete}
-            onMouseDown={(e: any) => e.stopPropagation()}
+            onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <CustomIcon iconName="x" width={12} height={12} customColor="#ffffff" />
           </Button>

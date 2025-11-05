@@ -29,7 +29,7 @@ const SignaturePad = ({ onSave, onClose }: SignaturePadProps) => {
       <div className={styles.signaturePad}>
         <SignatureCanvas
           ref={sigCanvas}
-          penColor="black"
+          penColor="darkblue"
           canvasProps={{ className: styles.signatureCanvas }}
         />
         <div className={styles.signatureButtonGroup}>

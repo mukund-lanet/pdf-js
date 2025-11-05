@@ -240,7 +240,7 @@ const PdfEditor = () => {
   };
 
   const handleCanvasClick = () => {
-    // Deselect text element when clicking on canvas
+    // Deselect text element when clicking on the canvas background
     setSelectedTextElement(null);
   };
 
@@ -255,6 +255,14 @@ const PdfEditor = () => {
       const pdfBytesCopy = new Uint8Array(pdfBytes);
       const pdfDoc = await PDFDocument.load(pdfBytesCopy);
       
+      // Embed all necessary fonts once to avoid duplication errors
+      const fonts = {
+        Helvetica: await pdfDoc.embedFont(StandardFonts.Helvetica),
+        HelveticaBold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+        HelveticaOblique: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+        HelveticaBoldOblique: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+      };
+
       // Add all canvas elements to the PDF
       for (const element of canvasElements) {
         const page = pdfDoc.getPages()[element.page - 1];
@@ -300,13 +308,13 @@ const PdfEditor = () => {
           // Select font based on style
           let font;
           if (textElement.fontWeight === 'bold' && textElement.fontStyle === 'italic') {
-            font = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique);
+            font = fonts.HelveticaBoldOblique;
           } else if (textElement.fontWeight === 'bold') {
-            font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+            font = fonts.HelveticaBold;
           } else if (textElement.fontStyle === 'italic') {
-            font = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+            font = fonts.HelveticaOblique;
           } else {
-            font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            font = fonts.Helvetica;
           }
           
           // Calculate font size scaling
@@ -437,24 +445,12 @@ const PdfEditor = () => {
   };
 
   return (
-    <div className={styles.pdfEditorContainer} onClick={handleCanvasClick}>
+    <div className={styles.pdfEditorContainer}>
       {isSignaturePadOpen && (
         <SignaturePad
           onSave={handleSaveSignature}
           onClose={handleCancelSignature}
         />
-      )}
-      
-      {/* Text Properties Toolbar - Floating at top of editor */}
-      {selectedTextElement && (
-        <div style={{ position: 'relative' }}>
-          <TextPropertiesToolbar
-            element={selectedTextElement}
-            onUpdate={handleElementUpdate}
-            position={{ x: 20, y: 100 }}
-            isEdit={selectedTextElement.type === 'text'}
-          />
-        </div>
       )}
       
       <div className={styles.header}>
@@ -479,6 +475,12 @@ const PdfEditor = () => {
           onDragStart={handleDragStart}
           activeTool={activeTool}
         />
+        {selectedTextElement && (
+          <TextPropertiesToolbar
+            element={selectedTextElement}
+            onUpdate={handleElementUpdate}
+          />
+        )}
       </div>
       <div className={styles.mainContainer}>
         <div className={styles.previewPanel}>
@@ -505,6 +507,7 @@ const PdfEditor = () => {
                       pdfBytes={pdfBytes}
                       pageNumber={pageNum}
                       onDrop={handleDrop}
+                      onCanvasClick={handleCanvasClick}
                     >
                       {/* Render draggable elements for this page */}
                       {canvasElements

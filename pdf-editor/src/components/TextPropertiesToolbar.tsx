@@ -10,11 +10,9 @@ import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divid
 interface TextPropertiesToolbarProps {
   element: TextElement;
   onUpdate: (element: TextElement) => void;
-  position: { x: number; y: number };
-  isEdit: boolean
 }
 
-const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextPropertiesToolbarProps) => {
+const TextPropertiesToolbar = ({ element, onUpdate }: TextPropertiesToolbarProps) => {
   const handleFontSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onUpdate({
       ...element,
@@ -60,21 +58,16 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
   const fontSizeList = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
 
   return (
-    <>
-      { isEdit && <div 
+      <div 
         className={styles.textPropertiesToolbar}
-        style={{
-          position: 'absolute',
-          left: position.x,
-          top: position.y - 75,
-          zIndex: 1000
-        }}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
         onMouseOver={(e) => e.stopPropagation()}
       >
         <div className={styles.toolbarGroup}>
           <Button
             className={`${styles.toolbarBtn} ${element.fontWeight === 'bold' ? styles.active : ''}`}
             onClick={handleBoldToggle}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             title="Bold"
           >
             <CustomIcon iconName="bold" width={16} height={16} customColor="#000000" />
@@ -82,6 +75,7 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
           <Button
             className={`${styles.toolbarBtn} ${element.fontStyle === 'italic' ? styles.active : ''}`}
             onClick={handleItalicToggle}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             title="Italic"
           >
             <CustomIcon iconName="italic" width={16} height={16} customColor="#000000" />
@@ -89,6 +83,7 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
           <Button
             className={`${styles.toolbarBtn} ${element.textDecoration === 'underline' ? styles.active : ''}`}
             onClick={handleUnderlineToggle}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             title="Underline"
           >
             <CustomIcon iconName="underline" width={16} height={16} customColor="#000000" />
@@ -101,6 +96,7 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
           <Button
             className={`${styles.toolbarBtn} ${element.textAlign === 'left' ? styles.active : ''}`}
             onClick={() => handleAlignmentChange('left')}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             title="Align Left"
           >
             <CustomIcon iconName="align-left" width={16} height={16} customColor="#000000" />
@@ -108,6 +104,7 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
           <Button
             className={`${styles.toolbarBtn} ${element.textAlign === 'center' ? styles.active : ''}`}
             onClick={() => handleAlignmentChange('center')}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             title="Align Center"
           >
             <CustomIcon iconName="align-center" width={16} height={16} customColor="#000000" />
@@ -115,6 +112,7 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
           <Button
             className={`${styles.toolbarBtn} ${element.textAlign === 'right' ? styles.active : ''}`}
             onClick={() => handleAlignmentChange('right')}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             title="Align Right"
           >
             <CustomIcon iconName="align-right" width={16} height={16} customColor="#000000" />
@@ -124,15 +122,17 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
         <Divider orientation="vertical" className={styles.toolbarDivider} />
 
         <div className={styles.toolbarGroup}>
-          <Typography fontWeight={500} >
+          {/* <Typography fontWeight={500} >
             Font Size:
-          </Typography>
+          </Typography> */}
           <Select
             value={element.fontSize || 12}
-            margin="dense"
+            // margin="dense"
             size="small"
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             onChange={handleFontSizeChange}
             className={styles.fontSizeSelect}
+            classes={{ trigger: styles.triggerBtn }}
           >
             {fontSizeList.map((size) => (
               <MenuItem key={size} value={size}>{size}</MenuItem>
@@ -140,19 +140,19 @@ const TextPropertiesToolbar = ({ element, onUpdate, position, isEdit }: TextProp
           </Select>
         </div>
 
-        <Divider orientation="vertical" className={styles.toolbarDivider} />
+        {/* <Divider orientation="vertical" className={styles.toolbarDivider} /> */}
 
         <div className={styles.toolbarGroup}>
           <input
             type="color"
             value={element.color || '#000000'}
             onChange={handleColorChange}
+            onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             className={styles.colorPicker}
             title="Text Color"
           />
         </div>
-      </div>}
-    </>
+      </div>
   );
 };
 

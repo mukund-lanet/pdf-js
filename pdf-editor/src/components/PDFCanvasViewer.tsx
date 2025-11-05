@@ -21,9 +21,7 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
   // Load PDF.js library on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Dynamically import PDF.js
       import('pdfjs-dist').then((pdfjs) => {
-        // Set worker path - use the version that matches your package.json
         const workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
         pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
         
@@ -188,13 +186,6 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
     e.stopPropagation();
   };
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!onCanvasClick || !canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    onCanvasClick(x, y, pageSize);
-  };
 
   if (!pdfBytes) {
     return (
@@ -211,6 +202,7 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
       <div 
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onClick={onCanvasClick}
         className={styles.canvasContainer}
       >
         {isLoading && (
@@ -227,7 +219,6 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
         
         <canvas
           ref={canvasRef}
-          onClick={handleCanvasClick}
           className={styles.canvasWrapper}
         />
         {children}
