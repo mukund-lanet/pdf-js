@@ -244,6 +244,88 @@ const PdfEditor = () => {
     setSelectedTextElement(null);
   };
 
+  const handleAddBlankPage = async (afterPageNumber: number) => {
+    if (!pdfBytes) return;
+
+    try {
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const newPage = pdfDoc.insertPage(afterPageNumber, [600, 800]);
+
+      // Update state
+      const newPdfBytes = await pdfDoc.save();
+      setPdfBytes(newPdfBytes);
+      setTotalPages(pdfDoc.getPageCount());
+
+      // Shift existing elements
+      const updatedElements = canvasElements.map(el => {
+        if (el.page > afterPageNumber) {
+          return { ...el, page: el.page + 1 };
+        }
+        return el;
+      });
+      setCanvasElements(updatedElements);
+
+      // Shift page dimensions
+      const newPageDimensions: { [key: number]: PageDimension } = {};
+      for (let i = 1; i <= pdfDoc.getPageCount(); i++) {
+        if (i <= afterPageNumber) {
+          newPageDimensions[i] = pageDimensions[i] || { pageWidth: 600, pageHeight: 800 };
+        } else if (i === afterPageNumber + 1) {
+          newPageDimensions[i] = { pageWidth: newPage.getWidth(), pageHeight: newPage.getHeight() };
+        } else {
+          newPageDimensions[i] = pageDimensions[i - 1];
+        }
+      }
+      setPageDimensions(newPageDimensions);
+
+    } catch (error) {
+      console.error('Error adding blank page:', error);
+      alert('Failed to add a blank page.');
+    }
+  };
+
+  const handleUploadAndInsertPages = (afterPageNumber: number) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file || !pdfBytes) return;
+
+      try {
+        const mainDoc = await PDFDocument.load(pdfBytes);
+        const uploadedBytes = await file.arrayBuffer();
+        const uploadedDoc = await PDFDocument.load(uploadedBytes);
+
+        const copiedPages = await mainDoc.copyPages(uploadedDoc, uploadedDoc.getPageIndices());
+        
+        let lastInsertedIndex = afterPageNumber;
+        for (const copiedPage of copiedPages) {
+          mainDoc.insertPage(lastInsertedIndex, copiedPage);
+          lastInsertedIndex++;
+        }
+
+        const newPdfBytes = await mainDoc.save();
+        setPdfBytes(newPdfBytes);
+        setTotalPages(mainDoc.getPageCount());
+
+        // Re-fetch page dimensions after modification
+        const dimensions: { [key: number]: PageDimension } = {};
+        mainDoc.getPages().forEach((page, i) => {
+          const { width, height } = page.getSize();
+          dimensions[i + 1] = { pageWidth: width, pageHeight: height };
+        });
+        setPageDimensions(dimensions);
+        
+        console.log('PDF pages inserted. Element positions and page dimensions may need manual review.');
+      } catch (error) {
+        console.error('Error inserting PDF pages:', error);
+        alert('Failed to insert PDF pages.');
+      }
+    };
+    input.click();
+  };
+
   // Export PDF with all elements
   const exportPdf = async () => {
     if (!pdfBytes) return;
@@ -327,32 +409,36 @@ const PdfEditor = () => {
           const g = parseInt(color.slice(3, 5), 16) / 255;
           const b = parseInt(color.slice(5, 7), 16) / 255;
           
-          // Handle text alignment
-          let textX = clampedX;
-          const textWidth = font.widthOfTextAtSize(textElement.content, scaledFontSize);
-          
-          if (textElement.textAlign === 'center') {
-            textX = clampedX + (clampedWidth - textWidth) / 2;
-          } else if (textElement.textAlign === 'right') {
-            textX = clampedX + clampedWidth - textWidth;
+          // Split text by newlines and draw each line separately
+          const lines = textElement.content.split('\n');
+          let currentY = clampedY + (lines.length - 1) * scaledFontSize;
+
+          for (const line of lines) {
+            const textWidth = font.widthOfTextAtSize(line, scaledFontSize);
+            let textX = clampedX;
+            if (textElement.textAlign === 'center') {
+              textX = clampedX + (clampedWidth - textWidth) / 2;
+            } else if (textElement.textAlign === 'right') {
+              textX = clampedX + clampedWidth - textWidth;
+            }
+
+            page.drawText(line, {
+              x: textX,
+              y: currentY,
+              font: font,
+              size: scaledFontSize,
+              color: rgb(r, g, b),
+              maxWidth: clampedWidth,
+            });
+            currentY -= scaledFontSize; // Move to the next line
           }
-          
-          page.drawText(textElement.content, {
-            x: textX,
-            y: clampedY,
-            font: font,
-            size: scaledFontSize,
-            color: rgb(r, g, b),
-            maxWidth: clampedWidth,
-            lineHeight: scaledFontSize,
-          });
           
           // Draw underline if needed
           if (textElement.textDecoration === 'underline') {
             const underlineY = clampedY - 2;
             page.drawLine({
-              start: { x: textX, y: underlineY },
-              end: { x: textX + textWidth, y: underlineY },
+              start: { x: clampedX, y: underlineY },
+              end: { x: clampedX + clampedWidth, y: underlineY },
               thickness: 1,
               color: rgb(r, g, b),
             });
@@ -508,6 +594,8 @@ const PdfEditor = () => {
                       pageNumber={pageNum}
                       onDrop={handleDrop}
                       onCanvasClick={handleCanvasClick}
+                      onAddBlankPage={handleAddBlankPage}
+                      onUploadAndInsertPages={handleUploadAndInsertPages}
                     >
                       {/* Render draggable elements for this page */}
                       {canvasElements

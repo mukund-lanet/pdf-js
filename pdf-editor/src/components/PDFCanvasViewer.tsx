@@ -2,6 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
+import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
@@ -9,14 +13,35 @@ interface PDFCanvasViewerProps {
   onCanvasClick?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }) => void;
   onDrop?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number, type: string) => void;
   children?: React.ReactNode;
+  onAddBlankPage: (pageNumber: number) => void;
+  onUploadAndInsertPages: (pageNumber: number) => void;
 }
 
-const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children }: PDFCanvasViewerProps) => {
+const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children, onAddBlankPage, onUploadAndInsertPages }: PDFCanvasViewerProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleAddBlankPage = () => {
+    onAddBlankPage(pageNumber);
+    handleMenuClose();
+  };
+
+  const handleUploadAndInsert = () => {
+    onUploadAndInsertPages(pageNumber);
+    handleMenuClose();
+  };
 
   // Load PDF.js library on component mount
   useEffect(() => {
@@ -223,14 +248,34 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
         />
         {children}
       </div>
-      <Typography className={styles.pagesDiv} >
-        Page {pageNumber}
-        {pageSize.pageWidth > 0 && (
-          <span className={styles.pageSpan} >
-            ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
-          </span>
-        )}
-      </Typography>
+      <div className={styles.pageControls}>
+        <Typography className={styles.pagesDiv} >
+          Page {pageNumber}
+          {pageSize.pageWidth > 0 && (
+            <span className={styles.pageSpan} >
+              ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
+            </span>
+          )}
+        </Typography>
+        <div className={styles.addPageUploadPdfMenuWrapper} >
+          <Button className={styles.addPageBtn} onClick={handleMenuClick}>
+            <CustomIcon iconName="plus" width={16} height={16} />
+            <Typography className={styles.labelAddPage} >Add Page</Typography>
+          </Button>
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleAddBlankPage}>
+              <Typography>Add blank page after</Typography>
+            </MenuItem>
+            <MenuItem onClick={handleUploadAndInsert}>
+              <Typography>Upload PDF to insert after</Typography>
+            </MenuItem>
+          </Menu>
+        </div>
+      </div>
     </div>
   );
 };
