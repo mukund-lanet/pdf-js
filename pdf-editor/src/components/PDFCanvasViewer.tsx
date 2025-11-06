@@ -263,9 +263,14 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
           </MenuItem>
         </Menu>
         <div className={styles.actionButtonWrapper} >
-          <Button className={styles.threeDotsBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "action")}>
-            <CustomIcon iconName="ellipsis-vertical" width={16} height={16} />
-          </Button>
+          <div className={styles.actionBtnJustifyWrapper} >
+            <Button className={styles.addPageRound} onClick={handleAddBlankPage}>
+              <CustomIcon iconName="plus" width={24} height={24} />
+            </Button>
+            <Button className={styles.threeDotsBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "action")}>
+              <CustomIcon iconName="ellipsis" width={24} height={24} />
+            </Button>
+          </div>
         </div>
         <canvas
           ref={canvasRef}

@@ -609,7 +609,7 @@ const PdfEditor = () => {
           </div>
         </div>
         <div className={styles.editorPanel}>
-          <div className={styles.pdfViderWrapper} >
+          <div className={styles.pdfViewerWrapper} >
             <div className={` ${pdfBytes ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
               {pdfBytes ? (
                 Array.from({ length: totalPages }, (_, i) => {
