@@ -215,7 +215,6 @@
       border-radius: 4px;
       background: white;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      // cursor: crosshair; 
     }
 
     .actionButtonWrapper {
@@ -336,60 +335,6 @@
     flex-grow: 1;
     overflow: hidden;
 
-    .previewPanel {
-      width: 250px;
-      border-right: 1px solid #ccc;
-      padding: 16px;
-      overflow-y: auto;
-
-      .previewWrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-
-        .previewTitle {
-          font-weight: 600;
-          font-size: 18px;
-        }
-  
-        .previewTexts {
-          padding: 10px;
-          background: #f5f5f5;
-          border-radius: 4px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-
-          .label {
-            font-size: 14px;
-            color: #313030;
-          }
-        }
-      }
-
-    
-      .elementsList {
-        margin-top: 16px;
-    
-        .elementItem {
-          padding: 8px;
-          border: 1px solid #eee;
-          margin-bottom: 8px;
-          cursor: pointer;
-          border-radius: 4px;
-    
-          &:hover {
-            background: #f9f9f9;
-          }
-    
-          &.selected {
-            background: #e3f2fd;
-            border-color: #2196f3;
-          }
-        }
-      }
-    }
-
     .editorPanel {
       flex-grow: 1;
       display: flex;
@@ -405,7 +350,7 @@
         align-items: center;
         height: 100%;
         width: 100%;
-        overflow: hidden;
+        overflow: auto;
         min-width: fit-content;
         background: #f9fafb;
         padding-top: 24px;
@@ -631,4 +576,77 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 102;
   transition: all 0.2s;
+}
+
+.thumbnailSidebar {
+  width: 250px;
+  min-width: 250px;
+  border-right: 1px solid #ccc;
+  padding: 16px;
+  overflow-y: auto;
+  background: #f9fafb;
+
+  .previewWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 12px;
+
+    .previewTitle {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .previewTexts {
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .label {
+        font-size: 14px;
+        color: #313030;
+      }
+    }
+  }
+}
+
+.thumbnailContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.thumbnailItem {
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 8px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  
+  canvas {
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+  }
+
+  &:hover {
+    border-color: #007bff;
+  }
+}
+
+.activeThumbnail {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0,123,255,0.5);
+}
+
+.thumbnailPageNumber {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
 }

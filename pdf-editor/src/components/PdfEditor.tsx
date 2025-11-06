@@ -10,6 +10,7 @@ import TextPropertiesToolbar from './TextPropertiesToolbar';
 import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import ThumbnailSidebar from './ThumbnailSidebar';
 
 interface PageDimension {
   pageWidth: number;
@@ -18,7 +19,8 @@ interface PageDimension {
 
 const PdfEditor = () => {
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [isSignaturePadOpen, setIsSignaturePadOpen] = useState(false);
   const [signatureForElement, setSignatureForElement] = useState<string | null>(null);
@@ -34,9 +36,10 @@ const PdfEditor = () => {
   const createNewPdf = async () => {
     try {
       const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage([600, 800]);
+      pdfDoc.addPage([600, 800]);
       const bytes = await pdfDoc.save();
       setTotalPages(1);
+      setCurrentPage(1);
       setPdfBytes(bytes);
       setCanvasElements([]);
       setPageDimensions({ 1: { pageWidth: 600, pageHeight: 800 } });
@@ -53,7 +56,6 @@ const PdfEditor = () => {
     try {      
       const arrayBuffer = await file.arrayBuffer();
       
-      // Validate PDF header
       const header = new Uint8Array(arrayBuffer, 0, 5);
       const headerStr = String.fromCharCode(...header);
       
@@ -61,11 +63,9 @@ const PdfEditor = () => {
         throw new Error('Invalid PDF file: No PDF header found');
       }
       
-      // Load with pdf-lib to get page info
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const pageCount = pdfDoc.getPageCount();
       
-      // Get dimensions of all pages
       const dimensions: { [key: number]: PageDimension } = {};
       for (let i = 0; i < pageCount; i++) {
         const page = pdfDoc.getPages()[i];
@@ -74,7 +74,7 @@ const PdfEditor = () => {
       }
       
       setTotalPages(pageCount);
-      // Create a fresh copy to avoid detached ArrayBuffer
+      setCurrentPage(1);
       setPdfBytes(new Uint8Array(arrayBuffer));
       setCanvasElements([]);
       setPageDimensions(dimensions);
@@ -95,7 +95,6 @@ const PdfEditor = () => {
   const handleDrop = useCallback((x: number, y: number, info: PageDimension, pageNumber: number, type: string) => {
     const elementType = type as 'text' | 'image' | 'signature';
 
-    // Update page dimensions
     setPageDimensions(prev => ({
       ...prev,
       [pageNumber]: info
@@ -165,17 +164,14 @@ const PdfEditor = () => {
       prev.map(el => el.id === updatedElement.id ? updatedElement : el)
     );
     
-    // Update selected text element if it's the one being updated
     if (selectedTextElement && selectedTextElement.id === updatedElement.id && updatedElement.type === 'text') {
       setSelectedTextElement(updatedElement as TextElement);
     }
   }, [selectedTextElement]);
 
   const handleElementDelete = useCallback((id: string) => {
-    console.log('Deleting element:', id);
     setCanvasElements(prev => prev.filter(el => el.id !== id));
     
-    // Clear selection if deleted element was selected
     if (selectedTextElement && selectedTextElement.id === id) {
       setSelectedTextElement(null);
     }
@@ -190,7 +186,6 @@ const PdfEditor = () => {
   }, []);
 
   const handleImageUpload = useCallback((elementId: string) => {
-    console.log('Image upload for element:', elementId);
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/png, image/jpeg';
@@ -215,7 +210,6 @@ const PdfEditor = () => {
   }, []);
 
   const handleSignatureDraw = useCallback((elementId: string) => {
-    console.log('Signature draw for element:', elementId);
     setSignatureForElement(elementId);
     setIsSignaturePadOpen(true);
   }, []);
@@ -240,26 +234,28 @@ const PdfEditor = () => {
   };
 
   const handleCanvasClick = () => {
-    // Deselect text element when clicking on the canvas background
     setSelectedTextElement(null);
   };
 
   const handleDeletePage = async (pageNumber: number) => {
-     if (!pdfBytes) return;
-
-    try {
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      if (pdfDoc.getPages().length <= 1) {
+     if (!pdfBytes || totalPages <= 1) {
         alert("Cannot delete the last page.");
         return;
       }
 
+    try {
+      const pdfDoc = await PDFDocument.load(pdfBytes);
       pdfDoc.removePage(pageNumber - 1);
       const newPdfBytes = await pdfDoc.save();
+      
       setPdfBytes(newPdfBytes);
       setTotalPages(pdfDoc.getPageCount());
+      if (currentPage > pdfDoc.getPageCount()) {
+        setCurrentPage(pdfDoc.getPageCount());
+      } else if (currentPage > pageNumber) {
+        setCurrentPage(current => current - 1);
+      }
 
-      // Update canvas elements and page dimensions (adjusting page numbers)
       setCanvasElements(prev => prev.filter(el => el.page !== pageNumber).map(el => el.page > pageNumber ? { ...el, page: el.page - 1 } : el));
       const newPageDimensions: { [key: number]: PageDimension } = {};
       Object.keys(pageDimensions).filter(key => parseInt(key) !== pageNumber).forEach(key => {
@@ -280,12 +276,10 @@ const PdfEditor = () => {
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const newPage = pdfDoc.insertPage(afterPageNumber, [600, 800]);
 
-      // Update state
       const newPdfBytes = await pdfDoc.save();
       setPdfBytes(newPdfBytes);
       setTotalPages(pdfDoc.getPageCount());
 
-      // Shift existing elements
       const updatedElements = canvasElements.map(el => {
         if (el.page > afterPageNumber) {
           return { ...el, page: el.page + 1 };
@@ -294,7 +288,6 @@ const PdfEditor = () => {
       });
       setCanvasElements(updatedElements);
 
-      // Shift page dimensions
       const newPageDimensions: { [key: number]: PageDimension } = {};
       for (let i = 1; i <= pdfDoc.getPageCount(); i++) {
         if (i <= afterPageNumber) {
@@ -306,6 +299,7 @@ const PdfEditor = () => {
         }
       }
       setPageDimensions(newPageDimensions);
+      setCurrentPage(afterPageNumber + 1);
 
     } catch (error) {
       console.error('Error adding blank page:', error);
@@ -338,15 +332,14 @@ const PdfEditor = () => {
         setPdfBytes(newPdfBytes);
         setTotalPages(mainDoc.getPageCount());
 
-        // Re-fetch page dimensions after modification
         const dimensions: { [key: number]: PageDimension } = {};
         mainDoc.getPages().forEach((page, i) => {
           const { width, height } = page.getSize();
           dimensions[i + 1] = { pageWidth: width, pageHeight: height };
         });
         setPageDimensions(dimensions);
+        setCurrentPage(afterPageNumber + 1);
         
-        console.log('PDF pages inserted. Element positions and page dimensions may need manual review.');
       } catch (error) {
         console.error('Error inserting PDF pages:', error);
         alert('Failed to insert PDF pages.');
@@ -355,18 +348,13 @@ const PdfEditor = () => {
     input.click();
   };
 
-  // Export PDF with all elements
   const exportPdf = async () => {
     if (!pdfBytes) return;
-    
-    console.log('Starting PDF export...');
-    console.log('Elements to export:', canvasElements);
     
     try {
       const pdfBytesCopy = new Uint8Array(pdfBytes);
       const pdfDoc = await PDFDocument.load(pdfBytesCopy);
       
-      // Embed all necessary fonts once to avoid duplication errors
       const fonts = {
         Helvetica: await pdfDoc.embedFont(StandardFonts.Helvetica),
         HelveticaBold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
@@ -374,7 +362,6 @@ const PdfEditor = () => {
         HelveticaBoldOblique: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
       };
 
-      // Add all canvas elements to the PDF
       for (const element of canvasElements) {
         const page = pdfDoc.getPages()[element.page - 1];
         const pageInfo = pageDimensions[element.page];
@@ -384,30 +371,24 @@ const PdfEditor = () => {
           continue;
         }
 
-        // Get actual PDF page dimensions
         const pdfPageSize = page.getSize();
         const pdfPageWidth = pdfPageSize.width;
         const pdfPageHeight = pdfPageSize.height;
 
-        // Calculate scaling factors between canvas and actual PDF
         const scaleX = pdfPageWidth / pageInfo.pageWidth;
         const scaleY = pdfPageHeight / pageInfo.pageHeight;
 
-        // Convert coordinates from canvas space to PDF space
         const pdfX = element.x * scaleX;
         const pdfY = pdfPageHeight - (element.y * scaleY) - (element.height * scaleY);
         
-        // Validate element bounds
         const elementRight = pdfX + (element.width * scaleX);
         const elementBottom = pdfY + (element.height * scaleY);
         
-        // Skip elements that are completely outside the page
         if (pdfX >= pdfPageWidth || pdfY >= pdfPageHeight || elementRight <= 0 || elementBottom <= 0) {
           console.warn(`Element ${element.id} is outside page bounds, skipping`);
           continue;
         }
 
-        // Clamp element to page bounds
         const clampedX = Math.max(0, Math.min(pdfX, pdfPageWidth - 10));
         const clampedY = Math.max(0, Math.min(pdfY, pdfPageHeight - 10));
         const clampedWidth = Math.min(element.width * scaleX, pdfPageWidth - clampedX);
@@ -416,7 +397,6 @@ const PdfEditor = () => {
         if (element.type === 'text') {
           const textElement = element as TextElement;
           
-          // Select font based on style
           let font;
           if (textElement.fontWeight === 'bold' && textElement.fontStyle === 'italic') {
             font = fonts.HelveticaBoldOblique;
@@ -428,17 +408,14 @@ const PdfEditor = () => {
             font = fonts.Helvetica;
           }
           
-          // Calculate font size scaling
           const baseFontSize = textElement.fontSize || 12;
           const scaledFontSize = baseFontSize * Math.min(scaleX, scaleY);
           
-          // Parse color
           const color = textElement.color || '#000000';
           const r = parseInt(color.slice(1, 3), 16) / 255;
           const g = parseInt(color.slice(3, 5), 16) / 255;
           const b = parseInt(color.slice(5, 7), 16) / 255;
           
-          // Split text by newlines and draw each line separately
           const lines = textElement.content.split('\n');
           let currentY = clampedY + (lines.length - 1) * scaledFontSize;
 
@@ -459,10 +436,9 @@ const PdfEditor = () => {
               color: rgb(r, g, b),
               maxWidth: clampedWidth,
             });
-            currentY -= scaledFontSize; // Move to the next line
+            currentY -= scaledFontSize;
           }
           
-          // Draw underline if needed
           if (textElement.textDecoration === 'underline') {
             const underlineY = clampedY - 2;
             page.drawLine({
@@ -472,8 +448,6 @@ const PdfEditor = () => {
               color: rgb(r, g, b),
             });
           }
-          
-          console.log(`Text element placed at: ${clampedX}, ${clampedY} with size ${scaledFontSize}`);
 
         } else if ((element.type === 'image' || element.type === 'signature') && element.imageData) {
           try {
@@ -494,7 +468,6 @@ const PdfEditor = () => {
             const imageDims = image.scale(1);
             const aspectRatio = imageDims.width / imageDims.height;
             
-            // Calculate final dimensions maintaining aspect ratio
             let finalWidth = clampedWidth;
             let finalHeight = clampedHeight;
             
@@ -504,7 +477,6 @@ const PdfEditor = () => {
               finalHeight = finalWidth / aspectRatio;
             }
             
-            // Ensure final dimensions don't exceed available space
             finalWidth = Math.min(finalWidth, clampedWidth);
             finalHeight = Math.min(finalHeight, clampedHeight);
             
@@ -514,12 +486,9 @@ const PdfEditor = () => {
               width: finalWidth,
               height: finalHeight,
             });
-            
-            console.log(`Image element placed at: ${clampedX}, ${clampedY} with size ${finalWidth}x${finalHeight}`);
 
           } catch (imageError) {
             console.error('Error embedding image:', imageError);
-            // Fallback: draw a placeholder rectangle
             page.drawRectangle({
               x: clampedX,
               y: clampedY,
@@ -536,7 +505,6 @@ const PdfEditor = () => {
       const finalBytes = await pdfDoc.save();
       const blob = new Blob([finalBytes], { type: 'application/pdf' });
       
-      // Download the PDF
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -546,15 +514,8 @@ const PdfEditor = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      console.log('PDF export completed successfully');
-
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      console.error('Error details:', {
-        pdfBytesLength: pdfBytes?.length,
-        canvasElementsCount: canvasElements.length,
-        pageDimensions
-      });
       alert('Error exporting PDF. Please try again.');
     }
   };
@@ -598,55 +559,43 @@ const PdfEditor = () => {
         )}
       </div>
       <div className={styles.mainContainer}>
-        <div className={styles.previewPanel}>
-          <div className={styles.previewWrapper} >
-            <Typography className={styles.previewTitle} >Preview</Typography>
-            <div className={styles.previewTexts} >
-              <Typography className={styles.label} >Total Pages: {pdfBytes ? totalPages : 0}</Typography>
-              <Typography className={styles.label} >Elements: {canvasElements.length}</Typography>
-              <Typography className={styles.label} >PDF Loaded: {pdfBytes ? 'Yes' : 'No'}</Typography>
-            </div>
-          </div>
-        </div>
+        <ThumbnailSidebar
+          pdfBytes={pdfBytes}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onThumbnailClick={setCurrentPage}
+        />
         <div className={styles.editorPanel}>
           <div className={styles.pdfViewerWrapper} >
             <div className={` ${pdfBytes ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
-              {pdfBytes ? (
-                Array.from({ length: totalPages }, (_, i) => {
-                  const pageNum = i + 1;
-                  const pageInfo = pageDimensions[pageNum] || { pageWidth: 600, pageHeight: 800 };
-                                  
-                  return (
-                    <PDFCanvasViewer
-                      key={`page-${pageNum}`}
-                      pdfBytes={pdfBytes}
-                      pageNumber={pageNum}
-                      onDrop={handleDrop}
-                      onCanvasClick={handleCanvasClick}
-                      onAddBlankPage={handleAddBlankPage}
-                      onUploadAndInsertPages={handleUploadAndInsertPages}
-                      onDeletePage={handleDeletePage}
-                    >
-                      {/* Render draggable elements for this page */}
-                      {canvasElements
-                        .filter(el => el.page === pageNum)
-                        .map(element => (
-                          <DraggableElement
-                            key={element.id}
-                            element={element}
-                            onUpdate={handleElementUpdate}
-                            onDelete={handleElementDelete}
-                            onImageUpload={handleImageUpload}
-                            onSignatureDraw={handleSignatureDraw}
-                            onSelect={handleElementSelect}
-                            pageInfo={pageInfo}
-                            scale={1}
-                          />
-                        ))
-                      }
-                    </PDFCanvasViewer>
-                  );
-                })
+              {pdfBytes && totalPages > 0 ? (
+                <PDFCanvasViewer
+                  key={`page-${currentPage}`}
+                  pdfBytes={pdfBytes}
+                  pageNumber={currentPage}
+                  onDrop={handleDrop}
+                  onCanvasClick={handleCanvasClick}
+                  onAddBlankPage={handleAddBlankPage}
+                  onUploadAndInsertPages={handleUploadAndInsertPages}
+                  onDeletePage={handleDeletePage}
+                >
+                  {canvasElements
+                    .filter(el => el.page === currentPage)
+                    .map(element => (
+                      <DraggableElement
+                        key={element.id}
+                        element={element}
+                        onUpdate={handleElementUpdate}
+                        onDelete={handleElementDelete}
+                        onImageUpload={handleImageUpload}
+                        onSignatureDraw={handleSignatureDraw}
+                        onSelect={handleElementSelect}
+                        pageInfo={pageDimensions[currentPage] || { pageWidth: 600, pageHeight: 800 }}
+                        scale={1}
+                      />
+                    ))
+                  }
+                </PDFCanvasViewer>
               ) : (
                 <div className={styles.noPdfLoaded} >
                   <Typography className={styles.noPdfTitle} >No PDF Loaded</Typography>
