@@ -244,6 +244,35 @@ const PdfEditor = () => {
     setSelectedTextElement(null);
   };
 
+  const handleDeletePage = async (pageNumber: number) => {
+     if (!pdfBytes) return;
+
+    try {
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      if (pdfDoc.getPages().length <= 1) {
+        alert("Cannot delete the last page.");
+        return;
+      }
+
+      pdfDoc.removePage(pageNumber - 1);
+      const newPdfBytes = await pdfDoc.save();
+      setPdfBytes(newPdfBytes);
+      setTotalPages(pdfDoc.getPageCount());
+
+      // Update canvas elements and page dimensions (adjusting page numbers)
+      setCanvasElements(prev => prev.filter(el => el.page !== pageNumber).map(el => el.page > pageNumber ? { ...el, page: el.page - 1 } : el));
+      const newPageDimensions: { [key: number]: PageDimension } = {};
+      Object.keys(pageDimensions).filter(key => parseInt(key) !== pageNumber).forEach(key => {
+          newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
+      });
+      setPageDimensions(newPageDimensions);
+
+    } catch (error) {
+      console.error('Error deleting page:', error);
+      alert('Failed to delete the page.');
+    }
+  };
+
   const handleAddBlankPage = async (afterPageNumber: number) => {
     if (!pdfBytes) return;
 
@@ -596,6 +625,7 @@ const PdfEditor = () => {
                       onCanvasClick={handleCanvasClick}
                       onAddBlankPage={handleAddBlankPage}
                       onUploadAndInsertPages={handleUploadAndInsertPages}
+                      onDeletePage={handleDeletePage}
                     >
                       {/* Render draggable elements for this page */}
                       {canvasElements

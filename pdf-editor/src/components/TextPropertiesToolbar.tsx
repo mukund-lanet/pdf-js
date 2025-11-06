@@ -122,9 +122,6 @@ const TextPropertiesToolbar = ({ element, onUpdate }: TextPropertiesToolbarProps
         <Divider orientation="vertical" className={styles.toolbarDivider} />
 
         <div className={styles.toolbarGroup}>
-          {/* <Typography fontWeight={500} >
-            Font Size:
-          </Typography> */}
           <Select
             value={element.fontSize || 12}
             // margin="dense"

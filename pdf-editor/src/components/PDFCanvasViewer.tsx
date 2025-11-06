@@ -15,26 +15,38 @@ interface PDFCanvasViewerProps {
   children?: React.ReactNode;
   onAddBlankPage: (pageNumber: number) => void;
   onUploadAndInsertPages: (pageNumber: number) => void;
+  onDeletePage: (pageNumber: number) => void;
 }
 
-const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children, onAddBlankPage, onUploadAndInsertPages }: PDFCanvasViewerProps) => {
+const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children, onAddBlankPage, onUploadAndInsertPages, onDeletePage }: PDFCanvasViewerProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
-  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [addMenuAnchorEl, setAddMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchorEl(event.currentTarget);
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, type: string) => {
+    if (type === 'add') {
+      setAddMenuAnchorEl(event.currentTarget);
+    } else if (type === 'action') {
+      setActionMenuAnchorEl(event.currentTarget);
+    }
   };
 
   const handleMenuClose = () => {
-    setMenuAnchorEl(null);
+    setAddMenuAnchorEl(null);
+    setActionMenuAnchorEl(null);
   };
 
   const handleAddBlankPage = () => {
     onAddBlankPage(pageNumber);
+    handleMenuClose();
+  };
+  
+   const handleDeletePage = () => {
+    onDeletePage(pageNumber);
     handleMenuClose();
   };
 
@@ -241,7 +253,20 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
             {error}
           </Typography>
         )}
-        
+        <Menu
+          anchorEl={actionMenuAnchorEl}
+          open={Boolean(actionMenuAnchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem onClick={handleDeletePage}>
+            <Typography>Delete Page</Typography>
+          </MenuItem>
+        </Menu>
+        <div className={styles.actionButtonWrapper} >
+          <Button className={styles.threeDotsBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "action")}>
+            <CustomIcon iconName="ellipsis-vertical" width={16} height={16} />
+          </Button>
+        </div>
         <canvas
           ref={canvasRef}
           className={styles.canvasWrapper}
@@ -256,25 +281,24 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
               ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
             </span>
           )}
-        </Typography>
-        <div className={styles.addPageUploadPdfMenuWrapper} >
-          <Button className={styles.addPageBtn} onClick={handleMenuClick}>
+
+          <Button className={styles.addPageBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "add")}>
             <CustomIcon iconName="plus" width={16} height={16} />
-            <Typography className={styles.labelAddPage} >Add Page</Typography>
+            <Typography className={styles.addPage} >Add Page</Typography>
           </Button>
-          <Menu
-            anchorEl={menuAnchorEl}
-            open={Boolean(menuAnchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleAddBlankPage}>
-              <Typography>Add blank page after</Typography>
-            </MenuItem>
-            <MenuItem onClick={handleUploadAndInsert}>
-              <Typography>Upload PDF to insert after</Typography>
-            </MenuItem>
-          </Menu>
-        </div>
+        </Typography>
+        <Menu
+          anchorEl={addMenuAnchorEl}
+          open={Boolean(addMenuAnchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem onClick={handleAddBlankPage}>
+            <Typography>Add blank page after</Typography>
+          </MenuItem>
+          <MenuItem onClick={handleUploadAndInsert}>
+            <Typography>Upload PDF to insert after</Typography>
+          </MenuItem>
+        </Menu>
       </div>
     </div>
   );
