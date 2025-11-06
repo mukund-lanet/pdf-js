@@ -282,6 +282,9 @@
 .pdfCanvasViewer {
   position: relative;
   padding: 0 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   .canvasContainer {
     position: relative;
@@ -317,9 +320,6 @@
     }
 
     .canvasWrapper {
-      // display: block;
-      
-      
       display: flex;
       flex-direction: column;
       position: relative;
@@ -335,21 +335,63 @@
       // cursor: crosshair; 
     }
 
+    .actionButtonWrapper {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+
+      .threeDotsBtn {
+        // background: unset;
+        border: none;
+        cursor: pointer;
+      }
+    }
+
   }
 
-  .pagesDiv {
-    text-align: center;
-    font-size: 14px;
-    color: #666;
-    font-weight: bold;
-    gap: 12px;
+  .pageControls {
     display: flex;
+    gap: 16px;
     justify-content: center;
+    align-items: center;
 
-    .pageSpan {
-      font-size: 12px;
-      color: #999;
+    .pagesDiv {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      font-weight: bold;
+      gap: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  
+      .pageSpan {
+        font-size: 12px;
+        color: #999;
+      }
     }
+
+    .addPageUploadPdfMenuWrapper {
+      display: flex;
+      gap: 8px;
+
+      .addPageBtn {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid #e2e8f0;
+        background-color: #ffffff;
+        color: #344256;
+        padding: 0 32px;
+        border-radius: 6px;
+
+        .addPage {
+          font-size: 14px;
+        }
+      }
+      
+    }
+    
   }
 }
 
@@ -533,8 +575,6 @@
           overflow-y: auto;
           gap: 12px;
           padding: 24px 0px;
-          border: 1px solid #dddddd;
-          border-radius: 8px;
           scrollbar-width: none;
         }
 
