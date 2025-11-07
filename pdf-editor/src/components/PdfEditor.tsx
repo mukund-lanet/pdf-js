@@ -23,17 +23,15 @@ interface PageDimension {
 const PdfEditor = () => {
   const dispatch = useDispatch();
 
-  const {
-    pdfBytes,
-    totalPages,
-    currentPage,
-    isSignaturePadOpen,
-    signatureForElement,
-    activeTool,
-    pageDimensions,
-    canvasElements,
-    selectedTextElement
-  } = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer);
+  const pdfBytes = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
+  const totalPages = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
+  const currentPage = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
+  const isSignaturePadOpen = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.isSignaturePadOpen);
+  const signatureForElement = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.signatureForElement);
+  const activeTool = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
+  const pageDimensions = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions);
+  const canvasElements = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
+  const selectedTextElement = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.selectedTextElement);
 
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
