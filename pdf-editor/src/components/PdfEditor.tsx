@@ -14,6 +14,7 @@ import ThumbnailSidebar from './ThumbnailSidebar';
 import { injectReducer } from 'components/store';
 import reducer from './store/index'
 import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from './store/reducer/pdfEditor.reducer';
 
 interface PageDimension {
   pageWidth: number;
@@ -23,15 +24,15 @@ interface PageDimension {
 const PdfEditor = () => {
   const dispatch = useDispatch();
 
-  const pdfBytes = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
-  const totalPages = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
-  const currentPage = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
-  const isSignaturePadOpen = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.isSignaturePadOpen);
-  const signatureForElement = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.signatureForElement);
-  const activeTool = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
-  const pageDimensions = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions);
-  const canvasElements = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
-  const selectedTextElement = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.selectedTextElement);
+  const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
+  const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
+  const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
+  const isSignaturePadOpen = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isSignaturePadOpen);
+  const signatureForElement = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.signatureForElement);
+  const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
+  const pageDimensions = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions);
+  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
+  const selectedTextElement = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.selectedTextElement);
 
   const uploadInputRef = useRef<HTMLInputElement>(null);
 

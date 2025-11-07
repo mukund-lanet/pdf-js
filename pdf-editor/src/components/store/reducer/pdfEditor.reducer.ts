@@ -15,7 +15,9 @@ export interface PdfEditorState {
 }
 
 export interface RootState {
-  pdfEditorReducer: PdfEditorState;
+  pdfEditor: {
+    pdfEditorReducer: PdfEditorState;
+  };
 }
 
 // Initial State
