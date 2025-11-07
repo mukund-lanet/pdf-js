@@ -138,8 +138,8 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      const width = 600;
-      const height = 800;
+      const width = 900;
+      const height = 1200;
       
       canvas.width = width;
       canvas.height = height;

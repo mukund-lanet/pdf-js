@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import SignaturePad from './SignaturePad';
@@ -11,6 +11,9 @@ import { CanvasElement, TextElement, ImageElement, SignatureElement } from './ty
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import ThumbnailSidebar from './ThumbnailSidebar';
+import { injectReducer } from 'components/store';
+import reducer from './store/index'
+import { useSelector, useDispatch } from 'react-redux';
 
 interface PageDimension {
   pageWidth: number;
@@ -18,17 +21,23 @@ interface PageDimension {
 }
 
 const PdfEditor = () => {
-  const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
-  const [isSignaturePadOpen, setIsSignaturePadOpen] = useState(false);
-  const [signatureForElement, setSignatureForElement] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
-  const [activeTool, setActiveTool] = useState<null | 'text' | 'image' | 'signature'>(null);
-  const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
-  const [pageDimensions, setPageDimensions] = useState<{ [key: number]: PageDimension }>({});
-  const [selectedTextElement, setSelectedTextElement] = useState<TextElement | null>(null);
+  const {
+    pdfBytes,
+    totalPages,
+    currentPage,
+    isSignaturePadOpen,
+    signatureForElement,
+    activeTool,
+    pageDimensions,
+    canvasElements,
+    selectedTextElement
+  } = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer);
+
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { injectReducer("pdfEditor", reducer) }, [])
 
   // Generate unique ID
   const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
@@ -38,12 +47,12 @@ const PdfEditor = () => {
       const pdfDoc = await PDFDocument.create();
       pdfDoc.addPage([600, 800]);
       const bytes = await pdfDoc.save();
-      setTotalPages(1);
-      setCurrentPage(1);
-      setPdfBytes(bytes);
-      setCanvasElements([]);
-      setPageDimensions({ 1: { pageWidth: 600, pageHeight: 800 } });
-      setSelectedTextElement(null);
+      dispatch({type: 'SET_TOTAL_PAGES', payload: 1})
+      dispatch({type: 'SET_CURRENT_PAGE', payload: 1})
+      dispatch({ type: 'SET_PDF_BYTES', payload: bytes })
+      dispatch({type: 'SET_CANVAS_ELEMENTS', payload: []})
+      dispatch({type: 'SET_PAGE_DIMENSIONS', payload: { 1: { pageWidth: 600, pageHeight: 800 }}})
+      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null})
     } catch (error) {
       console.error('Error creating new PDF:', error);
     }
@@ -72,13 +81,13 @@ const PdfEditor = () => {
         const { width, height } = page.getSize();
         dimensions[i + 1] = { pageWidth: width, pageHeight: height };
       }
-      
-      setTotalPages(pageCount);
-      setCurrentPage(1);
-      setPdfBytes(new Uint8Array(arrayBuffer));
-      setCanvasElements([]);
-      setPageDimensions(dimensions);
-      setSelectedTextElement(null);
+
+      dispatch({type: 'SET_TOTAL_PAGES', payload: pageCount})
+      dispatch({type: 'SET_CURRENT_PAGE', payload: 1})
+      dispatch({ type: 'SET_PDF_BYTES', payload: new Uint8Array(arrayBuffer) })
+      dispatch({type: 'SET_CANVAS_ELEMENTS', payload: []})
+      dispatch({type: 'SET_PAGE_DIMENSIONS', payload: dimensions})
+      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null})
       
     } catch (error) {
       console.error('Error loading PDF:', error);
@@ -86,19 +95,14 @@ const PdfEditor = () => {
     }
   };
 
-  const openFileUpload = () => uploadInputRef.current?.click();
-
   const handleDragStart = (type: 'text' | 'image' | 'signature') => {
-    setActiveTool(type);
+    dispatch({type: 'SET_ACTIVE_TOOL', payload: type})
   };
 
   const handleDrop = useCallback((x: number, y: number, info: PageDimension, pageNumber: number, type: string) => {
     const elementType = type as 'text' | 'image' | 'signature';
 
-    setPageDimensions(prev => ({
-      ...prev,
-      [pageNumber]: info
-    }));
+    dispatch({type: 'SET_PAGE_DIMENSIONS', payload: {...pageDimensions, [pageNumber]: info}})
 
     const defaultSize = {
       text: { width: 200, height: 40 },
@@ -124,7 +128,7 @@ const PdfEditor = () => {
           textDecoration: 'none',
           textAlign: 'left'
         };
-        setCanvasElements(prev => [...prev, textElement]);
+        dispatch({type: 'ADD_CANVAS_ELEMENT', payload: textElement});
         break;
 
       case 'image':
@@ -138,7 +142,7 @@ const PdfEditor = () => {
           imageData: '', 
           page: pageNumber
         };
-        setCanvasElements(prev => [...prev, imageElement]);
+        dispatch({type: 'ADD_CANVAS_ELEMENT', payload: imageElement});
         break;
 
       case 'signature':
@@ -152,36 +156,34 @@ const PdfEditor = () => {
           imageData: '', 
           page: pageNumber
         };
-        setCanvasElements(prev => [...prev, signatureElement]);
+        dispatch({type: 'ADD_CANVAS_ELEMENT', payload: signatureElement});
         break;
     }
 
-    setActiveTool(null);
+    dispatch({type: 'SET_ACTIVE_TOOL', payload: null})
   }, []);
 
   const handleElementUpdate = useCallback((updatedElement: CanvasElement) => {
-    setCanvasElements(prev => 
-      prev.map(el => el.id === updatedElement.id ? updatedElement : el)
-    );
+    dispatch({type: 'UPDATE_CANVAS_ELEMENT', payload: updatedElement});
     
     if (selectedTextElement && selectedTextElement.id === updatedElement.id && updatedElement.type === 'text') {
-      setSelectedTextElement(updatedElement as TextElement);
+      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: updatedElement as TextElement});
     }
   }, [selectedTextElement]);
 
   const handleElementDelete = useCallback((id: string) => {
-    setCanvasElements(prev => prev.filter(el => el.id !== id));
+    dispatch({type: 'DELETE_CANVAS_ELEMENT', payload: id});
     
     if (selectedTextElement && selectedTextElement.id === id) {
-      setSelectedTextElement(null);
+      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null});
     }
   }, [selectedTextElement]);
 
   const handleElementSelect = useCallback((element: CanvasElement) => {
     if (element.type === 'text') {
-      setSelectedTextElement(element as TextElement);
+      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: element as TextElement});
     } else {
-      setSelectedTextElement(null);
+      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null});
     }
   }, []);
 
@@ -195,46 +197,40 @@ const PdfEditor = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
           const imageData = event.target?.result as string;
-          setCanvasElements(prev => 
-            prev.map(el => 
-              el.id === elementId && (el.type === 'image' || el.type === 'signature') 
-                ? { ...el, imageData } 
-                : el
-            )
-          );
+          const elementToUpdate = canvasElements.find((el: { id: string; type: string; }) => el.id === elementId && (el.type === 'image' || el.type === 'signature'));
+          if (elementToUpdate) {
+            dispatch({type: 'UPDATE_CANVAS_ELEMENT', payload: { ...elementToUpdate, imageData }});
+          }
         };
         reader.readAsDataURL(file);
       }
     };
     input.click();
-  }, []);
+  }, [canvasElements]);
 
   const handleSignatureDraw = useCallback((elementId: string) => {
-    setSignatureForElement(elementId);
-    setIsSignaturePadOpen(true);
+    dispatch({type: 'SET_SIGNATURE_FOR_ELEMENT', payload: elementId})
+    dispatch({type: 'SET_SIGNATURE_PAD_OPEN', payload: true})
   }, []);
 
   const handleSaveSignature = (signature: string) => {
-    setIsSignaturePadOpen(false);
+    dispatch({type: 'SET_SIGNATURE_PAD_OPEN', payload: false})
     if (signatureForElement) {
-      setCanvasElements(prev => 
-        prev.map(el => 
-          el.id === signatureForElement && el.type === 'signature'
-            ? { ...el, imageData: signature }
-            : el
-        )
-      );
-      setSignatureForElement(null);
+      const elementToUpdate = canvasElements.find((el: { id: any; type: string; }) => el.id === signatureForElement && el.type === 'signature');
+      if (elementToUpdate) {
+        dispatch({type: 'UPDATE_CANVAS_ELEMENT', payload: { ...elementToUpdate, imageData: signature }});
+      }
+      dispatch({type: 'SET_SIGNATURE_FOR_ELEMENT', payload: null})
     }
   };
 
   const handleCancelSignature = () => {
-    setIsSignaturePadOpen(false);
-    setSignatureForElement(null);
+    dispatch({type: 'SET_SIGNATURE_PAD_OPEN', payload: false})
+    dispatch({type: 'SET_SIGNATURE_FOR_ELEMENT', payload: null})
   };
 
   const handleCanvasClick = () => {
-    setSelectedTextElement(null);
+    dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null});
   };
 
   const handleDeletePage = async (pageNumber: number) => {
@@ -247,21 +243,20 @@ const PdfEditor = () => {
       const pdfDoc = await PDFDocument.load(pdfBytes);
       pdfDoc.removePage(pageNumber - 1);
       const newPdfBytes = await pdfDoc.save();
-      
-      setPdfBytes(newPdfBytes);
-      setTotalPages(pdfDoc.getPageCount());
+      dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
+      dispatch({type: 'SET_TOTAL_PAGES', payload: pdfDoc.getPageCount()})
       if (currentPage > pdfDoc.getPageCount()) {
-        setCurrentPage(pdfDoc.getPageCount());
+        dispatch({type: 'SET_CURRENT_PAGE', payload: pdfDoc.getPageCount()})
       } else if (currentPage > pageNumber) {
-        setCurrentPage(current => current - 1);
+        dispatch({type: 'SET_CURRENT_PAGE', payload: currentPage - 1})
       }
 
-      setCanvasElements(prev => prev.filter(el => el.page !== pageNumber).map(el => el.page > pageNumber ? { ...el, page: el.page - 1 } : el));
+      dispatch({type: 'UPDATE_MULTIPLE_ELEMENTS', payload: canvasElements.filter((el: { page: number; }) => el.page !== pageNumber).map((el: { page: number; }) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el)});
       const newPageDimensions: { [key: number]: PageDimension } = {};
       Object.keys(pageDimensions).filter(key => parseInt(key) !== pageNumber).forEach(key => {
           newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
       });
-      setPageDimensions(newPageDimensions);
+      dispatch({type: 'SET_PAGE_DIMENSIONS', payload: newPageDimensions})
 
     } catch (error) {
       console.error('Error deleting page:', error);
@@ -277,16 +272,16 @@ const PdfEditor = () => {
       const newPage = pdfDoc.insertPage(afterPageNumber, [600, 800]);
 
       const newPdfBytes = await pdfDoc.save();
-      setPdfBytes(newPdfBytes);
-      setTotalPages(pdfDoc.getPageCount());
+      dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
+      dispatch({type: 'SET_TOTAL_PAGES', payload: pdfDoc.getPageCount()})
 
-      const updatedElements = canvasElements.map(el => {
+      const updatedElements = canvasElements.map((el: { page: number; }) => {
         if (el.page > afterPageNumber) {
           return { ...el, page: el.page + 1 };
         }
         return el;
       });
-      setCanvasElements(updatedElements);
+      dispatch({type: 'SET_CANVAS_ELEMENTS', payload: updatedElements});
 
       const newPageDimensions: { [key: number]: PageDimension } = {};
       for (let i = 1; i <= pdfDoc.getPageCount(); i++) {
@@ -298,8 +293,8 @@ const PdfEditor = () => {
           newPageDimensions[i] = pageDimensions[i - 1];
         }
       }
-      setPageDimensions(newPageDimensions);
-      setCurrentPage(afterPageNumber + 1);
+      dispatch({type: 'SET_PAGE_DIMENSIONS', payload: newPageDimensions})
+      dispatch({type: 'SET_CURRENT_PAGE', payload: afterPageNumber + 1})
 
     } catch (error) {
       console.error('Error adding blank page:', error);
@@ -329,16 +324,16 @@ const PdfEditor = () => {
         }
 
         const newPdfBytes = await mainDoc.save();
-        setPdfBytes(newPdfBytes);
-        setTotalPages(mainDoc.getPageCount());
+        dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
+        dispatch({type: 'SET_TOTAL_PAGES', payload: mainDoc.getPageCount()})
 
         const dimensions: { [key: number]: PageDimension } = {};
         mainDoc.getPages().forEach((page, i) => {
           const { width, height } = page.getSize();
           dimensions[i + 1] = { pageWidth: width, pageHeight: height };
         });
-        setPageDimensions(dimensions);
-        setCurrentPage(afterPageNumber + 1);
+        dispatch({type: 'SET_PAGE_DIMENSIONS', payload: dimensions})
+        dispatch({type: 'SET_CURRENT_PAGE', payload: afterPageNumber + 1})
         
       } catch (error) {
         console.error('Error inserting PDF pages:', error);
@@ -535,13 +530,14 @@ const PdfEditor = () => {
         </Button>
         <input
           type="file"
+          id="pdf-file-upload"
           accept="application/pdf"
           ref={uploadInputRef}
           onChange={handleFileUpload}
           className={styles.toolbarItem}
           style={{ display: 'none' }}
         />
-        <Button className={styles.toolbarItem} onClick={openFileUpload}>
+        <Button className={styles.toolbarItem} onClick={() => uploadInputRef.current?.click()}>
           <Typography className={styles.label} >Upload PDF</Typography>
         </Button>
         <Button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
@@ -561,9 +557,8 @@ const PdfEditor = () => {
       <div className={styles.mainContainer}>
         <ThumbnailSidebar
           pdfBytes={pdfBytes}
-          totalPages={totalPages}
           currentPage={currentPage}
-          onThumbnailClick={setCurrentPage}
+          onThumbnailClick={(i: number) => dispatch({type: 'SET_CURRENT_PAGE', payload: i})}
         />
         <div className={styles.editorPanel}>
           <div className={styles.pdfViewerWrapper} >
@@ -580,8 +575,8 @@ const PdfEditor = () => {
                   onDeletePage={handleDeletePage}
                 >
                   {canvasElements
-                    .filter(el => el.page === currentPage)
-                    .map(element => (
+                    .filter((el: { page: any; }) => el.page === currentPage)
+                    .map((element: CanvasElement) => (
                       <DraggableElement
                         key={element.id}
                         element={element}

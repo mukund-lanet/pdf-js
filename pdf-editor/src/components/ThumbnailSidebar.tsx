@@ -3,17 +3,18 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import { useSelector } from 'react-redux';
 
 interface ThumbnailSidebarProps {
   pdfBytes: Uint8Array | null;
-  totalPages: number;
   currentPage: number;
   onThumbnailClick: (pageNumber: number) => void;
 }
 
-const ThumbnailSidebar = ({ pdfBytes, totalPages, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
+const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
   const thumbnailContainerRef = useRef<HTMLDivElement | null>(null);
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
+  const totalPages = useSelector((state: any) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
