@@ -171,11 +171,11 @@ const PDFCanvasViewer = ({
           ))}
         </div>)
         : (
-          <div>
+          <div className={styles.emptyMsgComponentWrapper} >
             <EmptyMessageComponent
               message={noDocument.message}
               description={noDocument.description}
-              iconName={"package"}
+              iconName={"pen-line"}
               tipsTitle={"Quick tips"}
               tips={noDocument.tipList}
             />
