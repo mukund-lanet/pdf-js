@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import PDFPage from './PDFPage';
 import { CanvasElement } from './types';
 
@@ -95,6 +96,16 @@ const PDFCanvasViewer = ({
     loadPdfDocument();
   }, [pdfBytes, pdfjsLib]);
 
+  const noDocument = {
+    message: "No documents found",
+    description: "There are no documents to display.",
+    tipList: [
+      "Upload pdf and start editing",
+      "Create new document",
+      "Add docusign in integration"
+    ]
+  }
+
   if (!pdfBytes) {
     return (
       <div className={styles.noPdfLoaded} >
@@ -136,26 +147,42 @@ const PDFCanvasViewer = ({
   }
 
   return (
-    <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
-      {Array.from({ length: totalPages }, (_, index) => (
-        <PDFPage
-          key={`page_${index + 1}_${renderKey}`} // Include renderKey to force re-render
-          pdfDoc={pdfDoc}
-          pageNumber={index + 1}
-          onCanvasClick={onCanvasClick}
-          onDrop={onDrop}
-          onAddBlankPage={onAddBlankPage}
-          onUploadAndInsertPages={onUploadAndInsertPages}
-          onDeletePage={onDeletePage}
-          canvasElements={canvasElements}
-          pageDimensions={pageDimensions}
-          onElementUpdate={onElementUpdate}
-          onElementDelete={onElementDelete}
-          onImageUpload={onImageUpload}
-          onSignatureDraw={onSignatureDraw}
-          onElementSelect={onElementSelect}
-        />
-      ))}
+    <div className={styles.mainPdfContainerWrapperDiv} >
+      { false && pdfBytes && totalPages > 0 ? (
+        <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
+          {Array.from({ length: totalPages }, (_, index) => (
+            <PDFPage
+              key={`page_${index + 1}_${renderKey}`} // Include renderKey to force re-render
+              pdfDoc={pdfDoc}
+              pageNumber={index + 1}
+              onCanvasClick={onCanvasClick}
+              onDrop={onDrop}
+              onAddBlankPage={onAddBlankPage}
+              onUploadAndInsertPages={onUploadAndInsertPages}
+              onDeletePage={onDeletePage}
+              canvasElements={canvasElements}
+              pageDimensions={pageDimensions}
+              onElementUpdate={onElementUpdate}
+              onElementDelete={onElementDelete}
+              onImageUpload={onImageUpload}
+              onSignatureDraw={onSignatureDraw}
+              onElementSelect={onElementSelect}
+            />
+          ))}
+        </div>)
+        : (
+          <div>
+            <EmptyMessageComponent
+              message={noDocument.message}
+              description={noDocument.description}
+              iconName={"package"}
+              tipsTitle={"Quick tips"}
+              tips={noDocument.tipList}
+            />
+          </div>
+        )
+      }
+      
     </div>
   );
 };
