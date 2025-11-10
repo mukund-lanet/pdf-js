@@ -1,3 +1,4 @@
+import React from 'react';
 import { TextElement } from './types';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';

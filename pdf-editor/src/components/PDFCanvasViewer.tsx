@@ -1,59 +1,47 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
-import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
-import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
-import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
+import PDFPage from './PDFPage';
+import { CanvasElement } from './types';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
-  pageNumber: number;
-  onCanvasClick?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }) => void;
+  onCanvasClick?: (pageNumber: number) => void;
   onDrop?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number, type: string) => void;
-  children?: React.ReactNode;
   onAddBlankPage: (pageNumber: number) => void;
   onUploadAndInsertPages: (pageNumber: number) => void;
   onDeletePage: (pageNumber: number) => void;
+  canvasElements: CanvasElement[];
+  pageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } };
+  onElementUpdate: (updatedElement: CanvasElement) => void;
+  onElementDelete: (id: string) => void;
+  onImageUpload: (elementId: string) => void;
+  onSignatureDraw: (elementId: string) => void;
+  onElementSelect: (element: CanvasElement) => void;
 }
 
-const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children, onAddBlankPage, onUploadAndInsertPages, onDeletePage }: PDFCanvasViewerProps) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
+const PDFCanvasViewer = ({
+  pdfBytes,
+  onCanvasClick,
+  onDrop,
+  onAddBlankPage,
+  onUploadAndInsertPages,
+  onDeletePage,
+  canvasElements,
+  pageDimensions,
+  onElementUpdate,
+  onElementDelete,
+  onImageUpload,
+  onSignatureDraw,
+  onElementSelect
+}: PDFCanvasViewerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
-  const [addMenuAnchorEl, setAddMenuAnchorEl] = useState<null | HTMLElement>(null);
-  const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, type: string) => {
-    if (type === 'add') {
-      setAddMenuAnchorEl(event.currentTarget);
-    } else if (type === 'action') {
-      setActionMenuAnchorEl(event.currentTarget);
-    }
-  };
-
-  const handleMenuClose = () => {
-    setAddMenuAnchorEl(null);
-    setActionMenuAnchorEl(null);
-  };
-
-  const handleAddBlankPage = () => {
-    onAddBlankPage(pageNumber);
-    handleMenuClose();
-  };
-  
-   const handleDeletePage = () => {
-    onDeletePage(pageNumber);
-    handleMenuClose();
-  };
-
-  const handleUploadAndInsert = () => {
-    onUploadAndInsertPages(pageNumber);
-    handleMenuClose();
-  };
+  const [pdfDoc, setPdfDoc] = useState<any>(null);
+  const [totalPages, setTotalPages] = useState(0);
+  const [renderKey, setRenderKey] = useState(0); // Force re-render when PDF changes
 
   // Load PDF.js library on component mount
   useEffect(() => {
@@ -61,8 +49,6 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
       import('pdfjs-dist').then((pdfjs) => {
         const workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
         pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
-        
-        console.log('PDF.js worker configured with:', workerSrc);
         setPdfjsLib(pdfjs);
       }).catch((error) => {
         console.error('Failed to load PDF.js:', error);
@@ -72,157 +58,42 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
   }, []);
 
   useEffect(() => {
-    const renderPDF = async () => {
-      if (!pdfBytes || !pdfjsLib || !canvasRef.current) {
-        renderPlaceholder();
+    const loadPdfDocument = async () => {
+      if (!pdfBytes || !pdfjsLib) {
+        setPdfDoc(null);
+        setTotalPages(0);
         return;
       }
 
       try {
         setIsLoading(true);
         setError(null);
-                
-        // Create a fresh copy of the ArrayBuffer to prevent detachment issues
-        const pdfBytesCopy = new Uint8Array(pdfBytes);
         
+        console.log('Loading PDF document...');
+        
+        // Create a fresh copy to avoid reference issues
+        const pdfBytesCopy = new Uint8Array(pdfBytes);
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
-                
-        if (pageNumber < 1 || pageNumber > pdf.numPages) {
-          throw new Error(`Page ${pageNumber} is out of range. Total pages: ${pdf.numPages}`);
-        }
         
-        const page = await pdf.getPage(pageNumber);
-        const viewport = page.getViewport({ scale: 1.5 });
+        console.log(`PDF loaded with ${pdf.numPages} pages`);
         
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
-        if (!context) {
-          throw new Error('Could not get canvas context');
-        }
-        
-        // Set canvas dimensions
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
-
-        // Clear canvas
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport
-        };
-        
-        setPageSize({ 
-          pageWidth: viewport.width, 
-          pageHeight: viewport.height 
-        });
-        
-        await page.render(renderContext).promise;
-        setIsLoading(false);
+        setPdfDoc(pdf);
+        setTotalPages(pdf.numPages);
+        setRenderKey(prev => prev + 1); // Force re-render of all pages
         
       } catch (error) {
-        console.error('Error rendering PDF:', error);
-        setError(`Failed to render PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        renderPlaceholder();
+        console.error('Error loading PDF document:', error);
+        setError(`Failed to load PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setPdfDoc(null);
+        setTotalPages(0);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    const renderPlaceholder = () => {
-      if (!canvasRef.current) return;
-      
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const width = 900;
-      const height = 1200;
-      
-      canvas.width = width;
-      canvas.height = height;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      // Clear canvas
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, width, height);
-      
-      // Draw border
-      ctx.strokeStyle = '#ddd';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(0, 0, width, height);
-      
-      // Draw page content
-      ctx.fillStyle = '#333';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'center';
-      
-      if (pdfBytes) {
-        ctx.fillText(`PDF Page ${pageNumber}`, width / 2, height / 2 - 40);
-        ctx.font = '16px Arial';
-        ctx.fillStyle = '#666';
-        
-        if (error) {
-          ctx.fillStyle = '#ff4444';
-          ctx.fillText('Error loading PDF', width / 2, height / 2);
-          ctx.font = '12px Arial';
-          ctx.fillText(error, width / 2, height / 2 + 30);
-        } else if (isLoading) {
-          ctx.fillText('Loading PDF...', width / 2, height / 2);
-        } else {
-          ctx.fillText('PDF content will appear here', width / 2, height / 2);
-        }
-      } else {
-        ctx.fillText(`PDF Page ${pageNumber}`, width / 2, height / 2 - 40);
-        ctx.font = '16px Arial';
-        ctx.fillStyle = '#666';
-        ctx.fillText('PDF rendering placeholder', width / 2, height / 2);
-        ctx.font = '14px Arial';
-        ctx.fillText('Upload a PDF to see actual content', width / 2, height / 2 + 30);
-      }
-      
-      // Draw a simple document outline
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(50, 100, width - 100, height - 200);
-      
-      ctx.fillStyle = '#999';
-      ctx.font = '12px Arial';
-      ctx.fillText('Document content area', width / 2, 90);
-
-      setPageSize({ pageWidth: width, pageHeight: height });
-      setIsLoading(false);
-    };
-
-    renderPDF();
-  }, [pdfBytes, pageNumber, pdfjsLib, error]);
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!onDrop || !canvasRef.current) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const type = e.dataTransfer.getData('application/pdf-editor');
-    
-    console.log(`Drop at: ${x}, ${y} on page ${pageNumber}, type: ${type}`);
-    
-    if (type) {
-      onDrop(x, y, pageSize, pageNumber, type);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
+    loadPdfDocument();
+  }, [pdfBytes, pdfjsLib]);
 
   if (!pdfBytes) {
     return (
@@ -234,77 +105,57 @@ const PDFCanvasViewer = ({ pdfBytes, onCanvasClick, onDrop, pageNumber, children
     );
   }
 
-  return (
-    <div className={styles.pdfCanvasViewer} >
-      <div 
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onClick={onCanvasClick}
-        className={styles.canvasContainer}
-      >
-        {isLoading && (
-          <Typography className={styles.loadingDiv}>
-            Loading page {pageNumber}...
-          </Typography>
-        )}
-        
-        {error && (
-          <Typography className={styles.errorDiv} >
-            {error}
-          </Typography>
-        )}
-        <Menu
-          anchorEl={actionMenuAnchorEl}
-          open={Boolean(actionMenuAnchorEl)}
-          onClose={handleMenuClose}
-        >
-          <MenuItem onClick={handleDeletePage}>
-            <Typography>Delete Page</Typography>
-          </MenuItem>
-        </Menu>
-        <div className={styles.actionButtonWrapper} >
-          <div className={styles.actionBtnJustifyWrapper} >
-            <Button className={styles.addPageRound} onClick={handleAddBlankPage}>
-              <CustomIcon iconName="plus" width={24} height={24} />
-            </Button>
-            <Button className={styles.threeDotsBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "action")}>
-              <CustomIcon iconName="ellipsis" width={24} height={24} />
-            </Button>
-          </div>
-        </div>
-        <canvas
-          ref={canvasRef}
-          className={styles.canvasWrapper}
-        />
-        {children}
-      </div>
-      <div className={styles.pageControls}>
-        <Typography className={styles.pagesDiv} >
-          Page {pageNumber}
-          {pageSize.pageWidth > 0 && (
-            <span className={styles.pageSpan} >
-              ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
-            </span>
-          )}
-
-          <Button className={styles.addPageBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "add")}>
-            <CustomIcon iconName="plus" width={16} height={16} />
-            <Typography className={styles.addPage} >Add Page</Typography>
-          </Button>
+  if (isLoading) {
+    return (
+      <div className={styles.loadingDiv}>
+        <Typography>
+          Loading PDF...
         </Typography>
-        <Menu
-          anchorEl={addMenuAnchorEl}
-          open={Boolean(addMenuAnchorEl)}
-          onClose={handleMenuClose}
-        >
-          <MenuItem onClick={handleAddBlankPage}>
-            <Typography>Add blank page after</Typography>
-          </MenuItem>
-          <MenuItem onClick={handleUploadAndInsert}>
-            <Typography>Upload PDF to insert after</Typography>
-          </MenuItem>
-        </Menu>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.errorDiv} >
+        <Typography>
+          {error}
+        </Typography>
+      </div>
+    );
+  }
+
+  if (!pdfDoc || totalPages === 0) {
+    return (
+      <div className={styles.noPdfLoaded} >
+        <Typography>
+          No pages to display
+        </Typography>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
+      {Array.from({ length: totalPages }, (_, index) => (
+        <PDFPage
+          key={`page_${index + 1}_${renderKey}`} // Include renderKey to force re-render
+          pdfDoc={pdfDoc}
+          pageNumber={index + 1}
+          onCanvasClick={onCanvasClick}
+          onDrop={onDrop}
+          onAddBlankPage={onAddBlankPage}
+          onUploadAndInsertPages={onUploadAndInsertPages}
+          onDeletePage={onDeletePage}
+          canvasElements={canvasElements}
+          pageDimensions={pageDimensions}
+          onElementUpdate={onElementUpdate}
+          onElementDelete={onElementDelete}
+          onImageUpload={onImageUpload}
+          onSignatureDraw={onSignatureDraw}
+          onElementSelect={onElementSelect}
+        />
+      ))}
     </div>
   );
 };

@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface TextElement {
   textDecoration?: string;
   textAlign?: string;

@@ -1,10 +1,11 @@
 
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import { useSelector } from 'react-redux';
 import { RootState } from './store/reducer/pdfEditor.reducer';
+import ThumbnailPage from './ThumbnailPage';
 
 interface ThumbnailSidebarProps {
   pdfBytes: Uint8Array | null;
@@ -13,8 +14,8 @@ interface ThumbnailSidebarProps {
 }
 
 const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
-  const thumbnailContainerRef = useRef<HTMLDivElement | null>(null);
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
+  const [pdfDoc, setPdfDoc] = useState<any>(null);
   const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
 
   useEffect(() => {
@@ -29,53 +30,21 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
   }, []);
 
   useEffect(() => {
-    const renderThumbnails = async () => {
-      if (!pdfBytes || !pdfjsLib || !thumbnailContainerRef.current) return;
-
-      thumbnailContainerRef.current.innerHTML = ''; // Clear previous thumbnails
+    const loadPdf = async () => {
+      if (!pdfBytes || !pdfjsLib) return;
 
       try {
         const pdfBytesCopy = new Uint8Array(pdfBytes);
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
-
-        for (let i = 1; i <= totalPages; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 0.5 });
-
-          const thumbnailWrapper = document.createElement('div');
-          thumbnailWrapper.className = `${styles.thumbnailItem} ${i === currentPage ? styles.activeThumbnail : ''}`;
-          thumbnailWrapper.onclick = () => onThumbnailClick(i);
-
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          if (!context) continue;
-
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-
-          const renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-          };
-
-          page.render(renderContext);
-
-          const pageNumberDiv = document.createElement('div');
-          pageNumberDiv.className = styles.thumbnailPageNumber;
-          pageNumberDiv.innerText = `Page ${i}`;
-
-          thumbnailWrapper.appendChild(canvas);
-          thumbnailWrapper.appendChild(pageNumberDiv);
-          thumbnailContainerRef.current?.appendChild(thumbnailWrapper);
-        }
+        setPdfDoc(pdf);
       } catch (error) {
-        console.error('Error rendering thumbnails:', error);
+        console.error('Error loading PDF for thumbnails:', error);
       }
     };
 
-    renderThumbnails();
-  }, [pdfBytes, totalPages, currentPage, pdfjsLib, onThumbnailClick]);
+    loadPdf();
+  }, [pdfBytes, pdfjsLib]);
 
   return (
     <div className={styles.thumbnailSidebar}>
@@ -85,8 +54,20 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
               <Typography className={styles.label} >Total Pages: {pdfBytes ? totalPages : 0}</Typography>
             </div>
         </div>
-      <div ref={thumbnailContainerRef} className={styles.thumbnailContainer}>
-        {!pdfBytes && <Typography className={styles.label}>No PDF Loaded</Typography>}
+      <div className={styles.thumbnailContainer}>
+        {pdfDoc && totalPages > 0 ? (
+          Array.from(new Array(totalPages), (el, index) => (
+            <ThumbnailPage
+              key={`thumbnail_page_${index + 1}`}
+              pdfDoc={pdfDoc}
+              pageNumber={index + 1}
+              currentPage={currentPage}
+              onThumbnailClick={onThumbnailClick}
+            />
+          ))
+        ) : (
+          <Typography className={styles.label}>No PDF Loaded</Typography>
+        )}
       </div>
     </div>
   );

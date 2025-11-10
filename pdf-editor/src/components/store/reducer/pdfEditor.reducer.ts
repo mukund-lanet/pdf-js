@@ -1,3 +1,4 @@
+import React from "react";
 import { PDF_EDITOR_ACTION_TYPES, PdfEditorActionTypes } from '../action/pdfEditor.action';
 import { CanvasElement, TextElement } from '../../types';
 

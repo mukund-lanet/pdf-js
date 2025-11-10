@@ -1,3 +1,4 @@
+import react from "react";
 import { CanvasElement, TextElement } from "../../types";
 
 // Action Types
@@ -111,75 +112,3 @@ export type PdfEditorActionTypes =
   | SetSignatureForElementAction
   | UpdateMultipleElementsAction
   | ResetEditorAction;
-
-// Action Creators
-export const pdfEditorActions = {
-  setPdfBytes: (pdfBytes: Uint8Array | null): SetPdfBytesAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES,
-    payload: pdfBytes
-  }),
-
-  setTotalPages: (totalPages: number): SetTotalPagesAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_TOTAL_PAGES,
-    payload: totalPages
-  }),
-
-  setCurrentPage: (currentPage: number): SetCurrentPageAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_CURRENT_PAGE,
-    payload: currentPage
-  }),
-
-  setPageDimensions: (dimensions: { [key: number]: { pageWidth: number; pageHeight: number } }): SetPageDimensionsAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_PAGE_DIMENSIONS,
-    payload: dimensions
-  }),
-
-  setCanvasElements: (elements: CanvasElement[]): SetCanvasElementsAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_CANVAS_ELEMENTS,
-    payload: elements
-  }),
-
-  addCanvasElement: (element: CanvasElement): AddCanvasElementAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.ADD_CANVAS_ELEMENT,
-    payload: element
-  }),
-
-  updateCanvasElement: (element: CanvasElement): UpdateCanvasElementAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.UPDATE_CANVAS_ELEMENT,
-    payload: element
-  }),
-
-  deleteCanvasElement: (elementId: string): DeleteCanvasElementAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.DELETE_CANVAS_ELEMENT,
-    payload: elementId
-  }),
-
-  setActiveTool: (tool: null | 'text' | 'image' | 'signature'): SetActiveToolAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_TOOL,
-    payload: tool
-  }),
-
-  setSelectedTextElement: (element: TextElement | null): SetSelectedTextElementAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_SELECTED_TEXT_ELEMENT,
-    payload: element
-  }),
-
-  setSignaturePadOpen: (isOpen: boolean): SetSignaturePadOpenAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_SIGNATURE_PAD_OPEN,
-    payload: isOpen
-  }),
-
-  setSignatureForElement: (elementId: string | null): SetSignatureForElementAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.SET_SIGNATURE_FOR_ELEMENT,
-    payload: elementId
-  }),
-
-  updateMultipleElements: (elements: CanvasElement[]): UpdateMultipleElementsAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.UPDATE_MULTIPLE_ELEMENTS,
-    payload: elements
-  }),
-
-  resetEditor: (): ResetEditorAction => ({
-    type: PDF_EDITOR_ACTION_TYPES.RESET_EDITOR
-  })
-};

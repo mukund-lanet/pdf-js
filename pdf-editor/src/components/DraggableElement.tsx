@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CanvasElement, TextElement } from './types';
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
