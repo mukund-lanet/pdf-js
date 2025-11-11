@@ -1,3 +1,4 @@
+
 .renderContentTextArea {
   width: 100%;
   height: 100%;
@@ -9,45 +10,9 @@
   background: white;
   font-family: Arial, sans-serif;
   font-size: 14px;
-  padding: 4px;
+  // padding: 4px;
   box-sizing: border-box;
   display: flex; 
-  justify-content: center;
-  align-items: center;
-}
-
-.renderTextOverley {
-  width: 100%;
-  height: 100%;
-  padding: 4px;
-  word-wrap: break-word;
-  overflow: hidden;
-  box-sizing: border-box;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: move;
-  white-space: break-spaces;
-
-  &.dragging {
-    cursor: grabbing; 
-  }
-}
-
-.renderContentImage {
-  text-align: center;
-  color: #666;
-  padding: 10px;
-
-  .contentPic {
-    font-size: 24px;
-    margin-bottom: 8px;
-  }
-
-  .label {
-    font-size: 12px;
-  }
 }
 
 .dragDropToolbar {
@@ -204,8 +169,10 @@
     width: 100%;
 
     .pdfPageContainer {
-      height: 100%;
-      width: 100%;
+      width: auto;
+      height: auto;
+      display: flex;
+      justify-content: center;
 
       .pdfCanvasViewer {
         position: relative;
@@ -213,8 +180,8 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        height: 100%;
-        width: 100%;
+        height: 1150px;
+        width: 865px;
       
         .canvasContainer {
           position: relative;
@@ -256,11 +223,10 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 816px;
+            height: 1056px;
             overflow: hidden;
-      
-      
+
             border: 1px solid #ddd;
             border-radius: 4px;
             background: white;
@@ -273,7 +239,8 @@
             width: 100%;
       
             .actionBtnJustifyWrapper {
-              width: 50%;
+              // width: 50%;
+              width: calc(55% - 21px);
               display: flex;
               justify-content: space-between;
             }
@@ -296,49 +263,6 @@
           }
       
         }
-      
-        .pageControls {
-          display: flex;
-          gap: 24px;
-          justify-content: center;
-          align-items: center;
-      
-          .pagesDiv {
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-            font-weight: bold;
-            gap: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        
-            .pageSpan {
-              font-size: 12px;
-              color: #999;
-            }
-          }
-      
-          .addPageUploadPdfMenuWrapper {
-            display: flex;
-            gap: 8px;
-      
-            .addPageBtn {
-              display: flex;
-              gap: 8px;
-              align-items: center;
-              border: 1px solid #e2e8f0;
-              background-color: #ffffff;
-              color: #344256;
-              padding: 0 32px;
-              border-radius: 6px;
-      
-              .addPage {
-                font-size: 14px;
-              }
-            } 
-          }
-        }
       }
     }
   }
@@ -358,38 +282,63 @@
   flex-direction: column;
   height: 100%;
   max-height: calc(100% - 24px);
+  padding: 24px;
+  background: #f9fafb;
 
-  .header {
-    padding: 16px;
-    border-bottom: 1px solid #ccc;
+  .moduleHeaderToolbarWrapper {
     display: flex;
+    // flex-direction: column;
     gap: 16px;
-
-    .toolbarItem {
-      padding: 10px 16px;
-      background: white;
-      border: 2px solid #ddd;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.2s ease;
-      min-width: 100px;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 500;
-      color: #344256;
-      height: 44px;
-
-      .label {
-        font-size: 14px;
-        color: #000000;
-      }
-
-      &:hover {
-        border-color: #007bff;
-        background: #f0f8ff;
+    justify-content: space-between;
+    
+    .moduleHeaderWrapper {
+      display: flex;
+    }
+  
+    .toolbarWrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+  
+      .upperHeaderToolbar {
+        display: flex;
+        gap: 16px;
+    
+        .toolbarItem {
+          padding: 10px 16px;
+          background: white;
+          border: 2px solid #ddd;
+          border-radius: 6px;
+          cursor: pointer;
+          user-select: none;
+          transition: all 0.2s ease;
+          min-width: 100px;
+          text-align: center;
+          font-size: 16px;
+          font-weight: 500;
+          color: #344256;
+          height: 44px;
+    
+          .label {
+            font-size: 14px;
+            color: #000000;
+          }
+    
+          &:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+          }
+        }
       }
     }
+  }
+
+  .moduleHeaderDivider {
+    width: 100%;
+    height: 1px;
+    background: #ccc;
+    margin: 24px 0;
   }
 
   .mainContainer {
@@ -403,7 +352,7 @@
       flex-direction: column;
       overflow: hidden;
       gap: 24px;
-      padding: 24px 24px 0 24px;
+      padding: 0 24px;
 
       .pdfViewerWrapper {
         display: flex;
@@ -415,7 +364,6 @@
         overflow: auto;
         min-width: fit-content;
         background: #f9fafb;
-        padding-top: 24px;
         
         .pdfViewer {
           flex-grow: 1;

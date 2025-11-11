@@ -5,6 +5,7 @@ import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import Moveable from "react-moveable";
 
 interface DraggableElementProps {
   element: CanvasElement;
@@ -34,7 +35,8 @@ const DraggableElement = ({
   const [showEditButton, setShowEditButton] = useState(false);
   const [tempContent, setTempContent] = useState(element.type === 'text' ? element.content : '');
   
-  const elementRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
+  const moveableRef = useRef<HTMLDivElement>(null);
   const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Use element coordinates directly
@@ -79,129 +81,6 @@ const DraggableElement = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
-    
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startPosX = elementRef.current ? parseInt(elementRef.current.style.left, 10) : position.x;
-    const startPosY = elementRef.current ? parseInt(elementRef.current.style.top, 10) : position.y;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-      
-      // Calculate new position with bounds checking
-      const newX = Math.max(0, Math.min(startPosX + deltaX, pageInfo.pageWidth - size.width));
-      const newY = Math.max(0, Math.min(startPosY + deltaY, pageInfo.pageHeight - size.height));
-      
-      // Update element position
-      if (elementRef.current) {
-        elementRef.current.style.left = `${newX}px`;
-        elementRef.current.style.top = `${newY}px`;
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      if (elementRef.current) {
-        onUpdate({
-          ...element,
-          x: parseInt(elementRef.current.style.left, 10),
-          y: parseInt(elementRef.current.style.top, 10)
-        });
-      }
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  // resize handling
-  const startResize = (corner: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);  
-    
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startWidth = element.width;
-    const startHeight = element.height;
-    const startXPos = element.x;
-    const startYPos = element.y;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-
-      let newWidth = startWidth;
-      let newHeight = startHeight;
-      let newX = startXPos;
-      let newY = startYPos;
-
-      const minSize = {
-        text: { width: 50, height: 20 },
-        image: { width: 30, height: 30 },
-        signature: { width: 50, height: 30 }
-      };
-
-      const min = minSize[element.type] || { width: 30, height: 20 };
-
-      switch (corner) {
-        case 'topLeft':
-          newWidth = Math.max(min.width, startWidth - deltaX);
-          newHeight = Math.max(min.height, startHeight - deltaY);
-          newX = startXPos + deltaX;
-          newY = startYPos + deltaY;
-          break;
-        case 'topRight':
-          newWidth = Math.max(min.width, startWidth + deltaX);
-          newHeight = Math.max(min.height, startHeight - deltaY);
-          newY = startYPos + deltaY;
-          break;
-        case 'bottomLeft':
-          newWidth = Math.max(min.width, startWidth - deltaX);
-          newHeight = Math.max(min.height, startHeight + deltaY);
-          newX = startXPos + deltaX;
-          break;
-        case 'bottomRight':
-          newWidth = Math.max(min.width, startWidth + deltaX);
-          newHeight = Math.max(min.height, startHeight + deltaY);
-          break;
-      }
-
-      // Ensure element stays within page bounds
-      newX = Math.max(0, Math.min(newX, pageInfo.pageWidth - newWidth));
-      newY = Math.max(0, Math.min(newY, pageInfo.pageHeight - newHeight));
-
-      // Update element
-      if (elementRef.current) {
-        elementRef.current.style.left = `${newX}px`;
-        elementRef.current.style.top = `${newY}px`;
-        elementRef.current.style.width = `${newWidth}px`;
-        elementRef.current.style.height = `${newHeight}px`;
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      if (elementRef.current) {
-        onUpdate({
-          ...element,
-          x: parseInt(elementRef.current.style.left, 10),
-          y: parseInt(elementRef.current.style.top, 10),
-          width: parseInt(elementRef.current.style.width, 10),
-          height: parseInt(elementRef.current.style.height, 10),
-        });
-      }
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -259,12 +138,13 @@ const DraggableElement = ({
         const textElement = element as TextElement;
         const textStyle: React.CSSProperties = {
           display: 'flex',
-          alignItems: 'center',
+          // alignItems: 'center',
           fontSize: `${textElement.fontSize || 12}px`,
           color: textElement.color || '#000000',
           fontWeight: textElement.fontWeight || 'normal',
           fontStyle: textElement.fontStyle || 'normal',
           textDecoration: textElement.textDecoration || 'none',
+          // @ts-ignore
           textAlign: textElement.textAlign || 'left',
           justifyContent: textElement.textAlign === 'center' 
             ? 'center' 
@@ -379,50 +259,17 @@ const DraggableElement = ({
     userSelect: 'none',
   };
 
-  const resizeHandleStyle: React.CSSProperties = {
-    position: 'absolute',
-    width: '12px',
-    height: '12px',
-    background: '#007bff',
-    border: '2px solid white',
-    borderRadius: '50%',
-    zIndex: 101,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-    cursor: 'pointer'
-  };
-
   return (
     <>
       <div
-        ref={elementRef}
+        ref={targetRef}
         style={elementStyle}
         onMouseDown={handleMouseDown}
         onClick={handleElementClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {!isEditing && (
-          <>
-            <div 
-              style={{ ...resizeHandleStyle, top: '-6px', left: '-6px', cursor: 'nw-resize' }}
-              onMouseDown={(e: React.MouseEvent) => startResize('topLeft', e)}
-            />
-            <div 
-              style={{ ...resizeHandleStyle, top: '-6px', right: '-6px', cursor: 'ne-resize' }}
-              onMouseDown={(e: React.MouseEvent) => startResize('topRight', e)}
-            />
-            <div 
-              style={{ ...resizeHandleStyle, bottom: '-6px', left: '-6px', cursor: 'sw-resize' }}
-              onMouseDown={(e: React.MouseEvent) => startResize('bottomLeft', e)}
-            />
-            <div 
-              style={{ ...resizeHandleStyle, bottom: '-6px', right: '-6px', cursor: 'se-resize' }}
-              onMouseDown={(e: React.MouseEvent) => startResize('bottomRight', e)}
-            />
-          </>
-        )}
-
-        {showEditButton && !isEditing && !isDragging && !isResizing && (
+        { showEditButton && !isEditing && !isDragging && !isResizing && (
           <Button 
             className={styles.editButtonBadge}
             onClick={handleEdit}
@@ -433,7 +280,7 @@ const DraggableElement = ({
           </Button>
         )}
 
-        {showDeleteButton && !isEditing && !isDragging && !isResizing && (
+        { showDeleteButton && !isEditing && !isDragging && !isResizing && (
           <Button 
             className={styles.deleteButtonBadge}
             onClick={handleDelete}
@@ -445,6 +292,34 @@ const DraggableElement = ({
 
         {renderContent()}
       </div>
+      <Moveable
+        // @ts-ignore
+        ref={moveableRef} 
+        target={targetRef}
+        draggable={true}
+        throttleDrag={1}
+        edgeDraggable={false}
+        startDragRotate={0}
+        throttleDragRotate={0}
+        resizable={true}
+        keepRatio={false}
+        throttleResize={1}
+        renderDirections={["nw","n","ne","w","e","sw","s","se"]}
+        rotatable={true}
+        throttleRotate={0}
+        rotationPosition={"top"}
+        onDrag={e => {
+            e.target.style.transform = e.transform;
+        }}
+        onResize={e => {
+            e.target.style.width = `${e.width}px`;
+            e.target.style.height = `${e.height}px`;
+            e.target.style.transform = e.drag.transform;
+        }}
+        onRotate={e => {
+            e.target.style.transform = e.drag.transform;
+        }}
+      />
     </>
   );
 };

@@ -10,6 +10,8 @@ import TextPropertiesToolbar from './TextPropertiesToolbar';
 import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import ModuleHeader from "@trenchaant/pkg-ui-component-library/build/Components/ModuleHeader";
+import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import ThumbnailSidebar from './ThumbnailSidebar';
 import { injectReducer } from 'components/store';
 import reducer from './store/index'
@@ -102,11 +104,10 @@ const PdfEditor = () => {
       
     } catch (error) {
       console.error('Error loading PDF:', error);
+      console.log('Error loading PDF:', error);
       alert('Failed to load PDF. Please make sure it is a valid PDF file.');
     }
   };
-
-  const openFileUpload = () => uploadInputRef.current?.click();
 
   const handleDragStart = (type: 'text' | 'image' | 'signature') => {
     dispatch({type: 'SET_ACTIVE_TOOL', payload: type})
@@ -116,6 +117,7 @@ const PdfEditor = () => {
     const elementType = type as 'text' | 'image' | 'signature';
 
     // The dimensions of the page are passed up by the canvas viewer on render
+    console.log({x, y, info, pageNumber, type})
     dispatch({type: 'SET_PAGE_DIMENSIONS', payload: {...pageDimensions, [pageNumber]: info}})
 
     const defaultSize = {
@@ -208,7 +210,7 @@ const PdfEditor = () => {
   const handleImageUpload = useCallback((elementId: string) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/png, image/jpeg';
+    input.accept = 'image/png, image/jpeg, image/jpg';
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -282,6 +284,7 @@ const PdfEditor = () => {
 
     } catch (error) {
       console.error('Error deleting page:', error);
+      console.log('Error deleting page:', error);
       alert('Failed to delete the page.');
     }
   };
@@ -331,6 +334,7 @@ const PdfEditor = () => {
 
     } catch (error) {
       console.error('Error adding blank page:', error);
+      console.log('Error adding blank page:', error);
       alert('Failed to add a blank page.');
     }
   };
@@ -381,6 +385,7 @@ const PdfEditor = () => {
         
       } catch (error) {
         console.error('Error inserting PDF pages:', error);
+        console.log('Error inserting PDF pages:', error);
         alert('Failed to insert PDF pages.');
       }
     };
@@ -564,6 +569,7 @@ const PdfEditor = () => {
       }
       
       const finalBytes = await pdfDoc.save();
+      // @ts-ignore
       const blob = new Blob([finalBytes], { type: 'application/pdf' });
       
       // Trigger download
@@ -578,49 +584,65 @@ const PdfEditor = () => {
 
     } catch (error) {
       console.error('Error exporting PDF:', error);
+      console.log('Error exporting PDF:', error);
       alert('Error exporting PDF. Please try again.');
     }
   };
 
   return (
     <div className={styles.pdfEditorContainer}>
+      <div className={styles.moduleHeaderToolbarWrapper} >
+        <div className={styles.moduleHeaderWrapper} >
+          <ModuleHeader 
+            title={"E-Signature & Contract Management"}
+            description={"Send, sign, and manage documents and contracts electronically with ease."}
+            icon={"pen-line"}
+          />
+        </div>
+
+        <div className={styles.toolbarWrapper} >
+          <div className={styles.upperHeaderToolbar}>
+            <Button className={styles.toolbarItem} onClick={createNewPdf}>
+              <Typography className={styles.label} >New Document</Typography>
+            </Button>
+            <input
+              type="file"
+              id="pdf-file-upload"
+              accept="application/pdf"
+              ref={uploadInputRef}
+              onChange={handleFileUpload}
+              className={styles.toolbarItem}
+              style={{ display: 'none' }}
+            />
+            <Button className={styles.toolbarItem} onClick={() => uploadInputRef.current?.click()}>
+              <Typography className={styles.label} >Upload PDF</Typography>
+            </Button>
+            <Button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
+              <Typography className={styles.label} >Export PDF</Typography>
+            </Button>
+            {selectedTextElement && (
+              <TextPropertiesToolbar
+                element={selectedTextElement}
+                onUpdate={handleElementUpdate}
+              />
+            )}
+          </div>
+          <DragDropToolbar 
+            onDragStart={handleDragStart}
+            activeTool={activeTool}
+          />
+        </div>
+      </div>
+
+      <Divider orientation="horizontal" className={styles.toolbarDivider} />
+      
       {isSignaturePadOpen && (
         <SignaturePad
           onSave={handleSaveSignature}
           onClose={handleCancelSignature}
         />
       )}
-      
-      <div className={styles.header}>
-        <Button className={styles.toolbarItem} onClick={createNewPdf}>
-          <Typography className={styles.label} >New Document</Typography>
-        </Button>
-        <input
-          type="file"
-          id="pdf-file-upload"
-          accept="application/pdf"
-          ref={uploadInputRef}
-          onChange={handleFileUpload}
-          className={styles.toolbarItem}
-          style={{ display: 'none' }}
-        />
-        <Button className={styles.toolbarItem} onClick={() => uploadInputRef.current?.click()}>
-          <Typography className={styles.label} >Upload PDF</Typography>
-        </Button>
-        <Button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
-          <Typography className={styles.label} >Export PDF</Typography>
-        </Button>
-        <DragDropToolbar 
-          onDragStart={handleDragStart}
-          activeTool={activeTool}
-        />
-        {selectedTextElement && (
-          <TextPropertiesToolbar
-            element={selectedTextElement}
-            onUpdate={handleElementUpdate}
-          />
-        )}
-      </div>
+
       <div className={styles.mainContainer}>
         <ThumbnailSidebar
           pdfBytes={pdfBytes}

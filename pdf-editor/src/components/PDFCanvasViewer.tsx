@@ -148,7 +148,7 @@ const PDFCanvasViewer = ({
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
-      { false && pdfBytes && totalPages > 0 ? (
+      { pdfBytes && totalPages > 0 ? (
         <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
           {Array.from({ length: totalPages }, (_, index) => (
             <PDFPage

@@ -47,20 +47,14 @@ const PDFPage = React.memo(({
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [addMenuAnchorEl, setAddMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
   const renderTaskRef = useRef<any>(null);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, type: string) => {
-    if (type === 'add') {
-      setAddMenuAnchorEl(event.currentTarget);
-    } else if (type === 'action') {
-      setActionMenuAnchorEl(event.currentTarget);
-    }
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setActionMenuAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
-    setAddMenuAnchorEl(null);
     setActionMenuAnchorEl(null);
   };
 
@@ -91,66 +85,66 @@ const PDFPage = React.memo(({
     }
   };
 
-useEffect(() => {
-  let isMounted = true;
+  useEffect(() => {
+    let isMounted = true;
 
-  const renderPage = async () => {
-    if (!pdfDoc || !canvasRef.current) return;
+    const renderPage = async () => {
+      if (!pdfDoc || !canvasRef.current) return;
 
-    // 🔥 Cancel any previous render immediately before starting a new one
-    cleanupRenderTask();
+      // 🔥 Cancel any previous render immediately before starting a new one
+      cleanupRenderTask();
 
-    setIsLoading(true);
-    setError(null);
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const page = await pdfDoc.getPage(pageNumber);
-      if (!isMounted) return;
+      try {
+        const page = await pdfDoc.getPage(pageNumber);
+        if (!isMounted) return;
 
-      const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale: 1.5 });
 
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error("Could not get canvas context");
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error("Could not get canvas context");
 
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-      context.fillStyle = 'white';
-      context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
-      const renderContext = { canvasContext: context, viewport };
+        const renderContext = { canvasContext: context, viewport };
 
-      // ✅ Store and await the render task
-      const task = page.render(renderContext);
-      renderTaskRef.current = task;
+        // ✅ Store and await the render task
+        const task = page.render(renderContext);
+        renderTaskRef.current = task;
 
-      await task.promise;
+        await task.promise;
 
-      if (isMounted) {
-        setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
-        setIsLoading(false);
+        if (isMounted) {
+          setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
+          setIsLoading(false);
+        }
+
+      } catch (error: any) {
+        // Ignore intended cancellation
+        if (
+          error?.name !== "RenderingCancelledException" &&
+          error?.message !== "Rendering cancelled"
+        ) {
+          console.error(`Error rendering page ${pageNumber}:`, error);
+          if (isMounted) setError(`Failed to render page ${pageNumber}`);
+        }
       }
+    };
 
-    } catch (error: any) {
-      // Ignore intended cancellation
-      if (
-        error?.name !== "RenderingCancelledException" &&
-        error?.message !== "Rendering cancelled"
-      ) {
-        console.error(`Error rendering page ${pageNumber}:`, error);
-        if (isMounted) setError(`Failed to render page ${pageNumber}`);
-      }
-    }
-  };
+    renderPage();
 
-  renderPage();
-
-  return () => {
-    isMounted = false;
-    cleanupRenderTask(); // ✅ also cancel on unmount or dependency change
-  };
-}, [pdfDoc, pageNumber]);
+    return () => {
+      isMounted = false;
+      cleanupRenderTask(); // ✅ also cancel on unmount or dependency change
+    };
+  }, [pdfDoc, pageNumber]);
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -184,7 +178,6 @@ useEffect(() => {
     <div 
       id={`pdf-page-${pageNumber}`}
       className={styles.pdfPageContainer}
-      style={{ marginBottom: '40px', position: 'relative' }}
     >
       <div 
         ref={containerRef}
@@ -218,6 +211,12 @@ useEffect(() => {
             open={Boolean(actionMenuAnchorEl)}
             onClose={handleMenuClose}
           >
+            <MenuItem onClick={handleAddBlankPage}>
+              <Typography>Add blank page after</Typography>
+            </MenuItem>
+            <MenuItem onClick={handleUploadAndInsert}>
+              <Typography>Upload PDF to insert after</Typography>
+            </MenuItem>
             <MenuItem onClick={handleDeletePage}>
               <Typography>Delete Page</Typography>
             </MenuItem>
@@ -228,7 +227,7 @@ useEffect(() => {
               <Button className={styles.addPageRound} onClick={handleAddBlankPage}>
                 <CustomIcon iconName="plus" width={24} height={24} />
               </Button>
-              <Button className={styles.threeDotsBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "action")}>
+              <Button className={styles.threeDotsBtn} onClick={handleMenuClick}>
                 <CustomIcon iconName="ellipsis" width={24} height={24} />
               </Button>
             </div>
@@ -258,34 +257,6 @@ useEffect(() => {
               />
             ))
           }
-        </div>
-        
-        <div className={styles.pageControls}>
-          <Typography className={styles.pagesDiv} >
-            Page {pageNumber}
-            {pageSize.pageWidth > 0 && (
-              <span className={styles.pageSpan} >
-                ({Math.round(pageSize.pageWidth)} × {Math.round(pageSize.pageHeight)})
-              </span>
-            )}
-
-            <Button className={styles.addPageBtn} onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, "add")}>
-              <CustomIcon iconName="plus" width={16} height={16} />
-              <Typography className={styles.addPage} >Add Page</Typography>
-            </Button>
-          </Typography>
-          <Menu
-            anchorEl={addMenuAnchorEl}
-            open={Boolean(addMenuAnchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleAddBlankPage}>
-              <Typography>Add blank page after</Typography>
-            </MenuItem>
-            <MenuItem onClick={handleUploadAndInsert}>
-              <Typography>Upload PDF to insert after</Typography>
-            </MenuItem>
-          </Menu>
         </div>
       </div>
     </div>
