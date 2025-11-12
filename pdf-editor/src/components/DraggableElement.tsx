@@ -209,7 +209,7 @@ const DraggableElement = ({
               />
             ) : (
               <div className={styles.renderImageOverley} >
-                <div className={styles.contentPic} >📷</div>
+                <span>📷</span>
                 <Typography className={styles.label} >
                   Click to upload image
                 </Typography>
