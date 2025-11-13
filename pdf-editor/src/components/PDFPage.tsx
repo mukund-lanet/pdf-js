@@ -1,5 +1,7 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState } from 'react';
+import Selecto from "react-selecto";
+import Moveable from "react-moveable";
 import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
@@ -8,47 +10,48 @@ import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
 import DraggableElement from './DraggableElement';
 import { CanvasElement } from './types';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from './store/reducer/pdfEditor.reducer';
 
 interface PDFPageProps {
   pdfDoc: any;
-  pageNumber: number;
-  onCanvasClick?: (pageNumber: number) => void;
+  pageNumber: number; 
+  onPageClick?: (pageNumber: number) => void;
   onDrop?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number, type: string) => void;
   onAddBlankPage: (pageNumber: number) => void;
   onUploadAndInsertPages: (pageNumber: number) => void;
   onDeletePage: (pageNumber: number) => void;
   canvasElements: CanvasElement[];
-  pageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } };
-  onElementUpdate: (updatedElement: CanvasElement) => void;
   onElementDelete: (id: string) => void;
-  onImageUpload: (elementId: string) => void;
-  onSignatureDraw: (elementId: string) => void;
-  onElementSelect: (element: CanvasElement) => void;
 }
 
-const PDFPage = React.memo(({ 
-  pdfDoc, 
-  pageNumber, 
-  onCanvasClick, 
-  onDrop, 
-  onAddBlankPage, 
-  onUploadAndInsertPages, 
+const PDFPage = React.memo(({
+  pdfDoc,
+  pageNumber,
+  onPageClick,
+  onDrop,
+  onAddBlankPage,
+  onUploadAndInsertPages,
   onDeletePage,
   canvasElements,
-  pageDimensions,
-  onElementUpdate,
   onElementDelete,
-  onImageUpload,
-  onSignatureDraw,
-  onElementSelect
 }: PDFPageProps) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const dispatch = useDispatch();
+
+  const currentPageFromStore = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
+  const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
+  
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
+
+  const [targets, setTargets] = React.useState<any>([]);
+  const moveableRef = React.useRef<Moveable>(null);
+  const selectoRef = React.useRef<Selecto>(null);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setActionMenuAnchorEl(event.currentTarget);
@@ -58,18 +61,21 @@ const PDFPage = React.memo(({
     setActionMenuAnchorEl(null);
   };
 
-  const handleAddBlankPage = () => {
-    onAddBlankPage(pageNumber);
-    handleMenuClose();
-  };
-  
-  const handleDeletePage = () => {
-    onDeletePage(pageNumber);
+  const handleAddBlankPage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddBlankPage(pageNumber); // Use pageNumber
     handleMenuClose();
   };
 
-  const handleUploadAndInsert = () => {
-    onUploadAndInsertPages(pageNumber);
+  const handleDeletePage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDeletePage(pageNumber); // Use pageNumber
+    handleMenuClose();
+  };
+
+  const handleUploadAndInsert = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUploadAndInsertPages(pageNumber); // Use pageNumber
     handleMenuClose();
   };
 
@@ -89,21 +95,22 @@ const PDFPage = React.memo(({
     let isMounted = true;
 
     const renderPage = async () => {
-      if (!pdfDoc || !canvasRef.current) return;
+      if (!pdfDoc) return;
 
-      // 🔥 Cancel any previous render immediately before starting a new one
+      // Cancel any previous render immediately before starting a new one
       cleanupRenderTask();
 
-      setIsLoading(true);
+      console.log("in render page")
+      dispatch({type: 'SET_IS_LOADING', payload: true})
       setError(null);
 
       try {
-        const page = await pdfDoc.getPage(pageNumber);
+        const page = await pdfDoc.getPage(pageNumber); // Use pageNumber here
         if (!isMounted) return;
 
         const viewport = page.getViewport({ scale: 1.5 });
 
-        const canvas = canvasRef.current;
+        const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         if (!context) throw new Error("Could not get canvas context");
 
@@ -115,15 +122,17 @@ const PDFPage = React.memo(({
 
         const renderContext = { canvasContext: context, viewport };
 
-        // ✅ Store and await the render task
+        // Store and await the render task
         const task = page.render(renderContext);
         renderTaskRef.current = task;
 
         await task.promise;
 
         if (isMounted) {
+          console.log({isLoading, isMounted})
+          setImageSrc(canvas.toDataURL('image/png'));
           setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
-          setIsLoading(false);
+          dispatch({type: 'SET_IS_LOADING', payload: false})
         }
 
       } catch (error: any) {
@@ -132,8 +141,8 @@ const PDFPage = React.memo(({
           error?.name !== "RenderingCancelledException" &&
           error?.message !== "Rendering cancelled"
         ) {
-          console.error(`Error rendering page ${pageNumber}:`, error);
-          if (isMounted) setError(`Failed to render page ${pageNumber}`);
+          console.error(`Error rendering page ${pageNumber}:`, error); // Use pageNumber
+          if (isMounted) setError(`Failed to render page ${pageNumber}`); // Use pageNumber
         }
       }
     };
@@ -144,21 +153,21 @@ const PDFPage = React.memo(({
       isMounted = false;
       cleanupRenderTask(); // ✅ also cancel on unmount or dependency change
     };
-  }, [pdfDoc, pageNumber]);
+  }, [pdfDoc, pageNumber]); // Add pageNumber to dependency array
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!onDrop || !canvasRef.current) return;
+    if (!onDrop || !imageRef.current) return;
     
-    const rect = canvasRef.current.getBoundingClientRect();
+    const rect = imageRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const type = e.dataTransfer.getData('application/pdf-editor');
     
     if (type) {
-      onDrop(x, y, pageSize, pageNumber, type);
+      onDrop(x, y, pageSize, pageNumber, type); // Use pageNumber
     }
   };
 
@@ -167,16 +176,16 @@ const PDFPage = React.memo(({
     e.stopPropagation();
   };
 
-  const handleCanvasClick = (e: React.MouseEvent) => {
+  const handlPageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onCanvasClick) {
-      onCanvasClick(pageNumber);
+    if (onPageClick){
+      onPageClick(pageNumber); // Use pageNumber
     }
   };
 
   return (
     <div 
-      id={`pdf-page-${pageNumber}`}
+      id={`pdf-page-${pageNumber}`} // Use pageNumber
       className={styles.pdfPageContainer}
     >
       <div 
@@ -186,7 +195,7 @@ const PDFPage = React.memo(({
         <div 
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          onClick={handleCanvasClick}
+          onClick={handlPageClick}
           className={styles.canvasContainer}
           style={{ position: 'relative' }}
         >
@@ -233,36 +242,90 @@ const PDFPage = React.memo(({
             </div>
           </div>
           
-          <canvas
-            ref={canvasRef}
-            className={styles.canvasWrapper}
-            accessKey={`canvas-${pageNumber}`}
-            key={`canvas-${pageNumber}`}
-          />
+          {imageSrc && (
+            <div
+              ref={imageRef}
+              className={styles.canvasWrapper}
+              style={{
+                width: '100%',
+                paddingTop: `${(pageSize.pageHeight / pageSize.pageWidth) * 100}%`,
+                // @ts-ignore
+                "--bg-image": `url(${imageSrc})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+              }}
+            />
+          )}
           
           {/* Render draggable elements for this page */}
-          {canvasElements
-            .filter(el => el.page === pageNumber)
-            .map(element => (
-              <DraggableElement
-                key={element.id}
-                element={element}
-                onUpdate={onElementUpdate}
-                onDelete={onElementDelete}
-                onImageUpload={onImageUpload}
-                onSignatureDraw={onSignatureDraw}
-                onSelect={onElementSelect}
-                pageInfo={pageDimensions[pageNumber] || { pageWidth: 600, pageHeight: 800 }}
-                scale={1}
-              />
-            ))
-          }
+          <Moveable
+            ref={moveableRef}
+            draggable={true}
+            target={targets}
+            onClickGroup={e => {
+              selectoRef.current!.clickTarget(e.inputEvent, e.inputTarget);
+            }}
+            onDrag={e => {
+              e.target.style.transform = e.transform;
+            }}
+            onDragGroup={e => {
+              e.events.forEach(ev => {
+                ev.target.style.transform = ev.transform;
+              });
+            }}
+          ></Moveable>
+          <Selecto
+            ref={selectoRef}
+            dragContainer={window}
+            selectableTargets={[".selecto-area .cube"]}
+            hitRate={0}
+            selectByClick={true}
+            selectFromInside={false}
+            toggleContinueSelect={["shift"]}
+            ratio={0}
+            onDragStart={e => {
+              const moveable = moveableRef.current!;
+              const target = e.inputEvent.target;
+              if (
+                moveable.isMoveableElement(target)
+                // @ts-ignore
+                || targets.some(t => t === target || t.contains(target))
+              ) {
+                e.stop();
+              }
+            }}
+            onSelectEnd={e => {
+              const moveable = moveableRef.current!;
+              if (e.isDragStart) {
+                e.inputEvent.preventDefault();
+
+                moveable.waitToChangeTarget().then(() => {
+                  moveable.dragStart(e.inputEvent);
+                });
+              }
+              setTargets(e.selected);
+            }}
+          ></Selecto>
+          <div className={styles.outerSelectMovableWrapper} >
+            {canvasElements
+              .filter(el => el.page === pageNumber + 1) // Use pageNumber
+              .map(element => (
+                <div className={styles.innerSelectoMovableDivWrapper} >
+                  <DraggableElement
+                    key={element.id}
+                    element={element}
+                    onDelete={onElementDelete}
+                  />
+                </div>
+              ))
+            }
+          </div>
         </div>
       </div>
     </div>
   );
 });
-
 PDFPage.displayName = 'PDFPage';
 
 export default PDFPage;

@@ -9,75 +9,25 @@ import Moveable from "react-moveable";
 
 interface DraggableElementProps {
   element: CanvasElement;
-  onUpdate: (element: CanvasElement) => void;
   onDelete: (id: string) => void;
-  onImageUpload: (elementId: string) => void;
-  onSignatureDraw: (elementId: string) => void;
-  onSelect: (element: CanvasElement) => void;
-  pageInfo: { pageWidth: number; pageHeight: number };
-  scale: number;
 }
 
 const DraggableElement = ({ 
   element, 
-  onUpdate, 
   onDelete, 
-  onImageUpload, 
-  onSignatureDraw, 
-  onSelect,
-  pageInfo, 
-  scale 
 }: DraggableElementProps) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
-  const [showEditButton, setShowEditButton] = useState(false);
-  const [tempContent, setTempContent] = useState(element.type === 'text' ? element.content : '');
   
   const targetRef = useRef<HTMLDivElement>(null);
   const moveableRef = useRef<HTMLDivElement>(null);
-  const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Use element coordinates directly
   const position = { x: element.x, y: element.y };
   const size = { width: element.width, height: element.height };
 
-  useEffect(() => {
-    if (isEditing && textInputRef.current) {
-      textInputRef.current.focus();
-      textInputRef.current.select();
-    }
-  }, [isEditing]);
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTempContent(e.target.value);
-  };
-
-  const handleTextBlur = () => {
-    if (element.type === 'text') {
-      onUpdate({
-        ...element,
-        content: tempContent
-      } as TextElement);
-    }
-    setIsEditing(false);
-  };
-
-  const handleTextKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
-      handleTextBlur();
-    }
-    if (e.key === 'Escape') {
-      setTempContent(element.type === 'text' ? element.content : '');
-      setIsEditing(false);
-    }
-  };
-
   // drag handling
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isEditing || isResizing) return;
-    
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -89,47 +39,15 @@ const DraggableElement = ({
     onDelete(element.id);
   };
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (element.type === 'image') {
-      onImageUpload(element.id);
-    } else if (element.type === 'signature') {
-      onSignatureDraw(element.id);
-    }
-  };
-
-  const handleElementClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (element.type === 'text') {
-      onSelect(element);
-    } else if (element.type === 'image' && !element.imageData) {
-      onImageUpload(element.id);
-    } else if (element.type === 'signature' && !element.imageData) {
-      onSignatureDraw(element.id);
-    }
-  };
-
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    if (element.type === 'text') {
-      onSelect(element);
-      setIsEditing(true);
-    }
-  }
-
   const handleMouseEnter = () => {
-    if (!isEditing && !isDragging && !isResizing) {
+    // if (!isDragging) {
       setShowDeleteButton(true);
-      if (element.type === 'image' || element.type === 'signature') {
-        setShowEditButton(true);
-      }
-    }
+    // }
   };
 
   const handleMouseLeave = () => {
+    setIsDragging(false);
     setShowDeleteButton(false);
-    setShowEditButton(false);
   };
 
   const renderContent = () => {
@@ -160,25 +78,9 @@ const DraggableElement = ({
           lineHeight: '24px'
         };
 
-        if (isEditing) {
-          return (
-            <textarea
-              ref={textInputRef}
-              value={tempContent}
-              onChange={handleTextChange}
-              onBlur={handleTextBlur}
-              onKeyDown={handleTextKeyDown}
-              className={styles.renderContentTextArea}
-              style={textStyle}
-            />
-          );
-        }
         return (
-          <div 
-          onDoubleClick={handleDoubleClick}
-          style={textStyle}
-          >
-            {element.content || 'Double click to edit text'}
+          <div style={textStyle}>
+            {element.content || 'Enter text here...'}
           </div>
         );
 
@@ -196,47 +98,24 @@ const DraggableElement = ({
             cursor: isDragging ? 'grabbing' : 'move',
             userSelect: 'none'
           }}>
-            {element.imageData ? (
-              <img 
-                src={element.imageData} 
-                alt="Uploaded" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'contain' 
-                }}
-                draggable={true}
-              />
-            ) : (
-              <div className={styles.renderImageOverley} >
-                <span>📷</span>
-                <Typography className={styles.label} >
-                  Click to upload image
-                </Typography>
-              </div>
-            )}
+            <div className={styles.renderImageOverley} >
+              <span>📷</span>
+              <Typography className={styles.label} >
+                Click to upload image
+              </Typography>
+            </div>
           </div>
         );
 
       case 'signature':
         return (
-          <div 
-            className={`${styles.renderContentSignature} ${isDragging ? styles.dragging : ''} ${element.imageData ? styles.hasImage : ''} `} >
-            {element.imageData ? (
-              <img 
-                src={element.imageData} 
-                alt="Signature" 
-                className={styles.imageContainer}
-                draggable={false}
-              />
-            ) : (
-              <div className={styles.renderImageOverley} >
-                <div className={styles.signImg} >✏️</div>
-                <Typography className={styles.label} >
-                  Click to sign
-                </Typography>
-              </div>
-            )}
+          <div className={styles.renderContentSignature} >
+            <div className={styles.renderImageOverley} >
+              <span>✏️</span>
+              <Typography className={styles.label} >
+                Click to sign
+              </Typography>
+            </div>
           </div>
         );
 
@@ -251,11 +130,11 @@ const DraggableElement = ({
     top: position.y,
     width: size.width,
     height: size.height,
-    border: (isDragging || isResizing) ? '2px solid #007bff' : '2px dashed #007bff',
+    border: (isDragging) ? '2px solid #007bff' : '2px dashed #007bff',
     background: 'rgba(255, 255, 255, 0.95)',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-    cursor: isEditing ? 'text' : (isDragging ? 'grabbing' : 'grab'),
-    zIndex: (isDragging || isResizing) ? 100 : 10,
+    cursor: isDragging ? 'grabbing' : 'grab',
+    zIndex: (isDragging) ? 100 : 10,
     userSelect: 'none',
   };
 
@@ -265,22 +144,10 @@ const DraggableElement = ({
         ref={targetRef}
         style={elementStyle}
         onMouseDown={handleMouseDown}
-        onClick={handleElementClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        { showEditButton && !isEditing && !isDragging && !isResizing && (
-          <Button 
-            className={styles.editButtonBadge}
-            onClick={handleEdit}
-            onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
-            title="Edit"
-          >
-            <CustomIcon iconName="square-pen" width={12} height={12} customColor="#000000" />
-          </Button>
-        )}
-
-        { showDeleteButton && !isEditing && !isDragging && !isResizing && (
+        { showDeleteButton && (
           <Button 
             className={styles.deleteButtonBadge}
             onClick={handleDelete}

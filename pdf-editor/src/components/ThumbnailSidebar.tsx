@@ -58,7 +58,7 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
         {pdfDoc && totalPages > 0 ? (
           Array.from(new Array(totalPages), (el, index) => (
             <ThumbnailPage
-              key={`thumbnail_page_${index + 1}`}
+              key={`thumbnail_page_${index + 1}_${pdfDoc ? pdfDoc._pdfInfo.fingerprint : 'no_pdf'}`}
               pdfDoc={pdfDoc}
               pageNumber={index + 1}
               currentPage={currentPage}

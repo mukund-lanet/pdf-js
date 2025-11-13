@@ -1,22 +1,22 @@
 'use client';
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import SignaturePad from './SignaturePad';
-import PDFCanvasViewer from './PDFCanvasViewer';
-import DragDropToolbar from './DragDropToolbar';
-import DraggableElement from './DraggableElement';
-import TextPropertiesToolbar from './TextPropertiesToolbar';
-import { CanvasElement, TextElement, ImageElement, SignatureElement } from './types';
+import React, { useRef, useCallback, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { PDFDocument } from 'pdf-lib';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import ModuleHeader from "@trenchaant/pkg-ui-component-library/build/Components/ModuleHeader";
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
-import ThumbnailSidebar from './ThumbnailSidebar';
+import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
+import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading"
+import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
 import { injectReducer } from 'components/store';
 import reducer from './store/index'
-import { useSelector, useDispatch } from 'react-redux';
+import { TextElement, ImageElement, SignatureElement } from './types';
 import { RootState } from './store/reducer/pdfEditor.reducer';
+import ThumbnailSidebar from './ThumbnailSidebar';
+import PDFCanvasViewer from './PDFCanvasViewer';
+import DragDropToolbar from './DragDropToolbar';
+// import TextPropertiesToolbar from './TextPropertiesToolbar';
 
 interface PageDimension {
   pageWidth: number;
@@ -29,12 +29,11 @@ const PdfEditor = () => {
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
   const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
-  const isSignaturePadOpen = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isSignaturePadOpen);
-  const signatureForElement = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.signatureForElement);
   const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
   const pageDimensions = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions);
   const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
   const selectedTextElement = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.selectedTextElement);
+  const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
 
   const editorPanelRef = useRef<HTMLDivElement>(null); // Ref for scrolling
 
@@ -57,6 +56,7 @@ const PdfEditor = () => {
 
   const createNewPdf = async () => {
     try {
+      dispatch({type: 'SET_IS_LOADING', payload: true})
       const pdfDoc = await PDFDocument.create();
       pdfDoc.addPage([600, 800]);
       const bytes = await pdfDoc.save();
@@ -66,7 +66,9 @@ const PdfEditor = () => {
       dispatch({type: 'SET_CANVAS_ELEMENTS', payload: []})
       dispatch({type: 'SET_PAGE_DIMENSIONS', payload: { 1: { pageWidth: 600, pageHeight: 800 }}})
       dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null})
+      dispatch({type: 'SET_IS_LOADING', payload: false})
     } catch (error) {
+      dispatch({type: 'SET_IS_LOADING', payload: false})
       console.error('Error creating new PDF:', error);
     }
   };
@@ -76,6 +78,7 @@ const PdfEditor = () => {
     if (!file) return;
     
     try {      
+      dispatch({type: 'SET_IS_LOADING', payload: true})
       const arrayBuffer = await file.arrayBuffer();
       
       const header = new Uint8Array(arrayBuffer, 0, 5);
@@ -101,11 +104,12 @@ const PdfEditor = () => {
       dispatch({type: 'SET_CANVAS_ELEMENTS', payload: []})
       dispatch({type: 'SET_PAGE_DIMENSIONS', payload: dimensions})
       dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null})
-      
     } catch (error) {
       console.error('Error loading PDF:', error);
       console.log('Error loading PDF:', error);
       alert('Failed to load PDF. Please make sure it is a valid PDF file.');
+    } finally {
+      dispatch({type: 'SET_IS_LOADING', payload: false})
     }
   };
 
@@ -135,7 +139,7 @@ const PdfEditor = () => {
           y: y - defaultSize.text.height / 2,
           width: defaultSize.text.width,
           height: defaultSize.text.height,
-          content: 'Double click to edit text',
+          content: 'Enter text here...',
           page: pageNumber,
           fontSize: 12,
           color: '#000000',
@@ -179,14 +183,6 @@ const PdfEditor = () => {
     dispatch({type: 'SET_ACTIVE_TOOL', payload: null})
   }, [pageDimensions]);
 
-  const handleElementUpdate = useCallback((updatedElement: CanvasElement) => {
-    dispatch({type: 'UPDATE_CANVAS_ELEMENT', payload: updatedElement});
-    
-    if (selectedTextElement && selectedTextElement.id === updatedElement.id && updatedElement.type === 'text') {
-      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: updatedElement as TextElement});
-    }
-  }, [selectedTextElement]);
-
   const handleElementDelete = useCallback((id: string) => {
     dispatch({type: 'DELETE_CANVAS_ELEMENT', payload: id});
     
@@ -194,60 +190,6 @@ const PdfEditor = () => {
       dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null});
     }
   }, [selectedTextElement]);
-
-  const handleElementSelect = useCallback((element: CanvasElement) => {
-    if (element.type === 'text') {
-      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: element as TextElement});
-    } else {
-      dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null});
-    }
-    // Also set the current page to the selected element's page to scroll to it
-    if (element.page !== currentPage) {
-      dispatch({type: 'SET_CURRENT_PAGE', payload: element.page})
-    }
-  }, [currentPage]);
-
-  const handleImageUpload = useCallback((elementId: string) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png, image/jpeg, image/jpg';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imageData = event.target?.result as string;
-          const elementToUpdate = canvasElements.find((el: { id: string; type: string; }) => el.id === elementId && (el.type === 'image' || el.type === 'signature'));
-          if (elementToUpdate) {
-            dispatch({type: 'UPDATE_CANVAS_ELEMENT', payload: { ...elementToUpdate, imageData }});
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
-  }, [canvasElements]);
-
-  const handleSignatureDraw = useCallback((elementId: string) => {
-    dispatch({type: 'SET_SIGNATURE_FOR_ELEMENT', payload: elementId})
-    dispatch({type: 'SET_SIGNATURE_PAD_OPEN', payload: true})
-  }, []);
-
-  const handleSaveSignature = (signature: string) => {
-    dispatch({type: 'SET_SIGNATURE_PAD_OPEN', payload: false})
-    if (signatureForElement) {
-      const elementToUpdate = canvasElements.find((el: { id: any; type: string; }) => el.id === signatureForElement && el.type === 'signature');
-      if (elementToUpdate) {
-        dispatch({type: 'UPDATE_CANVAS_ELEMENT', payload: { ...elementToUpdate, imageData: signature }});
-      }
-      dispatch({type: 'SET_SIGNATURE_FOR_ELEMENT', payload: null})
-    }
-  };
-
-  const handleCancelSignature = () => {
-    dispatch({type: 'SET_SIGNATURE_PAD_OPEN', payload: false})
-    dispatch({type: 'SET_SIGNATURE_FOR_ELEMENT', payload: null})
-  };
 
   const handleCanvasClick = (pageNumber: number) => {
     dispatch({type: 'SET_SELECTED_TEXT_ELEMENT', payload: null});
@@ -261,6 +203,7 @@ const PdfEditor = () => {
       }
 
     try {
+      dispatch({type: 'SET_IS_LOADING', payload: true})
       const pdfDoc = await PDFDocument.load(pdfBytes);
       pdfDoc.removePage(pageNumber - 1);
       const newPdfBytes = await pdfDoc.save();
@@ -281,8 +224,9 @@ const PdfEditor = () => {
           newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
       });
       dispatch({type: 'SET_PAGE_DIMENSIONS', payload: newPageDimensions})
-
+      dispatch({type: 'SET_IS_LOADING', payload: false})
     } catch (error) {
+      dispatch({type: 'SET_IS_LOADING', payload: false})
       console.error('Error deleting page:', error);
       console.log('Error deleting page:', error);
       alert('Failed to delete the page.');
@@ -294,8 +238,8 @@ const PdfEditor = () => {
     if (!pdfBytes) return;
 
     try {
+      dispatch({type: 'SET_IS_LOADING', payload: true})
       const pdfDoc = await PDFDocument.load(pdfBytes);
-      // For a blank page, use the standard A4-like size (600x800) for consistency
       pdfDoc.insertPage(afterPageNumber, [600, 800]); 
       const newPdfBytes = await pdfDoc.save();
       
@@ -331,8 +275,9 @@ const PdfEditor = () => {
       
       dispatch({type: 'SET_PAGE_DIMENSIONS', payload: newPageDimensions});
       dispatch({type: 'SET_CURRENT_PAGE', payload: afterPageNumber + 1});
-
+      dispatch({type: 'SET_IS_LOADING', payload: false})
     } catch (error) {
+      dispatch({type: 'SET_IS_LOADING', payload: false})
       console.error('Error adding blank page:', error);
       console.log('Error adding blank page:', error);
       alert('Failed to add a blank page.');
@@ -348,6 +293,7 @@ const PdfEditor = () => {
       if (!file || !pdfBytes) return;
 
       try {
+        dispatch({type: 'SET_IS_LOADING', payload: true})
         const mainDoc = await PDFDocument.load(pdfBytes);
         const uploadedBytes = await file.arrayBuffer();
         const uploadedDoc = await PDFDocument.load(uploadedBytes);
@@ -382,8 +328,9 @@ const PdfEditor = () => {
         });
         dispatch({type: 'SET_PAGE_DIMENSIONS', payload: dimensions})
         dispatch({type: 'SET_CURRENT_PAGE', payload: afterPageNumber + 1})
-        
+        dispatch({type: 'SET_IS_LOADING', payload: false})
       } catch (error) {
+        dispatch({type: 'SET_IS_LOADING', payload: false})
         console.error('Error inserting PDF pages:', error);
         console.log('Error inserting PDF pages:', error);
         alert('Failed to insert PDF pages.');
@@ -392,202 +339,214 @@ const PdfEditor = () => {
     input.click();
   };
 
-  const exportPdf = async () => {
-    if (!pdfBytes) return;
+  // const exportPdf = async () => {
+  //   if (!pdfBytes) return;
     
-    try {
-      // It's crucial to work on a copy of pdfBytes to avoid issues with pdf-lib state
-      const pdfBytesCopy = new Uint8Array(pdfBytes); 
-      const pdfDoc = await PDFDocument.load(pdfBytesCopy);
+  //   try {
+  //     // It's crucial to work on a copy of pdfBytes to avoid issues with pdf-lib state
+  //     const pdfBytesCopy = new Uint8Array(pdfBytes); 
+  //     const pdfDoc = await PDFDocument.load(pdfBytesCopy);
       
-      const fonts = {
-        Helvetica: await pdfDoc.embedFont(StandardFonts.Helvetica),
-        HelveticaBold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
-        HelveticaOblique: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
-        HelveticaBoldOblique: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
-      };
+  //     const fonts = {
+  //       Helvetica: await pdfDoc.embedFont(StandardFonts.Helvetica),
+  //       HelveticaBold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+  //       HelveticaOblique: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+  //       HelveticaBoldOblique: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+  //     };
 
-      for (const element of canvasElements) {
-        // Validation: Ensure page number is valid
-        if (element.page < 1 || element.page > pdfDoc.getPageCount()) {
-            console.warn(`Element ${element.id} has invalid page number ${element.page}, skipping`);
-            continue;
-        }
+  //     for (const element of canvasElements) {
+  //       // Validation: Ensure page number is valid
+  //       if (element.page < 1 || element.page > pdfDoc.getPageCount()) {
+  //           console.warn(`Element ${element.id} has invalid page number ${element.page}, skipping`);
+  //           continue;
+  //       }
 
-        const page = pdfDoc.getPages()[element.page - 1];
-        const pageInfo = pageDimensions[element.page];
+  //       const page = pdfDoc.getPages()[element.page - 1];
+  //       const pageInfo = pageDimensions[element.page];
         
-        if (!pageInfo) {
-          console.warn(`No page dimensions found for page ${element.page}, skipping element ${element.id}`);
-          continue;
-        }
+  //       if (!pageInfo) {
+  //         console.warn(`No page dimensions found for page ${element.page}, skipping element ${element.id}`);
+  //         continue;
+  //       }
 
-        const pdfPageSize = page.getSize();
-        const pdfPageWidth = pdfPageSize.width;
-        const pdfPageHeight = pdfPageSize.height;
+  //       const pdfPageSize = page.getSize();
+  //       const pdfPageWidth = pdfPageSize.width;
+  //       const pdfPageHeight = pdfPageSize.height;
 
-        // Calculate scaling factors based on the canvas dimensions vs. the PDF page dimensions
-        const scaleX = pdfPageWidth / pageInfo.pageWidth;
-        const scaleY = pdfPageHeight / pageInfo.pageHeight;
+  //       // Calculate scaling factors based on the canvas dimensions vs. the PDF page dimensions
+  //       const scaleX = pdfPageWidth / pageInfo.pageWidth;
+  //       const scaleY = pdfPageHeight / pageInfo.pageHeight;
 
-        // Convert element coordinates from canvas-space (top-left origin, Y-down)
-        // to PDF-space (bottom-left origin, Y-up)
-        const pdfX = element.x * scaleX;
-        const pdfY = pdfPageHeight - (element.y * scaleY) - (element.height * scaleY);
+  //       // Convert element coordinates from canvas-space (top-left origin, Y-down)
+  //       // to PDF-space (bottom-left origin, Y-up)
+  //       const pdfX = element.x * scaleX;
+  //       const pdfY = pdfPageHeight - (element.y * scaleY) - (element.height * scaleY);
         
-        // Boundary check (simplified)
-        const elementRight = pdfX + (element.width * scaleX);
-        const elementBottom = pdfY + (element.height * scaleY);
+  //       // Boundary check (simplified)
+  //       const elementRight = pdfX + (element.width * scaleX);
+  //       const elementBottom = pdfY + (element.height * scaleY);
         
-        if (pdfX >= pdfPageWidth || pdfY >= pdfPageHeight || elementRight <= 0 || elementBottom <= 0) {
-          console.warn(`Element ${element.id} is outside page bounds, skipping`);
-          continue;
-        }
+  //       if (pdfX >= pdfPageWidth || pdfY >= pdfPageHeight || elementRight <= 0 || elementBottom <= 0) {
+  //         console.warn(`Element ${element.id} is outside page bounds, skipping`);
+  //         continue;
+  //       }
         
-        // Clamp coordinates and dimensions to ensure they stay within the PDF page boundaries
-        const clampedX = Math.max(0, pdfX);
-        const clampedY = Math.max(0, pdfY);
-        const clampedWidth = Math.min(element.width * scaleX, pdfPageWidth - clampedX);
-        const clampedHeight = Math.min(element.height * scaleY, pdfPageHeight - clampedY);
+  //       // Clamp coordinates and dimensions to ensure they stay within the PDF page boundaries
+  //       const clampedX = Math.max(0, pdfX);
+  //       const clampedY = Math.max(0, pdfY);
+  //       const clampedWidth = Math.min(element.width * scaleX, pdfPageWidth - clampedX);
+  //       const clampedHeight = Math.min(element.height * scaleY, pdfPageHeight - clampedY);
 
-        if (element.type === 'text') {
-          const textElement = element as TextElement;
+  //       if (element.type === 'text') {
+  //         const textElement = element as TextElement;
           
-          let font;
-          if (textElement.fontWeight === 'bold' && textElement.fontStyle === 'italic') {
-            font = fonts.HelveticaBoldOblique;
-          } else if (textElement.fontWeight === 'bold') {
-            font = fonts.HelveticaBold;
-          } else if (textElement.fontStyle === 'italic') {
-            font = fonts.HelveticaOblique;
-          } else {
-            font = fonts.Helvetica;
-          }
+  //         let font;
+  //         if (textElement.fontWeight === 'bold' && textElement.fontStyle === 'italic') {
+  //           font = fonts.HelveticaBoldOblique;
+  //         } else if (textElement.fontWeight === 'bold') {
+  //           font = fonts.HelveticaBold;
+  //         } else if (textElement.fontStyle === 'italic') {
+  //           font = fonts.HelveticaOblique;
+  //         } else {
+  //           font = fonts.Helvetica;
+  //         }
           
-          const baseFontSize = textElement.fontSize || 12;
-          const scaledFontSize = baseFontSize * Math.min(scaleX, scaleY); // Scale font size consistently
+  //         const baseFontSize = textElement.fontSize || 12;
+  //         const scaledFontSize = baseFontSize * Math.min(scaleX, scaleY); // Scale font size consistently
           
-          const color = textElement.color || '#000000';
-          const r = parseInt(color.slice(1, 3), 16) / 255;
-          const g = parseInt(color.slice(3, 5), 16) / 255;
-          const b = parseInt(color.slice(5, 7), 16) / 255;
+  //         const color = textElement.color || '#000000';
+  //         const r = parseInt(color.slice(1, 3), 16) / 255;
+  //         const g = parseInt(color.slice(3, 5), 16) / 255;
+  //         const b = parseInt(color.slice(5, 7), 16) / 255;
           
-          const lines = textElement.content.split('\n');
-          // Starting Y position is the bottom of the last line of text
-          let currentY = clampedY + (lines.length - 1) * scaledFontSize; 
+  //         const lines = textElement.content.split('\n');
+  //         // Starting Y position is the bottom of the last line of text
+  //         let currentY = clampedY + (lines.length - 1) * scaledFontSize; 
 
-          for (const line of lines) {
-            const textWidth = font.widthOfTextAtSize(line, scaledFontSize);
-            let textX = clampedX;
-            if (textElement.textAlign === 'center') {
-              textX = clampedX + (clampedWidth - textWidth) / 2;
-            } else if (textElement.textAlign === 'right') {
-              textX = clampedX + clampedWidth - textWidth;
-            }
+  //         for (const line of lines) {
+  //           const textWidth = font.widthOfTextAtSize(line, scaledFontSize);
+  //           let textX = clampedX;
+  //           if (textElement.textAlign === 'center') {
+  //             textX = clampedX + (clampedWidth - textWidth) / 2;
+  //           } else if (textElement.textAlign === 'right') {
+  //             textX = clampedX + clampedWidth - textWidth;
+  //           }
 
-            page.drawText(line, {
-              x: textX,
-              y: currentY,
-              font: font,
-              size: scaledFontSize,
-              color: rgb(r, g, b),
-              maxWidth: clampedWidth,
-            });
-            currentY -= scaledFontSize; // Move up for the next line
-          }
+  //           page.drawText(line, {
+  //             x: textX,
+  //             y: currentY,
+  //             font: font,
+  //             size: scaledFontSize,
+  //             color: rgb(r, g, b),
+  //             maxWidth: clampedWidth,
+  //           });
+  //           currentY -= scaledFontSize; // Move up for the next line
+  //         }
           
-          if (textElement.textDecoration === 'underline') {
-            // Underline is usually slightly below the baseline
-            const underlineY = clampedY - 2; 
-            page.drawLine({
-              start: { x: clampedX, y: underlineY },
-              end: { x: clampedX + clampedWidth, y: underlineY },
-              thickness: 1,
-              color: rgb(r, g, b),
-            });
-          }
+  //         if (textElement.textDecoration === 'underline') {
+  //           // Underline is usually slightly below the baseline
+  //           const underlineY = clampedY - 2; 
+  //           page.drawLine({
+  //             start: { x: clampedX, y: underlineY },
+  //             end: { x: clampedX + clampedWidth, y: underlineY },
+  //             thickness: 1,
+  //             color: rgb(r, g, b),
+  //           });
+  //         }
 
-        } else if ((element.type === 'image' || element.type === 'signature') && element.imageData) {
-          try {
-            const base64Data = element.imageData.split(',')[1];
-            if (!base64Data) {
-              throw new Error('Invalid image data format');
-            }
+  //       } else if ((element.type === 'image' || element.type === 'signature') && element.imageData) {
+  //         try {
+  //           const base64Data = element.imageData.split(',')[1];
+  //           if (!base64Data) {
+  //             throw new Error('Invalid image data format');
+  //           }
             
-            const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+  //           const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
             
-            let image;
-            if (element.imageData.startsWith('data:image/jpeg')) {
-              image = await pdfDoc.embedJpg(imageBytes);
-            } else {
-              // Assume PNG if not JPEG, covering both image and signature PNGs
-              image = await pdfDoc.embedPng(imageBytes); 
-            }
+  //           let image;
+  //           if (element.imageData.startsWith('data:image/jpeg')) {
+  //             image = await pdfDoc.embedJpg(imageBytes);
+  //           } else {
+  //             // Assume PNG if not JPEG, covering both image and signature PNGs
+  //             image = await pdfDoc.embedPng(imageBytes); 
+  //           }
             
-            const imageDims = image.scale(1);
-            const aspectRatio = imageDims.width / imageDims.height;
+  //           const imageDims = image.scale(1);
+  //           const aspectRatio = imageDims.width / imageDims.height;
             
-            let finalWidth = clampedWidth;
-            let finalHeight = clampedHeight;
+  //           let finalWidth = clampedWidth;
+  //           let finalHeight = clampedHeight;
             
-            // Logic for proportional scaling (contain)
-            if (finalWidth / finalHeight > aspectRatio) {
-              finalWidth = finalHeight * aspectRatio;
-            } else {
-              finalHeight = finalWidth / aspectRatio;
-            }
+  //           // Logic for proportional scaling (contain)
+  //           if (finalWidth / finalHeight > aspectRatio) {
+  //             finalWidth = finalHeight * aspectRatio;
+  //           } else {
+  //             finalHeight = finalWidth / aspectRatio;
+  //           }
             
-            // Re-clamp in case proportional scaling overshot the original bounds (shouldn't happen with the current logic, but safe)
-            finalWidth = Math.min(finalWidth, clampedWidth);
-            finalHeight = Math.min(finalHeight, clampedHeight);
+  //           // Re-clamp in case proportional scaling overshot the original bounds (shouldn't happen with the current logic, but safe)
+  //           finalWidth = Math.min(finalWidth, clampedWidth);
+  //           finalHeight = Math.min(finalHeight, clampedHeight);
             
-            // Center the image within the bounding box (optional, but good practice)
-            const centerX = clampedX + (clampedWidth - finalWidth) / 2;
-            const centerY = clampedY + (clampedHeight - finalHeight) / 2;
+  //           // Center the image within the bounding box (optional, but good practice)
+  //           const centerX = clampedX + (clampedWidth - finalWidth) / 2;
+  //           const centerY = clampedY + (clampedHeight - finalHeight) / 2;
 
-            page.drawImage(image, {
-              x: centerX,
-              y: centerY,
-              width: finalWidth,
-              height: finalHeight,
-            });
+  //           page.drawImage(image, {
+  //             x: centerX,
+  //             y: centerY,
+  //             width: finalWidth,
+  //             height: finalHeight,
+  //           });
 
-          } catch (imageError) {
-            console.error(`Error embedding image for element ${element.id}:`, imageError);
-            // Draw a placeholder rectangle on failure
-            page.drawRectangle({
-              x: clampedX,
-              y: clampedY,
-              width: clampedWidth,
-              height: clampedHeight,
-              color: rgb(0.9, 0.9, 0.9),
-              borderColor: rgb(0, 0, 0),
-              borderWidth: 1,
-            });
-          }
-        }
-      }
+  //         } catch (imageError) {
+  //           console.error(`Error embedding image for element ${element.id}:`, imageError);
+  //           // Draw a placeholder rectangle on failure
+  //           page.drawRectangle({
+  //             x: clampedX,
+  //             y: clampedY,
+  //             width: clampedWidth,
+  //             height: clampedHeight,
+  //             color: rgb(0.9, 0.9, 0.9),
+  //             borderColor: rgb(0, 0, 0),
+  //             borderWidth: 1,
+  //           });
+  //         }
+  //       }
+  //     }
       
-      const finalBytes = await pdfDoc.save();
-      // @ts-ignore
-      const blob = new Blob([finalBytes], { type: 'application/pdf' });
+  //     const finalBytes = await pdfDoc.save();
+  //     // @ts-ignore
+  //     const blob = new Blob([finalBytes], { type: 'application/pdf' });
       
-      // Trigger download
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'document-with-elements.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+  //     // Trigger download
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement('a');
+  //     a.href = url;
+  //     a.download = 'document-with-elements.pdf';
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     document.body.removeChild(a);
+  //     URL.revokeObjectURL(url);
 
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      console.log('Error exporting PDF:', error);
-      alert('Error exporting PDF. Please try again.');
-    }
-  };
+  //   } catch (error) {
+  //     console.error('Error exporting PDF:', error);
+  //     console.log('Error exporting PDF:', error);
+  //     alert('Error exporting PDF. Please try again.');
+  //   }
+  // };
+
+  const noDocument = {
+    message: "No documents found",
+    description: "There are no documents to display.",
+    tipList: [
+      "Create new document",
+      "Upload pdf and start editing",
+      "Add docusign in integration"
+    ],
+    iconName: "pen-line",
+    tipsTitle: "Quick tips"
+  }
 
   return (
     <div className={styles.pdfEditorContainer}>
@@ -617,15 +576,15 @@ const PdfEditor = () => {
             <Button className={styles.toolbarItem} onClick={() => uploadInputRef.current?.click()}>
               <Typography className={styles.label} >Upload PDF</Typography>
             </Button>
-            <Button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
+            {/* <Button className={styles.toolbarItem} onClick={exportPdf} disabled={!pdfBytes}>
               <Typography className={styles.label} >Export PDF</Typography>
-            </Button>
-            {selectedTextElement && (
+            </Button> */}
+            {/* {selectedTextElement && (
               <TextPropertiesToolbar
                 element={selectedTextElement}
                 onUpdate={handleElementUpdate}
               />
-            )}
+            )} */}
           </div>
           <DragDropToolbar 
             onDragStart={handleDragStart}
@@ -635,13 +594,6 @@ const PdfEditor = () => {
       </div>
 
       <Divider orientation="horizontal" className={styles.toolbarDivider} />
-      
-      {isSignaturePadOpen && (
-        <SignaturePad
-          onSave={handleSaveSignature}
-          onClose={handleCancelSignature}
-        />
-      )}
 
       <div className={styles.mainContainer}>
         <ThumbnailSidebar
@@ -652,28 +604,29 @@ const PdfEditor = () => {
         <div className={styles.editorPanel} ref={editorPanelRef}>
           <div className={styles.pdfViewerWrapper} >
             <div className={` ${pdfBytes ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
-              {pdfBytes && totalPages > 0 ? (
-                <PDFCanvasViewer
-                  pdfBytes={pdfBytes}
-                  onDrop={handleDrop}
-                  onCanvasClick={handleCanvasClick}
-                  onAddBlankPage={handleAddBlankPage}
-                  onUploadAndInsertPages={handleUploadAndInsertPages}
-                  onDeletePage={handleDeletePage}
-                  canvasElements={canvasElements}
-                  pageDimensions={pageDimensions}
-                  onElementUpdate={handleElementUpdate}
-                  onElementDelete={handleElementDelete}
-                  onImageUpload={handleImageUpload}
-                  onSignatureDraw={handleSignatureDraw}
-                  onElementSelect={handleElementSelect}
-                />
-              ) : (
-                <div className={styles.noPdfLoaded} >
-                  <Typography className={styles.noPdfTitle} >No PDF Loaded</Typography>
-                  <Typography className={styles.noPdfDescription} >Create a new document or upload a PDF to get started</Typography>
-                </div>
-              )}
+              { pdfBytes && totalPages > 0 ? (
+                  <PDFCanvasViewer
+                    pdfBytes={pdfBytes}
+                    onDrop={handleDrop}
+                    onPageClick={handleCanvasClick}
+                    onAddBlankPage={handleAddBlankPage}
+                    onUploadAndInsertPages={handleUploadAndInsertPages}
+                    onDeletePage={handleDeletePage}
+                    canvasElements={canvasElements}
+                    onElementDelete={handleElementDelete}
+                  />
+                ) : isLoading ? <div className={styles.simpleLoadingWrapper} > <SimpleLoading /> </div>
+                  : (
+                      <div className={styles.noPdfLoaded} >
+                        <EmptyMessageComponent
+                          message={noDocument.message}
+                          description={noDocument.description}
+                          iconName={noDocument.iconName}
+                          tipsTitle={noDocument.tipsTitle}
+                          tips={noDocument.tipList}
+                        />
+                      </div>
+                  )}
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ export interface PdfEditorState {
   selectedTextElement: TextElement | null;
   isSignaturePadOpen: boolean;
   signatureForElement: string | null;
+  isLoading: boolean;
 }
 
 export interface RootState {
@@ -31,7 +32,8 @@ const initialState: PdfEditorState = {
   activeTool: null,
   selectedTextElement: null,
   isSignaturePadOpen: false,
-  signatureForElement: null
+  signatureForElement: null,
+  isLoading: false
 };
 
 // Reducer
@@ -40,6 +42,11 @@ export const pdfEditorReducer = (
   action: PdfEditorActionTypes
 ): PdfEditorState => {
   switch (action.type) {
+    case PDF_EDITOR_ACTION_TYPES.SET_IS_LOADING:
+      return {
+        ...state,
+        isLoading: action.payload
+      };
     case PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES:
       return {
         ...state,

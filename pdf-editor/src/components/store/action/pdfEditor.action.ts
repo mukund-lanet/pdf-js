@@ -23,13 +23,20 @@ export const PDF_EDITOR_ACTION_TYPES = {
   
   // Batch Operations
   UPDATE_MULTIPLE_ELEMENTS: 'UPDATE_MULTIPLE_ELEMENTS',
-  RESET_EDITOR: 'RESET_EDITOR'
+  RESET_EDITOR: 'RESET_EDITOR',
+
+  SET_IS_LOADING: 'SET_IS_LOADING'
 } as const;
 
 // Action Interfaces
 interface SetPdfBytesAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES;
   payload: Uint8Array | null;
+}
+
+interface SetIsLoadingAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.SET_IS_LOADING;
+  payload: boolean;
 }
 
 interface SetTotalPagesAction {
@@ -111,4 +118,5 @@ export type PdfEditorActionTypes =
   | SetSignaturePadOpenAction
   | SetSignatureForElementAction
   | UpdateMultipleElementsAction
-  | ResetEditorAction;
+  | ResetEditorAction
+  | SetIsLoadingAction;

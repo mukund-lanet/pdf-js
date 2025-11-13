@@ -113,14 +113,15 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
         )}
         
         {thumbnailUrl && !isLoading && !error && (
-          <img 
-            src={thumbnailUrl}
-            alt={`Page ${pageNumber}`}
+          <div
             className={styles.thumbnailImage}
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-              setError('Failed to load image');
-              setIsLoading(false);
+            style={{
+              backgroundImage: `url(${thumbnailUrl})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              width: '100%',
+              height: '100%',
             }}
           />
         )}
