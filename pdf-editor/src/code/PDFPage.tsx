@@ -2,7 +2,7 @@
 import React, {useEffect, useRef, useState } from 'react';
 import Selecto from "react-selecto";
 import Moveable from "react-moveable";
-import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -309,7 +309,7 @@ const PDFPage = React.memo(({
           ></Selecto>
           <div className={styles.outerSelectMovableWrapper} >
             {canvasElements
-              .filter(el => el.page === pageNumber + 1) // Use pageNumber
+              .filter(el => el.page === pageNumber) // Use pageNumber
               .map(element => (
                 <div className={styles.innerSelectoMovableDivWrapper} >
                   <DraggableElement

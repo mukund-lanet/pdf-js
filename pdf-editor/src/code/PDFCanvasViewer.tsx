@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import PDFPage from './PDFPage';
 import { CanvasElement } from './types';

@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 
 interface ThumbnailPageProps {
   pdfDoc: any;
@@ -94,39 +94,41 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
   }, [pdfDoc, pageNumber]);
 
   return (
-    <div
-      key={`thumbnail_page_${pageNumber}`}
-      className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}
-      onClick={() => onThumbnailClick(pageNumber)}
-    >
-      <div className={styles.thumbnailContent}>
-        {isLoading && (
-          <div className={styles.thumbnailLoading}>
-            Loading...
-          </div>
-        )}
-        
-        {error && (
-          <div className={styles.thumbnailError}>
-            {error}
-          </div>
-        )}
-        
-        {thumbnailUrl && !isLoading && !error && (
-          <div
-            className={styles.thumbnailImage}
-            style={{
-              backgroundImage: `url(${thumbnailUrl})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              width: '100%',
-              height: '100%',
-            }}
-          />
-        )}
+    <div className={styles.thumbnailWrapper} >
+      <div
+        key={`thumbnail_page_${pageNumber}`}
+        className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}
+        onClick={() => onThumbnailClick(pageNumber)}
+      >
+        <div className={styles.thumbnailContent}>
+          {isLoading && (
+            <div className={styles.thumbnailLoading}>
+              Loading...
+            </div>
+          )}
+          
+          {error && (
+            <div className={styles.thumbnailError}>
+              {error}
+            </div>
+          )}
+          
+          {thumbnailUrl && !isLoading && !error && (
+            <div
+              className={styles.thumbnailImage}
+              style={{
+                backgroundImage: `url(${thumbnailUrl})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          )}
+        </div>
+        <div className={styles.thumbnailPageNumber}>Page {pageNumber}</div>
       </div>
-      <div className={styles.thumbnailPageNumber}>Page {pageNumber}</div>
     </div>
   );
 });

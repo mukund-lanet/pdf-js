@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { CanvasElement, TextElement } from './types';
-import styles from 'app/(after-login)/(with-header)/pdf-editor/pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -99,7 +99,7 @@ const DraggableElement = ({
             userSelect: 'none'
           }}>
             <div className={styles.renderImageOverley} >
-              <span>📷</span>
+              <CustomIcon iconName="image" width={24} height={24} customColor="#007bff" />
               <Typography className={styles.label} >
                 Click to upload image
               </Typography>
@@ -111,7 +111,7 @@ const DraggableElement = ({
         return (
           <div className={styles.renderContentSignature} >
             <div className={styles.renderImageOverley} >
-              <span>✏️</span>
+              <CustomIcon iconName="pencil-line" width={24} height={24} customColor="#007bff" />
               <Typography className={styles.label} >
                 Click to sign
               </Typography>

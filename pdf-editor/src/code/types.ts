@@ -1,5 +1,13 @@
 import React from 'react';
 
+export enum DRAWER_COMPONENT_CATEGORY {
+  ADD_ELEMENTS = "add_elements",
+  PAGES = "Pages",
+  DOCUMENT_VARIABLES = "Document variables",
+  CONTENT_LIBRARY = "Content Library",
+  SETTINGS = "Settings"
+}
+
 export interface TextElement {
   textDecoration?: string;
   textAlign?: string;

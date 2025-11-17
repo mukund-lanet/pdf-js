@@ -1,6 +1,6 @@
 import React from "react";
 import { PDF_EDITOR_ACTION_TYPES, PdfEditorActionTypes } from '../action/pdfEditor.action';
-import { CanvasElement, TextElement } from '../../types';
+import { CanvasElement, DRAWER_COMPONENT_CATEGORY, TextElement } from '../../types';
 
 // State Interface
 export interface PdfEditorState {
@@ -14,6 +14,7 @@ export interface PdfEditorState {
   isSignaturePadOpen: boolean;
   signatureForElement: string | null;
   isLoading: boolean;
+  drawerComponentCategory?: DRAWER_COMPONENT_CATEGORY;
 }
 
 export interface RootState {
@@ -33,7 +34,8 @@ const initialState: PdfEditorState = {
   selectedTextElement: null,
   isSignaturePadOpen: false,
   signatureForElement: null,
-  isLoading: false
+  isLoading: false,
+  drawerComponentCategory: undefined,
 };
 
 // Reducer
@@ -42,6 +44,11 @@ export const pdfEditorReducer = (
   action: PdfEditorActionTypes
 ): PdfEditorState => {
   switch (action.type) {
+    case PDF_EDITOR_ACTION_TYPES.SET_DRAWER_COMPONENT_CATEGORY:
+      return {
+        ...state,
+        drawerComponentCategory: action.payload
+      };
     case PDF_EDITOR_ACTION_TYPES.SET_IS_LOADING:
       return {
         ...state,

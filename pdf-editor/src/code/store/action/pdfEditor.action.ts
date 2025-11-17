@@ -1,5 +1,5 @@
 import react from "react";
-import { CanvasElement, TextElement } from "../../types";
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY } from "../../types";
 
 // Action Types
 export const PDF_EDITOR_ACTION_TYPES = {
@@ -25,13 +25,19 @@ export const PDF_EDITOR_ACTION_TYPES = {
   UPDATE_MULTIPLE_ELEMENTS: 'UPDATE_MULTIPLE_ELEMENTS',
   RESET_EDITOR: 'RESET_EDITOR',
 
-  SET_IS_LOADING: 'SET_IS_LOADING'
+  SET_IS_LOADING: 'SET_IS_LOADING',
+  SET_DRAWER_COMPONENT_CATEGORY: 'SET_DRAWER_COMPONENT_CATEGORY',
 } as const;
 
 // Action Interfaces
 interface SetPdfBytesAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES;
   payload: Uint8Array | null;
+}
+
+interface SetDrawerComponentCategoryAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.SET_DRAWER_COMPONENT_CATEGORY;
+  payload: DRAWER_COMPONENT_CATEGORY | undefined;
 }
 
 interface SetIsLoadingAction {
@@ -119,4 +125,5 @@ export type PdfEditorActionTypes =
   | SetSignatureForElementAction
   | UpdateMultipleElementsAction
   | ResetEditorAction
-  | SetIsLoadingAction;
+  | SetIsLoadingAction
+  | SetDrawerComponentCategoryAction;
