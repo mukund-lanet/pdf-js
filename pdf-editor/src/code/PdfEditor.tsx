@@ -7,15 +7,15 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading"
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import styles from './pdfEditor.module.scss';
 import { injectReducer } from 'components/store';
 import reducer from './store/index'
 import { TextElement, ImageElement, SignatureElement, DRAWER_COMPONENT_CATEGORY } from './types';
 import { RootState } from './store/reducer/pdfEditor.reducer';
-import ThumbnailSidebar from './ThumbnailSidebar';
-import PDFCanvasViewer from './PDFCanvasViewer';
-import DragDropToolbar from './DragDropToolbar';
-// import TextPropertiesToolbar from './TextPropertiesToolbar';
+import ThumbnailSidebar from './components/Sidebar/ThumbnailSidebar';
+import PDFCanvasViewer from './components/Canvas/PDFCanvasViewer';
+import DragDropToolbar from './components/Toolbar/DragDropToolbar';
+// import TextPropertiesToolbar from './components/Toolbar/TextPropertiesToolbar';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Tabs from "@trenchaant/pkg-ui-component-library/build/Components/Tabs";
 import Tab from "@trenchaant/pkg-ui-component-library/build/Components/Tab";
@@ -542,7 +542,7 @@ const PdfEditor = () => {
   const noDocument = {
     message: "No documents found",
     description: "There are no documents to display.",
-    tipList: [
+    tips: [
       "Create new document",
       "Upload pdf and start editing",
       "Add docusign in integration"
@@ -613,10 +613,10 @@ const PdfEditor = () => {
             />
           )} */}
 
-          <DragDropToolbar 
+          {/* <DragDropToolbar 
             onDragStart={handleDragStart}
             activeTool={activeTool}
-          />
+          /> */}
         </div>
         <Button
           variant={"contained"}
@@ -646,11 +646,17 @@ const PdfEditor = () => {
 
       <div className={styles.mainContainer}>
         <div className={styles.leftSideDrawerWrapper} >
-          { drawerComponentType === DRAWER_COMPONENT_CATEGORY.PAGES && <ThumbnailSidebar
-            pdfBytes={pdfBytes}
-            currentPage={currentPage}
-            onThumbnailClick={(i: number) => dispatch({type: 'SET_CURRENT_PAGE', payload: i})}
-          />}
+          { drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS &&
+            <DragDropToolbar 
+              onDragStart={handleDragStart}
+              activeTool={activeTool}
+            />}
+          { drawerComponentType === DRAWER_COMPONENT_CATEGORY.PAGES && 
+            <ThumbnailSidebar
+              pdfBytes={pdfBytes}
+              currentPage={currentPage}
+              onThumbnailClick={(i: number) => dispatch({type: 'SET_CURRENT_PAGE', payload: i})}
+            />}
         </div>
         <div className={styles.editorPanel} ref={editorPanelRef}>
           <div className={styles.pdfViewerWrapper} >
@@ -669,13 +675,7 @@ const PdfEditor = () => {
                 ) : isLoading ? <div className={styles.simpleLoadingWrapper} > <SimpleLoading /> </div>
                   : (
                       <div className={styles.noPdfLoaded} >
-                        <EmptyMessageComponent
-                          message={noDocument.message}
-                          description={noDocument.description}
-                          iconName={noDocument.iconName}
-                          tipsTitle={noDocument.tipsTitle}
-                          tips={noDocument.tipList}
-                        />
+                        <EmptyMessageComponent {...noDocument} />
                       </div>
                   )}
             </div>

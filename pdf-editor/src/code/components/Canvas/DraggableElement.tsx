@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { CanvasElement, TextElement } from './types';
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import { CanvasElement, TextElement } from '../../types';
+import styles from '../../pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -12,13 +12,13 @@ interface DraggableElementProps {
   onDelete: (id: string) => void;
 }
 
-const DraggableElement = ({ 
-  element, 
-  onDelete, 
+const DraggableElement = ({
+  element,
+  onDelete,
 }: DraggableElementProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
-  
+
   const targetRef = useRef<HTMLDivElement>(null);
   const moveableRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +41,7 @@ const DraggableElement = ({
 
   const handleMouseEnter = () => {
     // if (!isDragging) {
-      setShowDeleteButton(true);
+    setShowDeleteButton(true);
     // }
   };
 
@@ -64,10 +64,10 @@ const DraggableElement = ({
           textDecoration: textElement.textDecoration || 'none',
           // @ts-ignore
           textAlign: textElement.textAlign || 'left',
-          justifyContent: textElement.textAlign === 'center' 
-            ? 'center' 
-            : textElement.textAlign === 'right' 
-              ? 'flex-end' 
+          justifyContent: textElement.textAlign === 'center'
+            ? 'center'
+            : textElement.textAlign === 'right'
+              ? 'flex-end'
               : 'flex-start',
           width: '100%',
           height: '100%',
@@ -86,9 +86,9 @@ const DraggableElement = ({
 
       case 'image':
         return (
-          <div style={{ 
-            width: '100%', 
-            height: '100%', 
+          <div style={{
+            width: '100%',
+            height: '100%',
             position: 'relative',
             border: element.imageData ? 'none' : '2px dashed #ccc',
             background: element.imageData ? 'transparent' : '#f9f9f9',
@@ -142,13 +142,14 @@ const DraggableElement = ({
     <>
       <div
         ref={targetRef}
+        className="draggable-element"
         style={elementStyle}
         onMouseDown={handleMouseDown}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        { showDeleteButton && (
-          <Button 
+        {showDeleteButton && (
+          <Button
             className={styles.deleteButtonBadge}
             onClick={handleDelete}
             onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
@@ -161,7 +162,7 @@ const DraggableElement = ({
       </div>
       <Moveable
         // @ts-ignore
-        ref={moveableRef} 
+        ref={moveableRef}
         target={targetRef}
         draggable={true}
         throttleDrag={1}
@@ -171,20 +172,20 @@ const DraggableElement = ({
         resizable={true}
         keepRatio={false}
         throttleResize={1}
-        renderDirections={["nw","n","ne","w","e","sw","s","se"]}
+        renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
         rotatable={true}
         throttleRotate={0}
         rotationPosition={"top"}
         onDrag={e => {
-            e.target.style.transform = e.transform;
+          e.target.style.transform = e.transform;
         }}
         onResize={e => {
-            e.target.style.width = `${e.width}px`;
-            e.target.style.height = `${e.height}px`;
-            e.target.style.transform = e.drag.transform;
+          e.target.style.width = `${e.width}px`;
+          e.target.style.height = `${e.height}px`;
+          e.target.style.transform = e.drag.transform;
         }}
         onRotate={e => {
-            e.target.style.transform = e.drag.transform;
+          e.target.style.transform = e.drag.transform;
         }}
       />
     </>

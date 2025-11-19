@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import styles from '../../pdfEditor.module.scss';
 
 interface ThumbnailPageProps {
   pdfDoc: any;
@@ -25,7 +25,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
       }
       renderTaskRef.current = null;
     }
-    
+
     // Clean up blob URL to prevent memory leaks
     if (thumbnailUrl) {
       URL.revokeObjectURL(thumbnailUrl);
@@ -71,7 +71,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
         // Convert to blob URL instead of data URL to avoid large strings
         canvas.toBlob((blob) => {
           if (!isMounted || !blob) return;
-          
+
           const url = URL.createObjectURL(blob);
           setThumbnailUrl(url);
           setIsLoading(false);
@@ -106,13 +106,13 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
               Loading...
             </div>
           )}
-          
+
           {error && (
             <div className={styles.thumbnailError}>
               {error}
             </div>
           )}
-          
+
           {thumbnailUrl && !isLoading && !error && (
             <div
               className={styles.thumbnailImage}

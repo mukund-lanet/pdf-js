@@ -1,8 +1,8 @@
 'use client';
 import React, { useRef } from 'react';
 // @ts-ignore
-import SignatureCanvas from 'react-signature-canvas'; 
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import SignatureCanvas from 'react-signature-canvas';
+import styles from '../../pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 

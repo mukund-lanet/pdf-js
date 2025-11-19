@@ -1,9 +1,9 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import styles from '../../pdfEditor.module.scss';
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import PDFPage from './PDFPage';
-import { CanvasElement } from './types';
+import { CanvasElement } from '../../types';
 
 interface PDFCanvasViewerProps {
   pdfBytes: Uint8Array | null;
@@ -26,7 +26,7 @@ const PDFCanvasViewer = ({
   canvasElements,
   onElementDelete,
 }: PDFCanvasViewerProps) => {
-  
+
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [totalPages, setTotalPages] = useState(0);
@@ -53,16 +53,16 @@ const PDFCanvasViewer = ({
         return;
       }
 
-      try {        
+      try {
         console.log('Loading PDF document...');
-        
+
         // Create a fresh copy to avoid reference issues
         const pdfBytesCopy = new Uint8Array(pdfBytes);
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
-        
+
         console.log(`PDF loaded with ${pdf.numPages} pages`);
-        
+
         setPdfDoc(pdf);
         setTotalPages(pdf.numPages);
         setRenderKey(prev => prev + 1); // Force re-render of all pages
@@ -80,7 +80,7 @@ const PDFCanvasViewer = ({
   const noDocument = {
     message: "No documents found",
     description: "There are no documents to display.",
-    tipList: [
+    tips: [
       "Create new document",
       "Upload pdf and start editing",
       "Add docusign in integration"
@@ -91,7 +91,7 @@ const PDFCanvasViewer = ({
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
-      { pdfBytes && totalPages > 0 ? (
+      {pdfBytes && totalPages > 0 ? (
         <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
           {Array.from({ length: totalPages }, (_, index) => {
             // console.log(`Rendering page ${index + 1}`);

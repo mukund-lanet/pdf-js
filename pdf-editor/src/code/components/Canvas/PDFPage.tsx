@@ -1,21 +1,21 @@
 'use client';
-import React, {useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Selecto from "react-selecto";
 import Moveable from "react-moveable";
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import styles from '../../pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
 import DraggableElement from './DraggableElement';
-import { CanvasElement } from './types';
+import { CanvasElement } from '../../types';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from './store/reducer/pdfEditor.reducer';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
 interface PDFPageProps {
   pdfDoc: any;
-  pageNumber: number; 
+  pageNumber: number;
   onPageClick?: (pageNumber: number) => void;
   onDrop?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number, type: string) => void;
   onAddBlankPage: (pageNumber: number) => void;
@@ -40,7 +40,7 @@ const PDFPage = React.memo(({
 
   const currentPageFromStore = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
   const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
-  
+
   const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
@@ -101,7 +101,7 @@ const PDFPage = React.memo(({
       cleanupRenderTask();
 
       console.log("in render page")
-      dispatch({type: 'SET_IS_LOADING', payload: true})
+      dispatch({ type: 'SET_IS_LOADING', payload: true })
       setError(null);
 
       try {
@@ -129,10 +129,10 @@ const PDFPage = React.memo(({
         await task.promise;
 
         if (isMounted) {
-          console.log({isLoading, isMounted})
+          console.log({ isLoading, isMounted })
           setImageSrc(canvas.toDataURL('image/png'));
           setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
-          dispatch({type: 'SET_IS_LOADING', payload: false})
+          dispatch({ type: 'SET_IS_LOADING', payload: false })
         }
 
       } catch (error: any) {
@@ -158,14 +158,14 @@ const PDFPage = React.memo(({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!onDrop || !imageRef.current) return;
-    
+
     const rect = imageRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const type = e.dataTransfer.getData('application/pdf-editor');
-    
+
     if (type) {
       onDrop(x, y, pageSize, pageNumber, type); // Use pageNumber
     }
@@ -178,21 +178,21 @@ const PDFPage = React.memo(({
 
   const handlPageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onPageClick){
+    if (onPageClick) {
       onPageClick(pageNumber); // Use pageNumber
     }
   };
 
   return (
-    <div 
+    <div
       id={`pdf-page-${pageNumber}`} // Use pageNumber
       className={styles.pdfPageContainer}
     >
-      <div 
+      <div
         ref={containerRef}
         className={styles.pdfCanvasViewer}
       >
-        <div 
+        <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onClick={handlPageClick}
@@ -206,7 +206,7 @@ const PDFPage = React.memo(({
               </Typography>
             </div>
           )}
-          
+
           {error && (
             <div className={styles.errorDiv}>
               <Typography>
@@ -214,7 +214,7 @@ const PDFPage = React.memo(({
               </Typography>
             </div>
           )}
-          
+
           <Menu
             anchorEl={actionMenuAnchorEl}
             open={Boolean(actionMenuAnchorEl)}
@@ -230,7 +230,7 @@ const PDFPage = React.memo(({
               <Typography>Delete Page</Typography>
             </MenuItem>
           </Menu>
-          
+
           <div className={styles.actionButtonWrapper} >
             <div className={styles.actionBtnJustifyWrapper} >
               <Button className={styles.addPageRound} onClick={handleAddBlankPage}>
@@ -241,7 +241,7 @@ const PDFPage = React.memo(({
               </Button>
             </div>
           </div>
-          
+
           {imageSrc && (
             <div
               ref={imageRef}
@@ -257,7 +257,7 @@ const PDFPage = React.memo(({
               }}
             />
           )}
-          
+
           {/* Render draggable elements for this page */}
           <Moveable
             ref={moveableRef}

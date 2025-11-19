@@ -1,10 +1,10 @@
 
 'use client';
 import React, { useEffect, useState } from 'react';
-import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import styles from '../../pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import { useSelector } from 'react-redux';
-import { RootState } from './store/reducer/pdfEditor.reducer';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import ThumbnailPage from './ThumbnailPage';
 
 interface ThumbnailSidebarProps {
