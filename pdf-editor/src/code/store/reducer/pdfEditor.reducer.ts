@@ -97,7 +97,7 @@ export const pdfEditorReducer = (
           el.id === action.payload.id ? action.payload : el
         ),
         // Also update selectedTextElement if it's the one being updated
-        selectedTextElement: 
+        selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text'
             ? (action.payload as TextElement)
             : state.selectedTextElement
@@ -109,7 +109,7 @@ export const pdfEditorReducer = (
         ...state,
         canvasElements: filteredElements,
         // Clear selected text element if it's the one being deleted
-        selectedTextElement: 
+        selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload
             ? null
             : state.selectedTextElement
@@ -140,9 +140,13 @@ export const pdfEditorReducer = (
       };
 
     case PDF_EDITOR_ACTION_TYPES.UPDATE_MULTIPLE_ELEMENTS:
+      const updates = action.payload;
+      // Create a map for faster lookup
+      const updateMap = new Map(updates.map((el: CanvasElement) => [el.id, el]));
+
       return {
         ...state,
-        canvasElements: action.payload
+        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el)
       };
 
     case PDF_EDITOR_ACTION_TYPES.RESET_EDITOR:

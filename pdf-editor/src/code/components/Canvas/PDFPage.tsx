@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Selecto from "react-selecto";
 import Moveable from "react-moveable";
-import styles from '../../pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -155,6 +155,12 @@ const PDFPage = React.memo(({
     };
   }, [pdfDoc, pageNumber]); // Add pageNumber to dependency array
 
+  useEffect(() => {
+    if (moveableRef.current) {
+      moveableRef.current.updateRect();
+    }
+  }, [canvasElements, pageSize]);
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -262,6 +268,9 @@ const PDFPage = React.memo(({
           <Moveable
             ref={moveableRef}
             draggable={true}
+            resizable={true}
+            keepRatio={false}
+            renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
             target={targets}
             onClickGroup={e => {
               selectoRef.current!.clickTarget(e.inputEvent, e.inputTarget);
@@ -269,16 +278,155 @@ const PDFPage = React.memo(({
             onDrag={e => {
               e.target.style.transform = e.transform;
             }}
+            onDragEnd={e => {
+              const target = e.target as HTMLElement;
+              const id = target.getAttribute('data-id');
+              if (!id) return;
+
+              const element = canvasElements.find(el => el.id === id);
+              if (!element) return;
+
+              // Use lastEvent.translate to get the final translation
+              const translate = e.lastEvent?.translate;
+
+              if (translate) {
+                const [translateX, translateY] = translate;
+
+                if (!isNaN(translateX) && !isNaN(translateY)) {
+                  const newElement = {
+                    ...element,
+                    x: element.x + translateX,
+                    y: element.y + translateY
+                  };
+
+                  dispatch({ type: 'UPDATE_CANVAS_ELEMENT', payload: newElement });
+                }
+
+                // Reset transform as the new position is now part of the element's base coordinates
+                target.style.transform = '';
+              }
+            }}
             onDragGroup={e => {
               e.events.forEach(ev => {
                 ev.target.style.transform = ev.transform;
               });
             }}
+            onDragGroupEnd={e => {
+              const updates: CanvasElement[] = [];
+
+              e.events.forEach(ev => {
+                const target = ev.target as HTMLElement;
+                const id = target.getAttribute('data-id');
+                if (!id) return;
+
+                const element = canvasElements.find(el => el.id === id);
+                if (!element) return;
+
+                // Use lastEvent.translate from the individual event
+                const translate = ev.lastEvent?.translate;
+
+                if (translate) {
+                  const [translateX, translateY] = translate;
+
+                  if (!isNaN(translateX) && !isNaN(translateY)) {
+                    updates.push({
+                      ...element,
+                      x: element.x + translateX,
+                      y: element.y + translateY
+                    });
+                  }
+
+                  target.style.transform = '';
+                }
+              });
+
+              if (updates.length > 0) {
+                dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updates });
+              }
+            }}
+            onResize={e => {
+              e.target.style.width = `${e.width}px`;
+              e.target.style.height = `${e.height}px`;
+              e.target.style.transform = e.drag.transform;
+            }}
+            onResizeEnd={e => {
+              const target = e.target as HTMLElement;
+              const id = target.getAttribute('data-id');
+              if (!id) return;
+
+              const element = canvasElements.find(el => el.id === id);
+              if (!element) return;
+
+              // Parse transform for position change during resize
+              const transform = target.style.transform;
+              const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+
+              let translateX = 0;
+              let translateY = 0;
+              if (match) {
+                translateX = parseFloat(match[1]);
+                translateY = parseFloat(match[2]);
+              }
+
+              const newElement = {
+                ...element,
+                width: e.lastEvent?.width || element.width,
+                height: e.lastEvent?.height || element.height,
+                x: element.x + translateX,
+                y: element.y + translateY
+              };
+
+              dispatch({ type: 'UPDATE_CANVAS_ELEMENT', payload: newElement });
+              target.style.transform = '';
+            }}
+            onResizeGroup={e => {
+              e.events.forEach(ev => {
+                ev.target.style.width = `${ev.width}px`;
+                ev.target.style.height = `${ev.height}px`;
+                ev.target.style.transform = ev.drag.transform;
+              });
+            }}
+            onResizeGroupEnd={e => {
+              const updates: CanvasElement[] = [];
+
+              e.events.forEach(ev => {
+                const target = ev.target as HTMLElement;
+                const id = target.getAttribute('data-id');
+                if (!id) return;
+
+                const element = canvasElements.find(el => el.id === id);
+                if (!element) return;
+
+                const transform = target.style.transform;
+                const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+
+                let translateX = 0;
+                let translateY = 0;
+                if (match) {
+                  translateX = parseFloat(match[1]);
+                  translateY = parseFloat(match[2]);
+                }
+
+                updates.push({
+                  ...element,
+                  width: ev.lastEvent?.width || element.width,
+                  height: ev.lastEvent?.height || element.height,
+                  x: element.x + translateX,
+                  y: element.y + translateY
+                });
+
+                target.style.transform = '';
+              });
+
+              if (updates.length > 0) {
+                dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updates });
+              }
+            }}
           ></Moveable>
           <Selecto
             ref={selectoRef}
-            dragContainer={window}
-            selectableTargets={[".selecto-area .cube"]}
+            dragContainer={containerRef.current}
+            selectableTargets={[".draggable-element"]}
             hitRate={0}
             selectByClick={true}
             selectFromInside={false}
@@ -287,10 +435,12 @@ const PDFPage = React.memo(({
             onDragStart={e => {
               const moveable = moveableRef.current!;
               const target = e.inputEvent.target;
+
+              // Prevent selection if clicking on a moveable element or if the container is not ready
               if (
-                moveable.isMoveableElement(target)
-                // @ts-ignore
-                || targets.some(t => t === target || t.contains(target))
+                !containerRef.current ||
+                moveable.isMoveableElement(target) ||
+                targets.some((t: any) => t === target || t.contains(target))
               ) {
                 e.stop();
               }

@@ -47,10 +47,48 @@ export interface SignatureElement {
   page: number;
 }
 
-export type CanvasElement = TextElement | ImageElement | SignatureElement;
-  
+export interface DateElement {
+  type: 'date';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  value?: string; // Selected date value (ISO format)
+  page: number;
+}
+
+export interface InitialsElement {
+  type: 'initials';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string; // Initials text
+  page: number;
+}
+
+export interface CheckboxElement {
+  type: 'checkbox';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  checked: boolean;
+  page: number;
+}
+
+export type CanvasElement = TextElement | ImageElement | SignatureElement | DateElement | InitialsElement | CheckboxElement;
+
 export interface PageInfo {
   pageWidth: number;
   pageHeight: number;
   scale: number;
+}
+
+export interface PageDimension {
+  pageWidth: number;
+  pageHeight: number;
 }

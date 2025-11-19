@@ -1,8 +1,10 @@
 
 'use client';
 import React, { useEffect, useState } from 'react';
-import styles from '../../pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import ThumbnailPage from './ThumbnailPage';
@@ -11,9 +13,10 @@ interface ThumbnailSidebarProps {
   pdfBytes: Uint8Array | null;
   currentPage: number;
   onThumbnailClick: (pageNumber: number) => void;
+  onClose?: () => void;
 }
 
-const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
+const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: ThumbnailSidebarProps) => {
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
@@ -48,6 +51,15 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
 
   return (
     <div className={styles.thumbnailSidebar}>
+      <div className={styles.sidebarHeader}>
+        <Typography variant="h6" className={styles.sidebarTitle}>Pages</Typography>
+        {onClose && (
+          <Button className={styles.closeButton} onClick={onClose}>
+            <CustomIcon iconName="x" width={20} height={20} />
+          </Button>
+        )}
+      </div>
+
       <div className={styles.thumbnailContainer}>
         {pdfDoc && totalPages > 0 ? (
           Array.from(new Array(totalPages), (el, index) => (

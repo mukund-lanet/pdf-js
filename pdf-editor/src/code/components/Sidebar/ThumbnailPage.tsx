@@ -1,6 +1,9 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import styles from '../../pdfEditor.module.scss';
+import { useSelector } from 'react-redux';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { CanvasElement } from '../../types';
 
 interface ThumbnailPageProps {
   pdfDoc: any;
@@ -14,6 +17,8 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
+  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements || []);
+  const pageDimensions = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions || {});
 
   // Cleanup function
   const cleanup = () => {
@@ -32,6 +37,105 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
     }
   };
 
+  // Render canvas elements on top of PDF
+  const renderCanvasElements = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, scale: number) => {
+    const pageElements = canvasElements.filter((el: CanvasElement) => el.page === pageNumber);
+
+    pageElements.forEach((element: CanvasElement) => {
+      const scaledX = element.x * scale;
+      const scaledY = element.y * scale;
+      const scaledWidth = element.width * scale;
+      const scaledHeight = element.height * scale;
+
+      const BG = '#e0f7fa';
+      const COLOR = '#00838f';
+      const BORDER = '#00acc1';
+
+      if (element.type === 'text') {
+        const fontSize = (element.fontSize || 16) * scale;
+        context.font = `${element.fontWeight || 'normal'} ${element.fontStyle || 'normal'} ${fontSize}px Arial`;
+        context.textAlign = (element.textAlign as CanvasTextAlign) || 'left';
+
+        // Background
+        context.fillStyle = BG;
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        // Text
+        context.fillStyle = COLOR;
+        context.fillText(element.content, scaledX + 4, scaledY + fontSize);
+
+      } else if (element.type === 'image' || element.type === 'signature') {
+
+        context.fillStyle = BG;
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        context.strokeStyle = BORDER;
+        context.lineWidth = 2;
+        context.setLineDash([6, 4]); // dashed border
+        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.setLineDash([]);
+
+        if (element.imageData) {
+          const img = new Image();
+          img.src = element.imageData;
+          img.onload = () => {
+            context.drawImage(img, scaledX, scaledY, scaledWidth, scaledHeight);
+          };
+        }
+
+      } else if (element.type === 'date') {
+
+        context.fillStyle = BG;
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        context.strokeStyle = BORDER;
+        context.lineWidth = 2;
+        context.setLineDash([6, 4]);
+        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.setLineDash([]);
+
+      } else if (element.type === 'initials') {
+
+        context.fillStyle = BG;
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        context.strokeStyle = BORDER;
+        context.lineWidth = 2;
+        context.setLineDash([6, 4]);
+        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.setLineDash([]);
+
+        const fontSize = 12 * scale;
+        context.font = `bold ${fontSize}px Arial`;
+        context.fillStyle = COLOR;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(element.content || 'IN', scaledX + scaledWidth / 2, scaledY + scaledHeight / 2);
+
+      } else if (element.type === 'checkbox') {
+
+        context.fillStyle = BG;
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        context.strokeStyle = BORDER;
+        context.lineWidth = 2;
+        context.setLineDash([6, 4]);
+        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.setLineDash([]);
+
+        if (element.checked) {
+          context.strokeStyle = COLOR;
+          context.lineWidth = 2 * scale;
+          context.beginPath();
+          context.moveTo(scaledX + scaledWidth * 0.2, scaledY + scaledHeight * 0.5);
+          context.lineTo(scaledX + scaledWidth * 0.4, scaledY + scaledHeight * 0.7);
+          context.lineTo(scaledX + scaledWidth * 0.8, scaledY + scaledHeight * 0.3);
+          context.stroke();
+        }
+      }
+    });
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -46,7 +150,8 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
         const page = await pdfDoc.getPage(pageNumber);
         if (!isMounted) return;
 
-        const viewport = page.getViewport({ scale: 0.3 });
+        const scale = 0.3;
+        const viewport = page.getViewport({ scale });
 
         // Create offscreen canvas
         const canvas = document.createElement('canvas');
@@ -56,7 +161,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        // Render to offscreen canvas
+        // Render PDF page to canvas
         const renderContext = {
           canvasContext: context,
           viewport: viewport,
@@ -67,6 +172,9 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
 
         await task.promise;
         if (!isMounted) return;
+
+        // Render canvas elements on top of PDF
+        renderCanvasElements(canvas, context, scale);
 
         // Convert to blob URL instead of data URL to avoid large strings
         canvas.toBlob((blob) => {
@@ -91,10 +199,10 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
       isMounted = false;
       cleanup();
     };
-  }, [pdfDoc, pageNumber]);
+  }, [pdfDoc, pageNumber, canvasElements]); // Re-render when canvas elements change
 
   return (
-    <div className={styles.thumbnailWrapper} >
+    <div className={styles.thumbnailWrapper}>
       <div
         key={`thumbnail_page_${pageNumber}`}
         className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}

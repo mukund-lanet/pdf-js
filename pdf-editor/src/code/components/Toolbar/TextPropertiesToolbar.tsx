@@ -1,6 +1,6 @@
 import React from 'react';
 import { TextElement } from '../../types';
-import styles from '../../pdfEditor.module.scss';
+import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import Select from "@trenchaant/pkg-ui-component-library/build/Components/Select/SimpleSelect";
