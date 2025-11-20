@@ -32,6 +32,7 @@ export const PDF_EDITOR_ACTION_TYPES = {
 
   SET_IS_LOADING: 'SET_IS_LOADING',
   SET_DRAWER_COMPONENT_CATEGORY: 'SET_DRAWER_COMPONENT_CATEGORY',
+  SET_ACTIVE_ELEMENT_ID: 'SET_ACTIVE_ELEMENT_ID',
 } as const;
 
 // Action Interfaces
@@ -43,6 +44,11 @@ interface SetPdfBytesAction {
 interface SetDrawerComponentCategoryAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_DRAWER_COMPONENT_CATEGORY;
   payload: DRAWER_COMPONENT_CATEGORY | undefined;
+}
+
+interface SetActiveElementIdAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_ELEMENT_ID;
+  payload: string | null;
 }
 
 interface SetIsLoadingAction {
@@ -159,4 +165,5 @@ export type PdfEditorActionTypes =
   | UpdateMultipleElementsAction
   | ResetEditorAction
   | SetIsLoadingAction
-  | SetDrawerComponentCategoryAction;
+  | SetDrawerComponentCategoryAction
+  | SetActiveElementIdAction;

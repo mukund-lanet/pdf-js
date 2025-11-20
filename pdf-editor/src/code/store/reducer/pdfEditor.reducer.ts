@@ -15,6 +15,7 @@ export interface PdfEditorState {
   signatureForElement: string | null;
   isLoading: boolean;
   drawerComponentCategory?: DRAWER_COMPONENT_CATEGORY;
+  activeElementId: string | null;
 }
 
 export interface RootState {
@@ -36,6 +37,7 @@ const initialState: PdfEditorState = {
   signatureForElement: null,
   isLoading: false,
   drawerComponentCategory: undefined,
+  activeElementId: null,
 };
 
 // Reducer
@@ -48,6 +50,11 @@ export const pdfEditorReducer = (
       return {
         ...state,
         drawerComponentCategory: action.payload
+      };
+    case PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_ELEMENT_ID:
+      return {
+        ...state,
+        activeElementId: action.payload
       };
     case PDF_EDITOR_ACTION_TYPES.SET_IS_LOADING:
       return {
@@ -112,7 +119,8 @@ export const pdfEditorReducer = (
         selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload
             ? null
-            : state.selectedTextElement
+            : state.selectedTextElement,
+        activeElementId: state.activeElementId === action.payload ? null : state.activeElementId
       };
 
     case PDF_EDITOR_ACTION_TYPES.ADD_BLOCK_ELEMENT: {

@@ -108,35 +108,109 @@ const BlockElement = ({
     }
   };
 
+  const handleBlockClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch({
+      type: 'SET_ACTIVE_ELEMENT_ID',
+      payload: element.id
+    });
+  };
+
+  const handleSubtitleChange = (subtitle: string) => {
+    if (element.type === 'heading') {
+      dispatch({
+        type: 'UPDATE_CANVAS_ELEMENT',
+        payload: { ...element, subtitle }
+      });
+    }
+  };
+
   const renderContent = () => {
     switch (element.type) {
       case 'heading':
         return (
           <div
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => handleContentChange(e.currentTarget.textContent || '')}
-            className={styles.blockHeadingContent}
+            className={styles.blockHeadingContainer}
             style={{
-              fontSize: element.fontSize || 32,
-              fontWeight: element.fontWeight || '700',
-              outline: 'none',
-              padding: '16px',
-              minHeight: '100%'
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '12px',
+              ...((element.padding || element.margin) && {
+                paddingTop: element.padding?.top,
+                paddingRight: element.padding?.right,
+                paddingBottom: element.padding?.bottom,
+                paddingLeft: element.padding?.left,
+                marginTop: element.margin?.top,
+                marginRight: element.margin?.right,
+                marginBottom: element.margin?.bottom,
+                marginLeft: element.margin?.left,
+              }),
+              backgroundColor: element.backgroundColor
             }}
           >
-            {element.content}
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleContentChange(e.currentTarget.textContent || '')}
+              className={styles.blockHeadingText}
+              style={{
+                fontSize: element.fontSize || 32,
+                fontWeight: element.fontWeight || '700',
+                outline: 'none',
+              }}
+            >
+              {element.content}
+            </div>
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleSubtitleChange(e.currentTarget.textContent || '')}
+              className={styles.blockSubtitleText}
+              style={{
+                fontSize: element.subtitleFontSize || 16,
+                fontWeight: element.subtitleFontWeight || '400',
+                color: element.subtitleColor || '#374151',
+                outline: 'none'
+              }}
+              data-placeholder="Add a subtitle"
+            >
+              {element.subtitle || 'Add a subtitle'}
+            </div>
           </div>
         );
 
       case 'image':
         return (
-          <div className={styles.blockImageContent}>
+          <div
+            className={styles.blockImageContent}
+            style={{
+              ...((element.padding || element.margin) && {
+                paddingTop: element.padding?.top,
+                paddingRight: element.padding?.right,
+                paddingBottom: element.padding?.bottom,
+                paddingLeft: element.padding?.left,
+                marginTop: element.margin?.top,
+                marginRight: element.margin?.right,
+                marginBottom: element.margin?.bottom,
+                marginLeft: element.margin?.left,
+              }),
+              backgroundColor: element.backgroundColor,
+              justifyContent: element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start',
+              display: 'flex'
+            }}
+          >
             {element.imageData ? (
               <img
                 src={element.imageData}
                 alt="Block"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{
+                  width: element.width ? `${element.width}px` : '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: element.imageEffect === 'grayscale' ? 'grayscale(100%)' : 'none'
+                }}
               />
             ) : (
               <div className={styles.blockImagePlaceholder}>
@@ -159,12 +233,27 @@ const BlockElement = ({
 
       case 'video':
         return (
-          <div className={styles.blockVideoContent}>
+          <div
+            className={styles.blockVideoContent}
+            style={{
+              ...((element.padding || element.margin) && {
+                paddingTop: element.padding?.top,
+                paddingRight: element.padding?.right,
+                paddingBottom: element.padding?.bottom,
+                paddingLeft: element.padding?.left,
+                marginTop: element.margin?.top,
+                marginRight: element.margin?.right,
+                marginBottom: element.margin?.bottom,
+                marginLeft: element.margin?.left,
+              }),
+              backgroundColor: element.backgroundColor
+            }}
+          >
             {element.videoUrl ? (
               <video
                 src={element.videoUrl}
                 controls
-                style={{ width: '100%', height: '100%' }}
+                style={{ width: element.width ? `${element.width}px` : '100%', height: '100%' }}
               />
             ) : (
               <div className={styles.blockVideoPlaceholder}>
@@ -183,7 +272,22 @@ const BlockElement = ({
 
       case 'table':
         return (
-          <div className={styles.blockTableContent}>
+          <div
+            className={styles.blockTableContent}
+            style={{
+              ...((element.padding || element.margin) && {
+                paddingTop: element.padding?.top,
+                paddingRight: element.padding?.right,
+                paddingBottom: element.padding?.bottom,
+                paddingLeft: element.padding?.left,
+                marginTop: element.margin?.top,
+                marginRight: element.margin?.right,
+                marginBottom: element.margin?.bottom,
+                marginLeft: element.margin?.left,
+              }),
+              backgroundColor: element.backgroundColor
+            }}
+          >
             <table className={styles.blockTable}>
               <tbody>
                 {Array.from({ length: element.rows }).map((_, rowIndex) => (
@@ -217,9 +321,11 @@ const BlockElement = ({
       // style={{ height: `${height}px`, minHeight: `${MIN_HEIGHT}px` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleBlockClick}
     >
       {/* Hover Toolbar */}
-      {isHovered && !isDragging && (
+      {/* {isHovered && !isDragging && ( */}
+      {true && (
         <div className={styles.blockToolbar} data-html2canvas-ignore>
           <div className={styles.blockToolbarActions}>
             <Tooltip title="Copy" placement="top">
@@ -230,7 +336,7 @@ const BlockElement = ({
                   onCopy(element);
                 }}
               >
-                <CustomIcon iconName="copy" width={16} height={16} />
+                <CustomIcon iconName="copy" width={16} height={16} variant="white" />
               </Button>
             </Tooltip>
 
@@ -242,7 +348,7 @@ const BlockElement = ({
                   onDelete(element.id);
                 }}
               >
-                <CustomIcon iconName="trash2" width={16} height={16} />
+                <CustomIcon iconName="trash2" width={16} height={16} variant="white" />
               </Button>
             </Tooltip>
 

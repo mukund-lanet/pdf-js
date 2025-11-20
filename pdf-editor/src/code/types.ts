@@ -25,13 +25,16 @@ export interface TextElement {
   color?: string;
 }
 
-export interface ImageElement {
+export interface ImageElement extends BlockStyle {
   type: 'image';
   id: string;
   order: number; // Position in vertical stack
   height: number;
+  width?: number; // Internal width
   imageData: string; // base64
   page: number;
+  align?: 'left' | 'center' | 'right';
+  imageEffect?: 'none' | 'grayscale';
 }
 
 export interface SignatureElement {
@@ -78,27 +81,45 @@ export interface CheckboxElement {
   page: number;
 }
 
-export interface HeadingElement {
+export interface BoxSpacing {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface BlockStyle {
+  backgroundColor?: string;
+  padding?: BoxSpacing;
+  margin?: BoxSpacing;
+}
+
+export interface HeadingElement extends BlockStyle {
   type: 'heading';
   id: string;
   order: number; // Position in vertical stack
   height: number;
-  content: string;
+  content: string; // Heading text
+  subtitle?: string; // Subtitle/Description text
   page: number;
   fontSize?: number;
   fontWeight?: string;
+  subtitleFontSize?: number;
+  subtitleFontWeight?: string;
+  subtitleColor?: string;
 }
 
-export interface VideoElement {
+export interface VideoElement extends BlockStyle {
   type: 'video';
   id: string;
   order: number; // Position in vertical stack
   height: number;
+  width?: number; // Internal width
   videoUrl?: string;
   page: number;
 }
 
-export interface TableElement {
+export interface TableElement extends BlockStyle {
   type: 'table';
   id: string;
   order: number; // Position in vertical stack
