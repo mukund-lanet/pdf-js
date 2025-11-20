@@ -197,7 +197,8 @@ const BlockElement = ({
                 marginLeft: element.margin?.left,
               }),
               backgroundColor: element.backgroundColor,
-              justifyContent: element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start',
+              // justifyContent: element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start',
+              justifyContent: 'center',
               display: 'flex'
             }}
           >
@@ -324,8 +325,7 @@ const BlockElement = ({
       onClick={handleBlockClick}
     >
       {/* Hover Toolbar */}
-      {/* {isHovered && !isDragging && ( */}
-      {true && (
+      {isHovered && !isDragging && (
         <div className={styles.blockToolbar} data-html2canvas-ignore>
           <div className={styles.blockToolbarActions}>
             <Tooltip title="Copy" placement="top">
@@ -361,7 +361,7 @@ const BlockElement = ({
                     onMoveUp();
                   }}
                 >
-                  <CustomIcon iconName="chevron-up" width={16} height={16} />
+                  <CustomIcon iconName="chevron-up" width={16} height={16} variant="white" />
                 </Button>
               </Tooltip>
             )}
@@ -375,7 +375,7 @@ const BlockElement = ({
                     onMoveDown();
                   }}
                 >
-                  <CustomIcon iconName="chevron-down" width={16} height={16} />
+                  <CustomIcon iconName="chevron-down" width={16} height={16} variant="white" />
                 </Button>
               </Tooltip>
             )}
