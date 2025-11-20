@@ -6,7 +6,7 @@ import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import PDFCanvasViewer from '../Canvas/PDFCanvasViewer';
-import { TextElement, ImageElement, SignatureElement, DateElement, InitialsElement, CheckboxElement, PageDimension } from '../../types';
+import { TextElement, ImageElement, SignatureElement, DateElement, InitialsElement, CheckboxElement, HeadingElement, VideoElement, TableElement, PageDimension } from '../../types';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
 const EditorMainArea = () => {
@@ -35,30 +35,48 @@ const EditorMainArea = () => {
   const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
   const handleDrop = useCallback((x: number, y: number, info: PageDimension, pageNumber: number, type: string) => {
-    const elementType = type as 'text' | 'image' | 'signature' | 'date' | 'initials' | 'checkbox';
+    const elementType = type as 'text-field' | 'image' | 'signature' | 'date' | 'initials' | 'checkbox' | 'heading' | 'video' | 'table';
 
-    // The dimensions of the page are passed up by the canvas viewer on render
     console.log({ x, y, info, pageNumber, type })
     dispatch({ type: 'SET_PAGE_DIMENSIONS', payload: { ...pageDimensions, [pageNumber]: info } })
 
     const defaultSize = {
-      text: { width: 200, height: 40 },
-      image: { width: 150, height: 100 },
+      heading: { width: 600, height: 100 },
+      'text-field': { width: 200, height: 40 },
+      image: { width: 400, height: 300 },
       signature: { width: 150, height: 80 },
       date: { width: 150, height: 40 },
       initials: { width: 100, height: 60 },
-      checkbox: { width: 40, height: 40 }
+      checkbox: { width: 40, height: 40 },
+      video: { width: 400, height: 300 },
+      table: { width: 400, height: 200 }
     };
 
     switch (elementType) {
-      case 'text':
-        const textElement: TextElement = {
-          type: 'text',
+      case 'heading':
+        const headingElement: HeadingElement = {
+          type: 'heading',
           id: generateId(),
-          x: x - defaultSize.text.width / 2,
-          y: y - defaultSize.text.height / 2,
-          width: defaultSize.text.width,
-          height: defaultSize.text.height,
+          x: x - defaultSize.heading.width / 2,
+          y: y - defaultSize.heading.height / 2,
+          width: defaultSize.heading.width,
+          height: defaultSize.heading.height,
+          content: 'Heading',
+          page: pageNumber,
+          fontSize: 32,
+          fontWeight: '700'
+        };
+        dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: headingElement });
+        break;
+
+      case 'text-field':
+        const textElement: TextElement = {
+          type: 'text-field',
+          id: generateId(),
+          x: x - defaultSize['text-field'].width / 2,
+          y: y - defaultSize['text-field'].height / 2,
+          width: defaultSize['text-field'].width,
+          height: defaultSize['text-field'].height,
           content: 'Enter text here...',
           page: pageNumber,
           fontSize: 12,
@@ -83,6 +101,35 @@ const EditorMainArea = () => {
           page: pageNumber
         };
         dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: imageElement });
+        break;
+
+      case 'video':
+        const videoElement: VideoElement = {
+          type: 'video',
+          id: generateId(),
+          x: x - defaultSize.video.width / 2,
+          y: y - defaultSize.video.height / 2,
+          width: defaultSize.video.width,
+          height: defaultSize.video.height,
+          videoUrl: '',
+          page: pageNumber
+        };
+        dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: videoElement });
+        break;
+
+      case 'table':
+        const tableElement: TableElement = {
+          type: 'table',
+          id: generateId(),
+          x: x - defaultSize.table.width / 2,
+          y: y - defaultSize.table.height / 2,
+          width: defaultSize.table.width,
+          height: defaultSize.table.height,
+          rows: 2,
+          columns: 2,
+          page: pageNumber
+        };
+        dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: tableElement });
         break;
 
       case 'signature':

@@ -5,6 +5,7 @@ import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import ThumbnailPage from './ThumbnailPage';
@@ -19,6 +20,7 @@ interface ThumbnailSidebarProps {
 const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: ThumbnailSidebarProps) => {
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
 
   useEffect(() => {
@@ -37,12 +39,15 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: 
       if (!pdfBytes || !pdfjsLib) return;
 
       try {
+        setIsLoading(true);
         const pdfBytesCopy = new Uint8Array(pdfBytes);
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
         setPdfDoc(pdf);
       } catch (error) {
         console.error('Error loading PDF for thumbnails:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -61,7 +66,11 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: 
       </div>
 
       <div className={styles.thumbnailContainer}>
-        {pdfDoc && totalPages > 0 ? (
+        {isLoading ? (
+          <div className={styles.loadingWrapper}>
+            <SimpleLoading />
+          </div>
+        ) : pdfDoc && totalPages > 0 ? (
           Array.from(new Array(totalPages), (el, index) => (
             <ThumbnailPage
               key={`thumbnail_page_${index + 1}_${pdfDoc ? pdfDoc._pdfInfo.fingerprint : 'no_pdf'}`}

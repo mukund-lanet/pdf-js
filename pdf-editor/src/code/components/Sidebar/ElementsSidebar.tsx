@@ -18,19 +18,17 @@ const ElementsSidebar = ({ onDragStart, activeTool, onClose }: ElementsSidebarPr
   };
 
   const blocks = [
-    { type: 'text', label: 'Text', icon: 'type' },
+    { type: 'heading', label: 'Text', icon: 'type' },
     { type: 'image', label: 'Image', icon: 'image' },
     { type: 'video', label: 'Video', icon: 'video' },
     { type: 'table', label: 'Table', icon: 'table' },
-    // { type: 'product-list', label: 'Product list', icon: 'file-text' },
-    // { type: 'page-break', label: 'Page break', icon: 'scissors' },
   ];
 
   const fillableFields = [
     { type: 'signature', label: 'Signature', icon: 'pencil-line' },
     { type: 'text-field', label: 'Text Field', icon: 'type' },
     { type: 'date', label: 'Date', icon: 'calendar' },
-    { type: 'initials', label: 'Initials', icon: 'type' },
+    { type: 'initials', label: 'Initials', icon: 'pencil-line' },
     { type: 'checkbox', label: 'Checkbox', icon: 'check-square' },
   ];
 
@@ -46,7 +44,7 @@ const ElementsSidebar = ({ onDragStart, activeTool, onClose }: ElementsSidebarPr
         <CustomIcon iconName="grip-horizontal" width={16} height={16} />
       </div>
       <div className={styles.elementIcon}>
-        <CustomIcon iconName={item.icon} width={32} height={32} variant="primary" />
+        <CustomIcon iconName={item.icon} width={20} height={20} />
       </div>
       <Typography className={styles.elementLabel}>{item.label}</Typography>
     </div>

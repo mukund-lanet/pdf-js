@@ -21,7 +21,6 @@ interface PDFPageProps {
   onAddBlankPage: (pageNumber: number) => void;
   onUploadAndInsertPages: (pageNumber: number) => void;
   onDeletePage: (pageNumber: number) => void;
-  canvasElements: CanvasElement[];
   onElementDelete: (id: string) => void;
 }
 
@@ -33,13 +32,13 @@ const PDFPage = React.memo(({
   onAddBlankPage,
   onUploadAndInsertPages,
   onDeletePage,
-  canvasElements,
   onElementDelete,
 }: PDFPageProps) => {
   const dispatch = useDispatch();
 
   const currentPageFromStore = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
   const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
+  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
 
   const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -269,6 +268,7 @@ const PDFPage = React.memo(({
             ref={moveableRef}
             draggable={true}
             resizable={true}
+            rotatable={false}
             keepRatio={false}
             renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
             target={targets}
@@ -457,18 +457,31 @@ const PDFPage = React.memo(({
               setTargets(e.selected);
             }}
           ></Selecto>
-          <div className={styles.outerSelectMovableWrapper} >
+          <div className={styles.outerSelectMovableWrapper}>
             {canvasElements
               .filter(el => el.page === pageNumber) // Use pageNumber
-              .map(element => (
-                <div className={styles.innerSelectoMovableDivWrapper} >
-                  <DraggableElement
-                    key={element.id}
-                    element={element}
-                    onDelete={onElementDelete}
-                  />
-                </div>
-              ))
+              .map(element => {
+                const handleElementCopy = (el: CanvasElement) => {
+                  // Create a copy with a slight offset
+                  const copiedElement = {
+                    ...el,
+                    id: `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
+                    x: el.x + 20,
+                    y: el.y + 20
+                  };
+                  dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
+                };
+
+                return (
+                  <div key={element.id} className={styles.innerSelectoMovableDivWrapper}>
+                    <DraggableElement
+                      element={element}
+                      onDelete={onElementDelete}
+                      onCopy={handleElementCopy}
+                    />
+                  </div>
+                );
+              })
             }
           </div>
         </div>

@@ -10,14 +10,16 @@ import Moveable from "react-moveable";
 interface DraggableElementProps {
   element: CanvasElement;
   onDelete: (id: string) => void;
+  onCopy?: (element: CanvasElement) => void;
 }
 
 const DraggableElement = ({
   element,
   onDelete,
+  onCopy,
 }: DraggableElementProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [showDeleteButton, setShowDeleteButton] = useState(false);
+  const [showToolbar, setShowToolbar] = useState(false);
 
   const targetRef = useRef<HTMLDivElement>(null);
   const moveableRef = useRef<HTMLDivElement>(null);
@@ -33,29 +35,62 @@ const DraggableElement = ({
     setIsDragging(true);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowToolbar(true);
+  };
+
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onDelete(element.id);
   };
 
-  const handleMouseEnter = () => {
-    // if (!isDragging) {
-    setShowDeleteButton(true);
-    // }
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onCopy) {
+      onCopy(element);
+    }
   };
+
+  // Hide toolbar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (targetRef.current && !targetRef.current.contains(event.target as Node)) {
+        setShowToolbar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleMouseLeave = () => {
     setIsDragging(false);
-    setShowDeleteButton(false);
   };
 
   const renderContent = () => {
     switch (element.type) {
-      case 'text':
+      case 'heading':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
-            <Typography fontWeight="400" className={styles.contentLabel} >
+          <div className={styles.headingBlock}>
+            <Typography variant="h3" fontWeight="700" style={{ fontSize: '32px', marginBottom: '8px' }}>
+              {element.content || 'Heading'}
+            </Typography>
+            <Typography variant="body2" style={{ color: '#6b7280', fontSize: '14px' }}>
+              Add text to your document.
+            </Typography>
+          </div>
+        );
+
+      case 'text-field':
+        return (
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
+            <Typography fontWeight="400" className={styles.contentLabel}>
               {element.content || 'Enter text here...'}
             </Typography>
           </div>
@@ -63,22 +98,53 @@ const DraggableElement = ({
 
       case 'image':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
-            <div className={styles.contentDiv} >
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
+            <div className={styles.contentDiv}>
               <CustomIcon iconName="image" width={24} height={24} customColor="#00acc1" />
-              <Typography fontWeight="400" className={styles.contentLabel} >
-                Click to upload image
+              <Typography fontWeight="400" className={styles.contentLabel}>
+                Please select an image
               </Typography>
             </div>
           </div>
         );
 
+      case 'video':
+        return (
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
+            <div className={styles.contentDiv}>
+              <CustomIcon iconName="video" width={24} height={24} customColor="#00acc1" />
+              <Typography fontWeight="400" className={styles.contentLabel}>
+                Please select a video
+              </Typography>
+            </div>
+          </div>
+        );
+
+      case 'table':
+        const rows = element.rows || 2;
+        const cols = element.columns || 2;
+        return (
+          <div className={styles.tableBlock}>
+            <table>
+              <tbody>
+                {Array.from({ length: rows }).map((_, rowIdx) => (
+                  <tr key={rowIdx}>
+                    {Array.from({ length: cols }).map((_, colIdx) => (
+                      <td key={colIdx}></td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
       case 'signature':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
             <div className={styles.contentDiv}>
               <CustomIcon iconName="pencil-line" width={24} height={24} customColor="#00acc1" />
-              <Typography fontWeight="400" className={styles.contentLabel} >
+              <Typography fontWeight="400" className={styles.contentLabel}>
                 Click to sign
               </Typography>
             </div>
@@ -87,10 +153,10 @@ const DraggableElement = ({
 
       case 'date':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
             <div className={styles.contentDiv}>
               <CustomIcon iconName="calendar" width={20} height={20} customColor="#00acc1" />
-              <Typography fontWeight="400" className={styles.contentLabel} >
+              <Typography fontWeight="400" className={styles.contentLabel}>
                 {element.value || 'Select date'}
               </Typography>
             </div>
@@ -99,10 +165,10 @@ const DraggableElement = ({
 
       case 'initials':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
             <div className={styles.contentDiv}>
               <CustomIcon iconName="pencil-line" width={20} height={20} customColor="#00acc1" />
-              <Typography fontWeight="400" className={styles.contentLabel} >
+              <Typography fontWeight="400" className={styles.contentLabel}>
                 {element.content || 'Initials'}
               </Typography>
             </div>
@@ -111,7 +177,7 @@ const DraggableElement = ({
 
       case 'checkbox':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
             <CustomIcon
               iconName={element.checked ? "check-square" : "square"}
               width={24}
@@ -149,17 +215,35 @@ const DraggableElement = ({
         data-id={element.id}
         style={elementStyle}
         onMouseDown={handleMouseDown}
-        onMouseEnter={handleMouseEnter}
+        onClick={handleClick}
         onMouseLeave={handleMouseLeave}
       >
-        {showDeleteButton && (
-          <Button
-            className={styles.deleteButtonBadge}
-            onClick={handleDelete}
-            onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            <CustomIcon iconName="x" width={12} height={12} customColor="#ffffff" />
-          </Button>
+        {showToolbar && (
+          <div className={styles.elementToolbar}>
+            <Button
+              className={styles.toolbarButton}
+              onClick={handleCopy}
+              onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+              title="Copy"
+            >
+              <CustomIcon iconName="copy" width={14} height={14} customColor="#ffffff" />
+            </Button>
+            <Button
+              className={styles.toolbarButton}
+              onClick={handleDelete}
+              onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+              title="Delete"
+            >
+              <CustomIcon iconName="trash-2" width={14} height={14} customColor="#ffffff" />
+            </Button>
+            <Button
+              className={styles.toolbarButton}
+              onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+              title="More options"
+            >
+              <CustomIcon iconName="ellipsis" width={14} height={14} customColor="#ffffff" />
+            </Button>
+          </div>
         )}
 
         {renderContent()}

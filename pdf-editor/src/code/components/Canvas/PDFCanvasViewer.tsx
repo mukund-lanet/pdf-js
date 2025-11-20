@@ -12,7 +12,6 @@ interface PDFCanvasViewerProps {
   onAddBlankPage: (pageNumber: number) => void;
   onUploadAndInsertPages: (pageNumber: number) => void;
   onDeletePage: (pageNumber: number) => void;
-  canvasElements: CanvasElement[];
   onElementDelete: (id: string) => void;
 }
 
@@ -23,7 +22,6 @@ const PDFCanvasViewer = ({
   onAddBlankPage,
   onUploadAndInsertPages,
   onDeletePage,
-  canvasElements,
   onElementDelete,
 }: PDFCanvasViewerProps) => {
 
@@ -104,7 +102,6 @@ const PDFCanvasViewer = ({
               onAddBlankPage={onAddBlankPage}
               onUploadAndInsertPages={onUploadAndInsertPages}
               onDeletePage={onDeletePage}
-              canvasElements={canvasElements}
               onElementDelete={onElementDelete}
             />)
           })}

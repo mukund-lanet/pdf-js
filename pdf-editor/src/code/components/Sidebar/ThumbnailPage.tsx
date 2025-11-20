@@ -51,7 +51,29 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
       const COLOR = '#00838f';
       const BORDER = '#00acc1';
 
-      if (element.type === 'text') {
+      if (element.type === 'heading') {
+        // Render heading with larger text and border
+        context.fillStyle = '#ffffff';
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        // Blue left border
+        context.fillStyle = '#3b82f6';
+        context.fillRect(scaledX, scaledY, 4 * scale, scaledHeight);
+
+        // Border
+        context.strokeStyle = '#e5e7eb';
+        context.lineWidth = 2;
+        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        // Heading text
+        const fontSize = 16 * scale;
+        context.font = `bold ${fontSize}px Arial`;
+        context.fillStyle = '#000000';
+        context.textAlign = 'left';
+        context.textBaseline = 'top';
+        context.fillText(element.content || 'Heading', scaledX + 8 * scale, scaledY + 8 * scale);
+
+      } else if (element.type === 'text-field') {
         const fontSize = (element.fontSize || 16) * scale;
         context.font = `${element.fontWeight || 'normal'} ${element.fontStyle || 'normal'} ${fontSize}px Arial`;
         context.textAlign = (element.textAlign as CanvasTextAlign) || 'left';
@@ -81,6 +103,44 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
           img.onload = () => {
             context.drawImage(img, scaledX, scaledY, scaledWidth, scaledHeight);
           };
+        }
+
+      } else if (element.type === 'video') {
+        // Render video placeholder
+        context.fillStyle = '#f5f5f5';
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        context.strokeStyle = '#ccc';
+        context.lineWidth = 2;
+        context.setLineDash([6, 4]);
+        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.setLineDash([]);
+
+      } else if (element.type === 'table') {
+        // Render table grid
+        const rows = element.rows || 2;
+        const cols = element.columns || 2;
+        const cellWidth = scaledWidth / cols;
+        const cellHeight = scaledHeight / rows;
+
+        context.fillStyle = '#ffffff';
+        context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+        context.strokeStyle = '#d1d5db';
+        context.lineWidth = 1;
+
+        // Draw grid
+        for (let i = 0; i <= rows; i++) {
+          context.beginPath();
+          context.moveTo(scaledX, scaledY + i * cellHeight);
+          context.lineTo(scaledX + scaledWidth, scaledY + i * cellHeight);
+          context.stroke();
+        }
+        for (let j = 0; j <= cols; j++) {
+          context.beginPath();
+          context.moveTo(scaledX + j * cellWidth, scaledY);
+          context.lineTo(scaledX + j * cellWidth, scaledY + scaledHeight);
+          context.stroke();
         }
 
       } else if (element.type === 'date') {

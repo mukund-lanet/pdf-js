@@ -13,7 +13,7 @@ export interface TextElement {
   textAlign?: string;
   fontStyle?: string;
   fontWeight?: string;
-  type: 'text';
+  type: 'text-field';
   id: string;
   x: number;
   y: number;
@@ -28,8 +28,7 @@ export interface TextElement {
 export interface ImageElement {
   type: 'image';
   id: string;
-  x: number;
-  y: number;
+  order: number; // Position in vertical stack
   width: number;
   height: number;
   imageData: string; // base64
@@ -80,7 +79,47 @@ export interface CheckboxElement {
   page: number;
 }
 
-export type CanvasElement = TextElement | ImageElement | SignatureElement | DateElement | InitialsElement | CheckboxElement;
+export interface HeadingElement {
+  type: 'heading';
+  id: string;
+  order: number; // Position in vertical stack
+  width: number;
+  height: number;
+  content: string;
+  page: number;
+  fontSize?: number;
+  fontWeight?: string;
+}
+
+export interface VideoElement {
+  type: 'video';
+  id: string;
+  order: number; // Position in vertical stack
+  width: number;
+  height: number;
+  videoUrl?: string;
+  page: number;
+}
+
+export interface TableElement {
+  type: 'table';
+  id: string;
+  order: number; // Position in vertical stack
+  width: number;
+  height: number;
+  rows: number; // default: 2
+  columns: number; // default: 2
+  data?: string[][]; // Cell data
+  page: number;
+}
+
+// Block elements use order-based positioning
+export type BlockElement = HeadingElement | ImageElement | VideoElement | TableElement;
+
+// Fillable field elements use x/y positioning
+export type FillableFieldElement = TextElement | SignatureElement | DateElement | InitialsElement | CheckboxElement;
+
+export type CanvasElement = BlockElement | FillableFieldElement;
 
 export interface PageInfo {
   pageWidth: number;

@@ -98,7 +98,7 @@ export const pdfEditorReducer = (
         ),
         // Also update selectedTextElement if it's the one being updated
         selectedTextElement:
-          state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text'
+          state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text-field'
             ? (action.payload as TextElement)
             : state.selectedTextElement
       };
