@@ -41,15 +41,25 @@ const EditorMainArea = () => {
     dispatch({ type: 'SET_PAGE_DIMENSIONS', payload: { ...pageDimensions, [pageNumber]: info } })
 
     const defaultSize = {
-      heading: { width: 600, height: 100 },
+      heading: { height: 115 },
       'text-field': { width: 200, height: 40 },
-      image: { width: 400, height: 300 },
+      image: { height: 300 },
       signature: { width: 150, height: 80 },
       date: { width: 150, height: 40 },
       initials: { width: 100, height: 60 },
       checkbox: { width: 40, height: 40 },
-      video: { width: 400, height: 300 },
-      table: { width: 400, height: 200 }
+      video: { height: 300 },
+      table: { height: 200 }
+    };
+
+    // Calculate order for block elements
+    const getNextOrder = (page: number) => {
+      const pageBlocks = canvasElements.filter(el =>
+        el.page === page && ['heading', 'image', 'video', 'table'].includes(el.type)
+      );
+      return pageBlocks.length > 0
+        ? Math.max(...pageBlocks.map((el: any) => el.order || 0)) + 1
+        : 0;
     };
 
     switch (elementType) {
@@ -57,9 +67,7 @@ const EditorMainArea = () => {
         const headingElement: HeadingElement = {
           type: 'heading',
           id: generateId(),
-          x: x - defaultSize.heading.width / 2,
-          y: y - defaultSize.heading.height / 2,
-          width: defaultSize.heading.width,
+          order: getNextOrder(pageNumber),
           height: defaultSize.heading.height,
           content: 'Heading',
           page: pageNumber,
@@ -93,9 +101,7 @@ const EditorMainArea = () => {
         const imageElement: ImageElement = {
           type: 'image',
           id: generateId(),
-          x: x - defaultSize.image.width / 2,
-          y: y - defaultSize.image.height / 2,
-          width: defaultSize.image.width,
+          order: getNextOrder(pageNumber),
           height: defaultSize.image.height,
           imageData: '',
           page: pageNumber
@@ -107,9 +113,7 @@ const EditorMainArea = () => {
         const videoElement: VideoElement = {
           type: 'video',
           id: generateId(),
-          x: x - defaultSize.video.width / 2,
-          y: y - defaultSize.video.height / 2,
-          width: defaultSize.video.width,
+          order: getNextOrder(pageNumber),
           height: defaultSize.video.height,
           videoUrl: '',
           page: pageNumber
@@ -121,9 +125,7 @@ const EditorMainArea = () => {
         const tableElement: TableElement = {
           type: 'table',
           id: generateId(),
-          x: x - defaultSize.table.width / 2,
-          y: y - defaultSize.table.height / 2,
-          width: defaultSize.table.width,
+          order: getNextOrder(pageNumber),
           height: defaultSize.table.height,
           rows: 2,
           columns: 2,
@@ -190,7 +192,7 @@ const EditorMainArea = () => {
     }
 
     dispatch({ type: 'SET_ACTIVE_TOOL', payload: null })
-  }, [pageDimensions, dispatch]);
+  }, [pageDimensions, canvasElements, dispatch]);
 
   const handleElementDelete = useCallback((id: string) => {
     dispatch({ type: 'DELETE_CANVAS_ELEMENT', payload: id });

@@ -8,19 +8,24 @@ export const PDF_EDITOR_ACTION_TYPES = {
   SET_TOTAL_PAGES: 'SET_TOTAL_PAGES',
   SET_CURRENT_PAGE: 'SET_CURRENT_PAGE',
   SET_PAGE_DIMENSIONS: 'SET_PAGE_DIMENSIONS',
-  
+
   // Canvas Elements Actions
   SET_CANVAS_ELEMENTS: 'SET_CANVAS_ELEMENTS',
   ADD_CANVAS_ELEMENT: 'ADD_CANVAS_ELEMENT',
   UPDATE_CANVAS_ELEMENT: 'UPDATE_CANVAS_ELEMENT',
   DELETE_CANVAS_ELEMENT: 'DELETE_CANVAS_ELEMENT',
-  
+
+  // Block Element Specific Actions
+  ADD_BLOCK_ELEMENT: 'ADD_BLOCK_ELEMENT',
+  REORDER_BLOCK_ELEMENTS: 'REORDER_BLOCK_ELEMENTS',
+  UPDATE_BLOCK_ORDER: 'UPDATE_BLOCK_ORDER',
+
   // UI State Actions
   SET_ACTIVE_TOOL: 'SET_ACTIVE_TOOL',
   SET_SELECTED_TEXT_ELEMENT: 'SET_SELECTED_TEXT_ELEMENT',
   SET_SIGNATURE_PAD_OPEN: 'SET_SIGNATURE_PAD_OPEN',
   SET_SIGNATURE_FOR_ELEMENT: 'SET_SIGNATURE_FOR_ELEMENT',
-  
+
   // Batch Operations
   UPDATE_MULTIPLE_ELEMENTS: 'UPDATE_MULTIPLE_ELEMENTS',
   RESET_EDITOR: 'RESET_EDITOR',
@@ -80,6 +85,31 @@ interface DeleteCanvasElementAction {
   payload: string; // element id
 }
 
+interface AddBlockElementAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.ADD_BLOCK_ELEMENT;
+  payload: {
+    element: CanvasElement;
+    pageNumber: number;
+  };
+}
+
+interface ReorderBlockElementsAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.REORDER_BLOCK_ELEMENTS;
+  payload: {
+    pageNumber: number;
+    sourceIndex: number;
+    destinationIndex: number;
+  };
+}
+
+interface UpdateBlockOrderAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.UPDATE_BLOCK_ORDER;
+  payload: {
+    pageNumber: number;
+    blockOrders: { id: string; order: number }[];
+  };
+}
+
 interface SetActiveToolAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_TOOL;
   payload: null | 'text' | 'image' | 'signature';
@@ -110,7 +140,7 @@ interface ResetEditorAction {
 }
 
 // Union type for all actions
-export type PdfEditorActionTypes = 
+export type PdfEditorActionTypes =
   | SetPdfBytesAction
   | SetTotalPagesAction
   | SetCurrentPageAction
@@ -119,6 +149,9 @@ export type PdfEditorActionTypes =
   | AddCanvasElementAction
   | UpdateCanvasElementAction
   | DeleteCanvasElementAction
+  | AddBlockElementAction
+  | ReorderBlockElementsAction
+  | UpdateBlockOrderAction
   | SetActiveToolAction
   | SetSelectedTextElementAction
   | SetSignaturePadOpenAction

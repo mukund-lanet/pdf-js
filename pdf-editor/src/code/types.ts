@@ -29,7 +29,6 @@ export interface ImageElement {
   type: 'image';
   id: string;
   order: number; // Position in vertical stack
-  width: number;
   height: number;
   imageData: string; // base64
   page: number;
@@ -83,7 +82,6 @@ export interface HeadingElement {
   type: 'heading';
   id: string;
   order: number; // Position in vertical stack
-  width: number;
   height: number;
   content: string;
   page: number;
@@ -95,7 +93,6 @@ export interface VideoElement {
   type: 'video';
   id: string;
   order: number; // Position in vertical stack
-  width: number;
   height: number;
   videoUrl?: string;
   page: number;
@@ -105,7 +102,6 @@ export interface TableElement {
   type: 'table';
   id: string;
   order: number; // Position in vertical stack
-  width: number;
   height: number;
   rows: number; // default: 2
   columns: number; // default: 2
@@ -130,4 +126,13 @@ export interface PageInfo {
 export interface PageDimension {
   pageWidth: number;
   pageHeight: number;
+}
+
+// Type guard helper functions
+export function isBlockElement(element: CanvasElement): element is BlockElement {
+  return ['heading', 'image', 'video', 'table'].includes(element.type);
+}
+
+export function isFillableElement(element: CanvasElement): element is FillableFieldElement {
+  return ['text-field', 'signature', 'date', 'initials', 'checkbox'].includes(element.type);
 }

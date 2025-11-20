@@ -1,15 +1,14 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import Selecto from "react-selecto";
-import Moveable from "react-moveable";
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
-import DraggableElement from './DraggableElement';
-import { CanvasElement } from '../../types';
+import BlockContainer from './BlockContainer';
+import FillableContainer from './FillableContainer';
+import { isBlockElement, isFillableElement } from '../../types';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
@@ -24,7 +23,7 @@ interface PDFPageProps {
   onElementDelete: (id: string) => void;
 }
 
-const PDFPage = React.memo(({
+const PDFPage = React.memo((({
   pdfDoc,
   pageNumber,
   onPageClick,
@@ -48,10 +47,6 @@ const PDFPage = React.memo(({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
 
-  const [targets, setTargets] = React.useState<any>([]);
-  const moveableRef = React.useRef<Moveable>(null);
-  const selectoRef = React.useRef<Selecto>(null);
-
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setActionMenuAnchorEl(event.currentTarget);
   };
@@ -62,19 +57,19 @@ const PDFPage = React.memo(({
 
   const handleAddBlankPage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onAddBlankPage(pageNumber); // Use pageNumber
+    onAddBlankPage(pageNumber);
     handleMenuClose();
   };
 
   const handleDeletePage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDeletePage(pageNumber); // Use pageNumber
+    onDeletePage(pageNumber);
     handleMenuClose();
   };
 
   const handleUploadAndInsert = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onUploadAndInsertPages(pageNumber); // Use pageNumber
+    onUploadAndInsertPages(pageNumber);
     handleMenuClose();
   };
 
@@ -96,7 +91,6 @@ const PDFPage = React.memo(({
     const renderPage = async () => {
       if (!pdfDoc) return;
 
-      // Cancel any previous render immediately before starting a new one
       cleanupRenderTask();
 
       console.log("in render page")
@@ -104,7 +98,7 @@ const PDFPage = React.memo(({
       setError(null);
 
       try {
-        const page = await pdfDoc.getPage(pageNumber); // Use pageNumber here
+        const page = await pdfDoc.getPage(pageNumber);
         if (!isMounted) return;
 
         const viewport = page.getViewport({ scale: 1.5 });
@@ -121,7 +115,6 @@ const PDFPage = React.memo(({
 
         const renderContext = { canvasContext: context, viewport };
 
-        // Store and await the render task
         const task = page.render(renderContext);
         renderTaskRef.current = task;
 
@@ -135,13 +128,12 @@ const PDFPage = React.memo(({
         }
 
       } catch (error: any) {
-        // Ignore intended cancellation
         if (
           error?.name !== "RenderingCancelledException" &&
           error?.message !== "Rendering cancelled"
         ) {
-          console.error(`Error rendering page ${pageNumber}:`, error); // Use pageNumber
-          if (isMounted) setError(`Failed to render page ${pageNumber}`); // Use pageNumber
+          console.error(`Error rendering page ${pageNumber}:`, error);
+          if (isMounted) setError(`Failed to render page ${pageNumber}`);
         }
       }
     };
@@ -150,15 +142,9 @@ const PDFPage = React.memo(({
 
     return () => {
       isMounted = false;
-      cleanupRenderTask(); // ✅ also cancel on unmount or dependency change
+      cleanupRenderTask();
     };
-  }, [pdfDoc, pageNumber]); // Add pageNumber to dependency array
-
-  useEffect(() => {
-    if (moveableRef.current) {
-      moveableRef.current.updateRect();
-    }
-  }, [canvasElements, pageSize]);
+  }, [pdfDoc, pageNumber]);
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -172,7 +158,7 @@ const PDFPage = React.memo(({
     const type = e.dataTransfer.getData('application/pdf-editor');
 
     if (type) {
-      onDrop(x, y, pageSize, pageNumber, type); // Use pageNumber
+      onDrop(x, y, pageSize, pageNumber, type);
     }
   };
 
@@ -184,13 +170,18 @@ const PDFPage = React.memo(({
   const handlPageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onPageClick) {
-      onPageClick(pageNumber); // Use pageNumber
+      onPageClick(pageNumber);
     }
   };
 
+  // Separate elements by type
+  const pageElements = canvasElements.filter(el => el.page === pageNumber);
+  const blockElements = pageElements.filter(isBlockElement);
+  const fillableElements = pageElements.filter(isFillableElement);
+
   return (
     <div
-      id={`pdf-page-${pageNumber}`} // Use pageNumber
+      id={`pdf-page-${pageNumber}`}
       className={styles.pdfPageContainer}
     >
       <div
@@ -263,232 +254,30 @@ const PDFPage = React.memo(({
             />
           )}
 
-          {/* Render draggable elements for this page */}
-          <Moveable
-            ref={moveableRef}
-            draggable={true}
-            resizable={true}
-            rotatable={false}
-            keepRatio={false}
-            renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
-            target={targets}
-            onClickGroup={e => {
-              selectoRef.current!.clickTarget(e.inputEvent, e.inputTarget);
-            }}
-            onDrag={e => {
-              e.target.style.transform = e.transform;
-            }}
-            onDragEnd={e => {
-              const target = e.target as HTMLElement;
-              const id = target.getAttribute('data-id');
-              if (!id) return;
+          {/* Block Elements Container (z-index: 1) */}
+          <div className={styles.blockLayerWrapper}>
+            <BlockContainer
+              blocks={blockElements}
+              pageNumber={pageNumber}
+              onDelete={onElementDelete}
+              pageWidth={pageSize.pageWidth}
+            />
+          </div>
 
-              const element = canvasElements.find(el => el.id === id);
-              if (!element) return;
-
-              // Use lastEvent.translate to get the final translation
-              const translate = e.lastEvent?.translate;
-
-              if (translate) {
-                const [translateX, translateY] = translate;
-
-                if (!isNaN(translateX) && !isNaN(translateY)) {
-                  const newElement = {
-                    ...element,
-                    x: element.x + translateX,
-                    y: element.y + translateY
-                  };
-
-                  dispatch({ type: 'UPDATE_CANVAS_ELEMENT', payload: newElement });
-                }
-
-                // Reset transform as the new position is now part of the element's base coordinates
-                target.style.transform = '';
-              }
-            }}
-            onDragGroup={e => {
-              e.events.forEach(ev => {
-                ev.target.style.transform = ev.transform;
-              });
-            }}
-            onDragGroupEnd={e => {
-              const updates: CanvasElement[] = [];
-
-              e.events.forEach(ev => {
-                const target = ev.target as HTMLElement;
-                const id = target.getAttribute('data-id');
-                if (!id) return;
-
-                const element = canvasElements.find(el => el.id === id);
-                if (!element) return;
-
-                // Use lastEvent.translate from the individual event
-                const translate = ev.lastEvent?.translate;
-
-                if (translate) {
-                  const [translateX, translateY] = translate;
-
-                  if (!isNaN(translateX) && !isNaN(translateY)) {
-                    updates.push({
-                      ...element,
-                      x: element.x + translateX,
-                      y: element.y + translateY
-                    });
-                  }
-
-                  target.style.transform = '';
-                }
-              });
-
-              if (updates.length > 0) {
-                dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updates });
-              }
-            }}
-            onResize={e => {
-              e.target.style.width = `${e.width}px`;
-              e.target.style.height = `${e.height}px`;
-              e.target.style.transform = e.drag.transform;
-            }}
-            onResizeEnd={e => {
-              const target = e.target as HTMLElement;
-              const id = target.getAttribute('data-id');
-              if (!id) return;
-
-              const element = canvasElements.find(el => el.id === id);
-              if (!element) return;
-
-              // Parse transform for position change during resize
-              const transform = target.style.transform;
-              const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
-              let translateX = 0;
-              let translateY = 0;
-              if (match) {
-                translateX = parseFloat(match[1]);
-                translateY = parseFloat(match[2]);
-              }
-
-              const newElement = {
-                ...element,
-                width: e.lastEvent?.width || element.width,
-                height: e.lastEvent?.height || element.height,
-                x: element.x + translateX,
-                y: element.y + translateY
-              };
-
-              dispatch({ type: 'UPDATE_CANVAS_ELEMENT', payload: newElement });
-              target.style.transform = '';
-            }}
-            onResizeGroup={e => {
-              e.events.forEach(ev => {
-                ev.target.style.width = `${ev.width}px`;
-                ev.target.style.height = `${ev.height}px`;
-                ev.target.style.transform = ev.drag.transform;
-              });
-            }}
-            onResizeGroupEnd={e => {
-              const updates: CanvasElement[] = [];
-
-              e.events.forEach(ev => {
-                const target = ev.target as HTMLElement;
-                const id = target.getAttribute('data-id');
-                if (!id) return;
-
-                const element = canvasElements.find(el => el.id === id);
-                if (!element) return;
-
-                const transform = target.style.transform;
-                const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
-                let translateX = 0;
-                let translateY = 0;
-                if (match) {
-                  translateX = parseFloat(match[1]);
-                  translateY = parseFloat(match[2]);
-                }
-
-                updates.push({
-                  ...element,
-                  width: ev.lastEvent?.width || element.width,
-                  height: ev.lastEvent?.height || element.height,
-                  x: element.x + translateX,
-                  y: element.y + translateY
-                });
-
-                target.style.transform = '';
-              });
-
-              if (updates.length > 0) {
-                dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updates });
-              }
-            }}
-          ></Moveable>
-          <Selecto
-            ref={selectoRef}
-            dragContainer={containerRef.current}
-            selectableTargets={[".draggable-element"]}
-            hitRate={0}
-            selectByClick={true}
-            selectFromInside={false}
-            toggleContinueSelect={["shift"]}
-            ratio={0}
-            onDragStart={e => {
-              const moveable = moveableRef.current!;
-              const target = e.inputEvent.target;
-
-              // Prevent selection if clicking on a moveable element or if the container is not ready
-              if (
-                !containerRef.current ||
-                moveable.isMoveableElement(target) ||
-                targets.some((t: any) => t === target || t.contains(target))
-              ) {
-                e.stop();
-              }
-            }}
-            onSelectEnd={e => {
-              const moveable = moveableRef.current!;
-              if (e.isDragStart) {
-                e.inputEvent.preventDefault();
-
-                moveable.waitToChangeTarget().then(() => {
-                  moveable.dragStart(e.inputEvent);
-                });
-              }
-              setTargets(e.selected);
-            }}
-          ></Selecto>
-          <div className={styles.outerSelectMovableWrapper}>
-            {canvasElements
-              .filter(el => el.page === pageNumber) // Use pageNumber
-              .map(element => {
-                const handleElementCopy = (el: CanvasElement) => {
-                  // Create a copy with a slight offset
-                  const copiedElement = {
-                    ...el,
-                    id: `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
-                    x: el.x + 20,
-                    y: el.y + 20
-                  };
-                  dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
-                };
-
-                return (
-                  <div key={element.id} className={styles.innerSelectoMovableDivWrapper}>
-                    <DraggableElement
-                      element={element}
-                      onDelete={onElementDelete}
-                      onCopy={handleElementCopy}
-                    />
-                  </div>
-                );
-              })
-            }
+          {/* Fillable Elements Container (z-index: 2) */}
+          <div className={styles.fillableLayerWrapper}>
+            <FillableContainer
+              fillableElements={fillableElements}
+              pageNumber={pageNumber}
+              onDelete={onElementDelete}
+              containerRef={containerRef}
+            />
           </div>
         </div>
       </div>
     </div>
   );
-});
+}));
 PDFPage.displayName = 'PDFPage';
 
 export default PDFPage;

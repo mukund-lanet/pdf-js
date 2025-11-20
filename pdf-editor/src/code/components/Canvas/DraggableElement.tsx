@@ -1,16 +1,15 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { CanvasElement, TextElement } from '../../types';
+import { FillableFieldElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import Moveable from "react-moveable";
 
 interface DraggableElementProps {
-  element: CanvasElement;
+  element: FillableFieldElement;
   onDelete: (id: string) => void;
-  onCopy?: (element: CanvasElement) => void;
+  onCopy?: (element: FillableFieldElement) => void;
 }
 
 const DraggableElement = ({
@@ -22,7 +21,6 @@ const DraggableElement = ({
   const [showToolbar, setShowToolbar] = useState(false);
 
   const targetRef = useRef<HTMLDivElement>(null);
-  const moveableRef = useRef<HTMLDivElement>(null);
 
   // Use element coordinates directly
   const position = { x: element.x, y: element.y };
@@ -30,14 +28,12 @@ const DraggableElement = ({
 
   // drag handling
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    // Allow event to propagate to Selecto/Moveable
     setIsDragging(true);
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    // Allow event to propagate to Selecto
     setShowToolbar(true);
   };
 
@@ -75,67 +71,12 @@ const DraggableElement = ({
 
   const renderContent = () => {
     switch (element.type) {
-      case 'heading':
-        return (
-          <div className={styles.headingBlock}>
-            <Typography variant="h3" fontWeight="700" style={{ fontSize: '32px', marginBottom: '8px' }}>
-              {element.content || 'Heading'}
-            </Typography>
-            <Typography variant="body2" style={{ color: '#6b7280', fontSize: '14px' }}>
-              Add text to your document.
-            </Typography>
-          </div>
-        );
-
       case 'text-field':
         return (
           <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
             <Typography fontWeight="400" className={styles.contentLabel}>
               {element.content || 'Enter text here...'}
             </Typography>
-          </div>
-        );
-
-      case 'image':
-        return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
-            <div className={styles.contentDiv}>
-              <CustomIcon iconName="image" width={24} height={24} customColor="#00acc1" />
-              <Typography fontWeight="400" className={styles.contentLabel}>
-                Please select an image
-              </Typography>
-            </div>
-          </div>
-        );
-
-      case 'video':
-        return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
-            <div className={styles.contentDiv}>
-              <CustomIcon iconName="video" width={24} height={24} customColor="#00acc1" />
-              <Typography fontWeight="400" className={styles.contentLabel}>
-                Please select a video
-              </Typography>
-            </div>
-          </div>
-        );
-
-      case 'table':
-        const rows = element.rows || 2;
-        const cols = element.columns || 2;
-        return (
-          <div className={styles.tableBlock}>
-            <table>
-              <tbody>
-                {Array.from({ length: rows }).map((_, rowIdx) => (
-                  <tr key={rowIdx}>
-                    {Array.from({ length: cols }).map((_, colIdx) => (
-                      <td key={colIdx}></td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         );
 

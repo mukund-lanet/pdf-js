@@ -1,5 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { useDispatch, useSelector } from 'react-redux';
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import { injectReducer } from 'components/store';
@@ -9,26 +11,63 @@ import EditorLeftSidebar from './components/Layout/EditorLeftSidebar';
 import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
 import EditorMainArea from './components/Layout/EditorMainArea';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
+import { RootState } from './store/reducer/pdfEditor.reducer';
 
 const PdfEditor = () => {
+  const dispatch = useDispatch();
+  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
+
   useEffect(() => { injectReducer("pdfEditor", reducer) }, [])
 
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
+
+    // Only handle block reordering within the same page
+    if (source.droppableId === destination.droppableId && source.droppableId.startsWith('blocks-page-')) {
+      if (source.index === destination.index) return;
+
+      // Extract page number from droppableId
+      const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
+
+      // Get all blocks for this page, sorted by order
+      const pageBlocks = canvasElements
+        .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
+        .sort((a: any, b: any) => a.order - b.order);
+
+      // Reorder the blocks
+      const [movedBlock] = pageBlocks.splice(source.index, 1);
+      pageBlocks.splice(destination.index, 0, movedBlock);
+
+      // Update orders
+      const updatedBlocks = pageBlocks.map((block, index) => ({
+        ...block,
+        order: index
+      }));
+
+      dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updatedBlocks });
+    }
+  };
+
   return (
-    <div className={styles.pdfEditorContainer}>
-      <EditorHeader />
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className={styles.pdfEditorContainer}>
+        <EditorHeader />
 
-      <div className={styles.leftSideBarDrawer} >
-        <EditorLeftSidebar />
+        <div className={styles.leftSideBarDrawer} >
+          <EditorLeftSidebar />
+        </div>
+
+        <Divider orientation="horizontal" className={styles.toolbarDivider} />
+
+        <div className={styles.mainContainer}>
+          <EditorLeftDrawer />
+          <EditorMainArea />
+          <EditorRightSidebar />
+        </div>
       </div>
-
-      <Divider orientation="horizontal" className={styles.toolbarDivider} />
-
-      <div className={styles.mainContainer}>
-        <EditorLeftDrawer />
-        <EditorMainArea />
-        <EditorRightSidebar />
-      </div>
-    </div>
+    </DragDropContext>
   );
 };
 

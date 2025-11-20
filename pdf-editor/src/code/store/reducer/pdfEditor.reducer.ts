@@ -115,6 +115,76 @@ export const pdfEditorReducer = (
             : state.selectedTextElement
       };
 
+    case PDF_EDITOR_ACTION_TYPES.ADD_BLOCK_ELEMENT: {
+      const { element, pageNumber } = action.payload;
+      // Calculate the next order for this page
+      const pageBlocks = state.canvasElements.filter(
+        el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type)
+      );
+      const maxOrder = pageBlocks.length > 0
+        ? Math.max(...pageBlocks.map((el: any) => el.order || 0))
+        : -1;
+
+      const blockWithOrder = {
+        ...element,
+        order: maxOrder + 1
+      };
+
+      return {
+        ...state,
+        canvasElements: [...state.canvasElements, blockWithOrder]
+      };
+    }
+
+    case PDF_EDITOR_ACTION_TYPES.REORDER_BLOCK_ELEMENTS: {
+      const { pageNumber, sourceIndex, destinationIndex } = action.payload;
+
+      // Get all blocks for this page, sorted by order
+      const pageBlocks = state.canvasElements
+        .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
+        .sort((a: any, b: any) => a.order - b.order);
+
+      // Get non-block elements
+      const otherElements = state.canvasElements.filter(
+        el => !(el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
+      );
+
+      // Reorder the blocks
+      const [movedBlock] = pageBlocks.splice(sourceIndex, 1);
+      pageBlocks.splice(destinationIndex, 0, movedBlock);
+
+      // Update orders
+      const updatedBlocks = pageBlocks.map((block, index) => ({
+        ...block,
+        order: index
+      }));
+
+      return {
+        ...state,
+        canvasElements: [...otherElements, ...updatedBlocks]
+      };
+    }
+
+    case PDF_EDITOR_ACTION_TYPES.UPDATE_BLOCK_ORDER: {
+      const { pageNumber, blockOrders } = action.payload;
+
+      // Create a map of id to new order
+      const orderMap = new Map(blockOrders.map(item => [item.id, item.order]));
+
+      return {
+        ...state,
+        canvasElements: state.canvasElements.map(el => {
+          if (el.page === pageNumber && orderMap.has(el.id)) {
+            return {
+              ...el,
+              order: orderMap.get(el.id)!
+            };
+          }
+          return el;
+        })
+      };
+    }
+
     case PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_TOOL:
       return {
         ...state,
