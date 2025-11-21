@@ -1,35 +1,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import PDFPage from './PDFPage';
-import { CanvasElement } from '../../types';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
-interface PDFCanvasViewerProps {
-  pdfBytes: Uint8Array | null;
-  onPageClick?: (pageNumber: number) => void;
-  onDrop?: (x: number, y: number, info: { pageWidth: number; pageHeight: number }, pageNumber: number, type: string) => void;
-  onAddBlankPage: (pageNumber: number) => void;
-  onUploadAndInsertPages: (pageNumber: number) => void;
-  onDeletePage: (pageNumber: number) => void;
-  onElementDelete: (id: string) => void;
-  canvasElements: CanvasElement[];
-}
-
-const PDFCanvasViewer = ({
-  pdfBytes,
-  onPageClick,
-  onDrop,
-  onAddBlankPage,
-  onUploadAndInsertPages,
-  onDeletePage,
-  onElementDelete,
-  canvasElements,
-}: PDFCanvasViewerProps) => {
+const PDFCanvasViewer = () => {
+  const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
+  const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
 
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
-  const [totalPages, setTotalPages] = useState(0);
   const [renderKey, setRenderKey] = useState(0); // Force re-render when PDF changes
 
   // Load PDF.js library on component mount
@@ -49,7 +31,6 @@ const PDFCanvasViewer = ({
     const loadPdfDocument = async () => {
       if (!pdfBytes || !pdfjsLib) {
         setPdfDoc(null);
-        setTotalPages(0);
         return;
       }
 
@@ -64,13 +45,11 @@ const PDFCanvasViewer = ({
         console.log(`PDF loaded with ${pdf.numPages} pages`);
 
         setPdfDoc(pdf);
-        setTotalPages(pdf.numPages);
         setRenderKey(prev => prev + 1); // Force re-render of all pages
 
       } catch (error) {
         console.error('Error loading PDF document:', error);
         setPdfDoc(null);
-        setTotalPages(0);
       }
     };
 
@@ -99,13 +78,6 @@ const PDFCanvasViewer = ({
               key={`page_${index + 1}_${renderKey}`} // Include renderKey to force re-render
               pdfDoc={pdfDoc}
               pageNumber={index + 1} // Pass the page number
-              onPageClick={onPageClick}
-              onDrop={onDrop}
-              onAddBlankPage={onAddBlankPage}
-              onUploadAndInsertPages={onUploadAndInsertPages}
-              onDeletePage={onDeletePage}
-              onElementDelete={onElementDelete}
-              canvasElements={canvasElements}
             />)
           })}
         </div>)

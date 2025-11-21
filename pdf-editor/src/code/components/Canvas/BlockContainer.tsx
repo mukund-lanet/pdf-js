@@ -1,20 +1,22 @@
 'use client';
 import React from 'react';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import BlockElement from './BlockElement';
-import { BlockElement as BlockElementType } from '../../types';
+import { BlockElement as BlockElementType, isBlockElement } from '../../types';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
 interface BlockContainerProps {
-  blocks: BlockElementType[];
   pageNumber: number;
-  onDelete: (id: string) => void;
   pageWidth: number;
 }
 
-const BlockContainer = ({ blocks, pageNumber, onDelete, pageWidth }: BlockContainerProps) => {
+const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
   const dispatch = useDispatch();
+  const blocks = useSelector((state: RootState) =>
+    state.pdfEditor.pdfEditorReducer.canvasElements.filter(el => el.page === pageNumber && isBlockElement(el))
+  ) as BlockElementType[];
 
   // Sort blocks by order
   const sortedBlocks = [...blocks].sort((a, b) => a.order - b.order);
@@ -91,7 +93,6 @@ const BlockContainer = ({ blocks, pageNumber, onDelete, pageWidth }: BlockContai
                 >
                   <BlockElement
                     element={block}
-                    onDelete={onDelete}
                     onCopy={handleCopy}
                     onMoveUp={() => handleMoveUp(block.order)}
                     onMoveDown={() => handleMoveDown(block.order)}

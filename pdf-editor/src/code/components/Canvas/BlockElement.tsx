@@ -10,7 +10,6 @@ import { BlockElement as BlockElementType } from '../../types';
 
 interface BlockElementProps {
   element: BlockElementType;
-  onDelete: (id: string) => void;
   onCopy: (element: BlockElementType) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -22,7 +21,6 @@ interface BlockElementProps {
 
 const BlockElement = ({
   element,
-  onDelete,
   onCopy,
   onMoveUp,
   onMoveDown,
@@ -305,7 +303,10 @@ const BlockElement = ({
                 className={styles.blockToolbarButton}
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
-                  onDelete(element.id);
+                  dispatch({
+                    type: 'DELETE_CANVAS_ELEMENT',
+                    payload: element.id
+                  });
                 }}
               >
                 <CustomIcon iconName="trash2" width={16} height={16} variant="white" />

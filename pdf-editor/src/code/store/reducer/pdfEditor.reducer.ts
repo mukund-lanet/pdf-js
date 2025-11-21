@@ -39,7 +39,23 @@ const initialState: PdfEditorState = {
   isLoading: false,
   drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
   activeElementId: null,
-  documentVariables: [],
+  documentVariables: [
+    {
+      name: 'document.createdDate',
+      value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      isSystem: true
+    },
+    {
+      name: 'document.refNumber',
+      value: `P${Math.floor(10000 + Math.random() * 90000)} `,
+      isSystem: true
+    },
+    {
+      name: 'document.subAccountName',
+      value: "CRMOne",
+      isSystem: true
+    },
+  ],
 };
 
 // Reducer

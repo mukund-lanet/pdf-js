@@ -15,32 +15,11 @@ const EditorLeftDrawer = () => {
   const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
-  const businessName = useSelector((state: any) => state?.auth?.business?.name);
-  const documentVariables = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.documentVariables);
-
-  const defaultVariables = [
-    {
-      name: 'document.createdDate',
-      value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      isSystem: true
-    },
-    {
-      name: 'document.refNumber',
-      value: `P${Math.floor(10000 + Math.random() * 90000)} `,
-      isSystem: true
-    },
-    {
-      name: 'document.subAccountName',
-      value: businessName,
-      isSystem: true
-    },
-  ]
+  const businessName = useSelector((state: any) => state?.auth?.businessName);
 
   useEffect(() => {
-    if (documentVariables?.length === 0) {
-      defaultVariables.forEach(variable => dispatch({ type: 'ADD_DOCUMENT_VARIABLE', payload: variable }))
-    }
-  }, [])
+    dispatch({ type: 'UPDATE_DOCUMENT_VARIABLE', payload: { name: "document.subAccountName", value: businessName } })
+  }, [businessName]);
 
   // const handleClose = () => {
   //   dispatch({ type: 'SET_DRAWER_COMPONENT_CATEGORY', payload: undefined });

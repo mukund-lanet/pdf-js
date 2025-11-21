@@ -2,25 +2,26 @@
 import React, { useRef, useEffect } from 'react';
 import Moveable from 'react-moveable';
 import Selecto from 'react-selecto';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import DraggableElement from './DraggableElement';
-import { FillableFieldElement, CanvasElement } from '../../types';
+import { FillableFieldElement, CanvasElement, isFillableElement } from '../../types';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
 interface FillableContainerProps {
-  fillableElements: FillableFieldElement[];
   pageNumber: number;
-  onDelete: (id: string) => void;
   containerRef: React.RefObject<HTMLDivElement>;
 }
 
 const FillableContainer = ({
-  fillableElements,
   pageNumber,
-  onDelete,
   containerRef
 }: FillableContainerProps) => {
   const dispatch = useDispatch();
+  const fillableElements = useSelector((state: RootState) =>
+    state.pdfEditor.pdfEditorReducer.canvasElements.filter(el => el.page === pageNumber && isFillableElement(el))
+  ) as FillableFieldElement[];
+
   const [targets, setTargets] = React.useState<any>([]);
   const moveableRef = useRef<Moveable>(null);
   const selectoRef = useRef<Selecto>(null);
@@ -30,16 +31,6 @@ const FillableContainer = ({
       moveableRef.current.updateRect();
     }
   }, [fillableElements]);
-
-  const handleElementCopy = (el: FillableFieldElement) => {
-    const copiedElement = {
-      ...el,
-      id: `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
-      x: el.x + 20,
-      y: el.y + 20
-    };
-    dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
-  };
 
   return (
     <>
@@ -238,8 +229,6 @@ const FillableContainer = ({
           <div key={element.id} className={styles.fillableElementWrapper}>
             <DraggableElement
               element={element}
-              onDelete={onDelete}
-              onCopy={handleElementCopy}
             />
           </div>
         ))}

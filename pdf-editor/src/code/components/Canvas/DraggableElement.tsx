@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { FillableFieldElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
@@ -8,15 +9,12 @@ import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/Cu
 
 interface DraggableElementProps {
   element: FillableFieldElement;
-  onDelete: (id: string) => void;
-  onCopy?: (element: FillableFieldElement) => void;
 }
 
 const DraggableElement = ({
   element,
-  onDelete,
-  onCopy,
 }: DraggableElementProps) => {
+  const dispatch = useDispatch();
   const [isDragging, setIsDragging] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
 
@@ -40,15 +38,20 @@ const DraggableElement = ({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onDelete(element.id);
+    dispatch({ type: 'DELETE_CANVAS_ELEMENT', payload: element.id });
   };
 
   const handleCopy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onCopy) {
-      onCopy(element);
-    }
+
+    const copiedElement = {
+      ...element,
+      id: `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
+      x: element.x + 20,
+      y: element.y + 20
+    };
+    dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
   };
 
   // Hide toolbar when clicking outside
