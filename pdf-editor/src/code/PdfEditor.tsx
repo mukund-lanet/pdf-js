@@ -17,7 +17,9 @@ const PdfEditor = () => {
   const dispatch = useDispatch();
   const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
 
-  useEffect(() => { injectReducer("pdfEditor", reducer) }, [])
+  useEffect(() => {
+    injectReducer("pdfEditor", reducer)
+  }, [])
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ElementsSidebar from '../Sidebar/ElementsSidebar';
 import ThumbnailSidebar from '../Sidebar/ThumbnailSidebar';
@@ -15,22 +15,45 @@ const EditorLeftDrawer = () => {
   const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
+  const currentBusiness = useSelector((state: any) => state?.auth?.business)
+  console.log({ currentBusiness })
+  const businessName = useSelector((state: any) => state?.auth?.business?.name);
+  const documentVariables = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.documentVariables);
 
-  const handleDragStart = (type: string) => {
-    dispatch({ type: 'SET_ACTIVE_TOOL', payload: type })
-  };
+  const defaultVariables = [
+    {
+      name: 'document.createdDate',
+      value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      isSystem: true
+    },
+    {
+      name: 'document.refNumber',
+      value: `P${Math.floor(10000 + Math.random() * 90000)} `,
+      isSystem: true
+    },
+    {
+      name: 'document.subAccountName',
+      value: businessName,
+      isSystem: true
+    },
+  ]
 
-  const handleClose = () => {
-    dispatch({ type: 'SET_DRAWER_COMPONENT_CATEGORY', payload: undefined });
-  };
+  useEffect(() => {
+    if (!documentVariables) {
+      defaultVariables.forEach(variable => dispatch({ type: 'ADD_DOCUMENT_VARIABLE', payload: variable }))
+    }
+  }, [])
+
+  // const handleClose = () => {
+  //   dispatch({ type: 'SET_DRAWER_COMPONENT_CATEGORY', payload: undefined });
+  // };
 
   return (
     <div className={`${styles.leftSideDrawerWrapper} ${drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS ? styles.leftSideDrawerElement : ''}`}>
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS && (
         <ElementsSidebar
-          onDragStart={handleDragStart}
           activeTool={activeTool}
-          onClose={handleClose}
+        // onClose={handleClose}
         />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.PAGES && (
@@ -38,14 +61,14 @@ const EditorLeftDrawer = () => {
           pdfBytes={pdfBytes}
           currentPage={currentPage}
           onThumbnailClick={(i: number) => dispatch({ type: 'SET_CURRENT_PAGE', payload: i })}
-          onClose={handleClose}
+        // onClose={handleClose}
         />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.DOCUMENT_VARIABLES && (
-        <VariablesSidebar onClose={handleClose} />
+        <VariablesSidebar />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.SETTINGS && (
-        <SettingsSidebar onClose={handleClose} />
+        <SettingsSidebar />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import react from "react";
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY } from "../../types";
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from "../../types";
 
 // Action Types
 export const PDF_EDITOR_ACTION_TYPES = {
@@ -33,6 +33,11 @@ export const PDF_EDITOR_ACTION_TYPES = {
   SET_IS_LOADING: 'SET_IS_LOADING',
   SET_DRAWER_COMPONENT_CATEGORY: 'SET_DRAWER_COMPONENT_CATEGORY',
   SET_ACTIVE_ELEMENT_ID: 'SET_ACTIVE_ELEMENT_ID',
+
+  // Document Variable Actions
+  ADD_DOCUMENT_VARIABLE: 'ADD_DOCUMENT_VARIABLE',
+  DELETE_DOCUMENT_VARIABLE: 'DELETE_DOCUMENT_VARIABLE',
+  UPDATE_DOCUMENT_VARIABLE: 'UPDATE_DOCUMENT_VARIABLE',
 } as const;
 
 // Action Interfaces
@@ -49,6 +54,21 @@ interface SetDrawerComponentCategoryAction {
 interface SetActiveElementIdAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_ELEMENT_ID;
   payload: string | null;
+}
+
+interface AddDocumentVariableAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.ADD_DOCUMENT_VARIABLE;
+  payload: DocumentVariable;
+}
+
+interface DeleteDocumentVariableAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.DELETE_DOCUMENT_VARIABLE;
+  payload: string; // name
+}
+
+interface UpdateDocumentVariableAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.UPDATE_DOCUMENT_VARIABLE;
+  payload: DocumentVariable;
 }
 
 interface SetIsLoadingAction {
@@ -166,4 +186,7 @@ export type PdfEditorActionTypes =
   | ResetEditorAction
   | SetIsLoadingAction
   | SetDrawerComponentCategoryAction
-  | SetActiveElementIdAction;
+  | SetActiveElementIdAction
+  | AddDocumentVariableAction
+  | DeleteDocumentVariableAction
+  | UpdateDocumentVariableAction;

@@ -4,13 +4,17 @@ import { Draggable } from 'react-beautiful-dnd';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { useDispatch } from 'react-redux';
 
 interface BlockToolbarProps {
   activeTool: string | null;
-  onDragStart: (type: string) => void;
+  isDraggable: boolean;
 }
 
-const BlockToolbar = ({ activeTool, onDragStart }: BlockToolbarProps) => {
+const BlockToolbar = ({ activeTool, isDraggable }: BlockToolbarProps) => {
+
+  const dispatch = useDispatch();
+
   const blocks = [
     { type: 'heading', label: 'Heading', icon: 'type' },
     { type: 'image', label: 'Image', icon: 'image' },
@@ -20,7 +24,7 @@ const BlockToolbar = ({ activeTool, onDragStart }: BlockToolbarProps) => {
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     e.dataTransfer.setData('application/pdf-editor', type);
-    onDragStart(type);
+    dispatch({ type: 'SET_ACTIVE_TOOL', payload: type });
   };
 
   return (
@@ -29,9 +33,9 @@ const BlockToolbar = ({ activeTool, onDragStart }: BlockToolbarProps) => {
         <div
           key={item.type}
           className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
-          draggable
+          draggable={isDraggable}
           onDragStart={(e) => handleDragStart(e, item.type)}
-          onClick={() => onDragStart(item.type)}
+          onClick={() => dispatch({ type: 'SET_ACTIVE_TOOL', payload: item.type })}
         >
           <div className={styles.dragHandle}>
             <CustomIcon iconName="grip-horizontal" width={16} height={16} />

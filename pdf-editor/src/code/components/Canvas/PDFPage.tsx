@@ -8,7 +8,7 @@ import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
-import { isBlockElement, isFillableElement } from '../../types';
+import { isBlockElement, isFillableElement, CanvasElement } from '../../types';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
@@ -21,6 +21,7 @@ interface PDFPageProps {
   onUploadAndInsertPages: (pageNumber: number) => void;
   onDeletePage: (pageNumber: number) => void;
   onElementDelete: (id: string) => void;
+  canvasElements: CanvasElement[];
 }
 
 const PDFPage = React.memo((({
@@ -32,12 +33,12 @@ const PDFPage = React.memo((({
   onUploadAndInsertPages,
   onDeletePage,
   onElementDelete,
+  canvasElements,
 }: PDFPageProps) => {
   const dispatch = useDispatch();
 
   const currentPageFromStore = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
   const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
-  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
 
   const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);

@@ -130,10 +130,8 @@ export interface TableElement extends BlockStyle {
   page: number;
 }
 
-// Block elements use order-based positioning
 export type BlockElement = HeadingElement | ImageElement | VideoElement | TableElement;
 
-// Fillable field elements use x/y positioning
 export type FillableFieldElement = TextElement | SignatureElement | DateElement | InitialsElement | CheckboxElement;
 
 export type CanvasElement = BlockElement | FillableFieldElement;
@@ -149,11 +147,29 @@ export interface PageDimension {
   pageHeight: number;
 }
 
-// Type guard helper functions
-export function isBlockElement(element: CanvasElement): element is BlockElement {
-  return ['heading', 'image', 'video', 'table'].includes(element.type);
+export interface DocumentVariable {
+  name: string;
+  value: string;
+  isSystem?: boolean;
 }
+
+export const isBlockElement = (element: CanvasElement): element is HeadingElement | ImageElement | VideoElement | TableElement => {
+  return ['heading', 'image', 'video', 'table'].includes(element.type);
+};
 
 export function isFillableElement(element: CanvasElement): element is FillableFieldElement {
   return ['text-field', 'signature', 'date', 'initials', 'checkbox'].includes(element.type);
+}
+
+export const noDocument = {
+  message: "No documents found",
+  description: "There are no documents to display.",
+  tips: [
+    "Create new document",
+    "Upload pdf and start editing",
+    "Add docusign in integration"
+  ],
+  iconName: "pen-line",
+  tipsTitle: "Quick tips",
+  button: undefined
 }

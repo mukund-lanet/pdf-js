@@ -6,7 +6,7 @@ import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import PDFCanvasViewer from '../Canvas/PDFCanvasViewer';
-import { TextElement, ImageElement, SignatureElement, DateElement, InitialsElement, CheckboxElement, HeadingElement, VideoElement, TableElement, PageDimension } from '../../types';
+import { TextElement, ImageElement, SignatureElement, DateElement, InitialsElement, CheckboxElement, HeadingElement, VideoElement, TableElement, PageDimension, noDocument } from '../../types';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
 const EditorMainArea = () => {
@@ -348,18 +348,6 @@ const EditorMainArea = () => {
     };
     input.click();
   };
-
-  const noDocument = {
-    message: "No documents found",
-    description: "There are no documents to display.",
-    tips: [
-      "Create new document",
-      "Upload pdf and start editing",
-      "Add docusign in integration"
-    ],
-    iconName: "pen-line",
-    tipsTitle: "Quick tips"
-  }
 
   return (
     <div className={styles.editorPanel} ref={editorPanelRef}>

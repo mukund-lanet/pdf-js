@@ -130,7 +130,7 @@ const BlockElement = ({
       case 'heading':
         return (
           <div
-            className={styles.blockHeadingContainer}
+            className={styles.blockHeadingContent}
             style={{
               height: '100%',
               display: 'flex',

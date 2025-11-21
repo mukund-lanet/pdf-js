@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import { CanvasElement } from '../../types';
+import { CanvasElement, isBlockElement, isFillableElement } from '../../types';
 
 interface ThumbnailPageProps {
   pdfDoc: any;
@@ -40,12 +40,18 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
   // Render canvas elements on top of PDF
   const renderCanvasElements = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, scale: number) => {
     const pageElements = canvasElements.filter((el: CanvasElement) => el.page === pageNumber);
+    const currentPageDimensions = pageDimensions[pageNumber] || { pageWidth: 600, pageHeight: 800 };
 
-    pageElements.forEach((element: CanvasElement) => {
-      const scaledX = element.x * scale;
-      const scaledY = element.y * scale;
-      const scaledWidth = element.width * scale;
-      const scaledHeight = element.height * scale;
+    // Separate elements
+    const blocks = pageElements.filter(isBlockElement).sort((a, b) => a.order - b.order);
+    const fillables = pageElements.filter(isFillableElement);
+
+    // Helper to render individual element
+    const renderElement = (element: CanvasElement, x: number, y: number, width: number, height: number) => {
+      const scaledX = x * scale;
+      const scaledY = y * scale;
+      const scaledWidth = width * scale;
+      const scaledHeight = height * scale;
 
       const BG = '#e0f7fa';
       const COLOR = '#00838f';
@@ -193,6 +199,24 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
           context.stroke();
         }
       }
+    };
+
+    let currentY = 0;
+    // Render Blocks
+    blocks.forEach((element) => {
+      // Calculate dimensions for block
+      const elementX = 0;
+      const elementY = currentY;
+      const elementWidth = currentPageDimensions.pageWidth;
+      const elementHeight = element.height;
+
+      renderElement(element, elementX, elementY, elementWidth, elementHeight);
+      currentY += elementHeight;
+    });
+
+    // Render Fillables
+    fillables.forEach((element) => {
+      renderElement(element, element.x, element.y, element.width, element.height);
     });
   };
 

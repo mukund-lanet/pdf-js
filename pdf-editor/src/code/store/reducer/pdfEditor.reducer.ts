@@ -1,6 +1,6 @@
 import React from "react";
 import { PDF_EDITOR_ACTION_TYPES, PdfEditorActionTypes } from '../action/pdfEditor.action';
-import { CanvasElement, DRAWER_COMPONENT_CATEGORY, TextElement } from '../../types';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from "../../types";
 
 // State Interface
 export interface PdfEditorState {
@@ -16,6 +16,7 @@ export interface PdfEditorState {
   isLoading: boolean;
   drawerComponentCategory?: DRAWER_COMPONENT_CATEGORY;
   activeElementId: string | null;
+  documentVariables: DocumentVariable[];
 }
 
 export interface RootState {
@@ -36,8 +37,9 @@ const initialState: PdfEditorState = {
   isSignaturePadOpen: false,
   signatureForElement: null,
   isLoading: false,
-  drawerComponentCategory: undefined,
+  drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
   activeElementId: null,
+  documentVariables: [],
 };
 
 // Reducer
@@ -55,6 +57,23 @@ export const pdfEditorReducer = (
       return {
         ...state,
         activeElementId: action.payload
+      };
+    case PDF_EDITOR_ACTION_TYPES.ADD_DOCUMENT_VARIABLE:
+      return {
+        ...state,
+        documentVariables: [...state.documentVariables, action.payload]
+      };
+    case PDF_EDITOR_ACTION_TYPES.DELETE_DOCUMENT_VARIABLE:
+      return {
+        ...state,
+        documentVariables: state.documentVariables.filter(v => v.name !== action.payload)
+      };
+    case PDF_EDITOR_ACTION_TYPES.UPDATE_DOCUMENT_VARIABLE:
+      return {
+        ...state,
+        documentVariables: state.documentVariables.map(v =>
+          v.name === action.payload.name ? action.payload : v
+        )
       };
     case PDF_EDITOR_ACTION_TYPES.SET_IS_LOADING:
       return {

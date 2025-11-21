@@ -3,21 +3,23 @@
 import React, { useEffect, useState } from 'react';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
-import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
+// import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+// import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import ThumbnailPage from './ThumbnailPage';
+import { noDocument } from '../../types';
 
 interface ThumbnailSidebarProps {
   pdfBytes: Uint8Array | null;
   currentPage: number;
   onThumbnailClick: (pageNumber: number) => void;
-  onClose?: () => void;
+  // onClose?: () => void;
 }
 
-const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: ThumbnailSidebarProps) => {
+const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,11 +60,11 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: 
     <div className={styles.thumbnailSidebar}>
       <div className={styles.sidebarHeader}>
         <Typography variant="h6" className={styles.sidebarTitle}>Pages</Typography>
-        {onClose && (
+        {/* {onClose && (
           <Button className={styles.closeButton} onClick={onClose}>
             <CustomIcon iconName="x" width={20} height={20} />
           </Button>
-        )}
+        )} */}
       </div>
 
       <div className={styles.thumbnailContainer}>
@@ -81,7 +83,9 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick, onClose }: 
             />
           ))
         ) : (
-          <Typography className={styles.label}>No PDF Loaded</Typography>
+          <div className={styles.noPdfLoaded} >
+            <EmptyMessageComponent className={styles.noPdfLoadedEmptyMessage} {...noDocument} />
+          </div>
         )}
       </div>
     </div>

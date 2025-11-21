@@ -13,6 +13,7 @@ interface PDFCanvasViewerProps {
   onUploadAndInsertPages: (pageNumber: number) => void;
   onDeletePage: (pageNumber: number) => void;
   onElementDelete: (id: string) => void;
+  canvasElements: CanvasElement[];
 }
 
 const PDFCanvasViewer = ({
@@ -23,6 +24,7 @@ const PDFCanvasViewer = ({
   onUploadAndInsertPages,
   onDeletePage,
   onElementDelete,
+  canvasElements,
 }: PDFCanvasViewerProps) => {
 
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
@@ -103,6 +105,7 @@ const PDFCanvasViewer = ({
               onUploadAndInsertPages={onUploadAndInsertPages}
               onDeletePage={onDeletePage}
               onElementDelete={onElementDelete}
+              canvasElements={canvasElements}
             />)
           })}
         </div>)

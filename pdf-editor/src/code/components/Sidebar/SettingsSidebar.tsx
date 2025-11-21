@@ -4,9 +4,10 @@ import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
-// import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch"; // Assuming Switch exists, if not I'll use a checkbox style
+import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch"
 
-const SettingsSidebar = ({ onClose }: { onClose?: () => void }) => {
+// const SettingsSidebar = ({ onClose }: { onClose?: () => void }) => {
+const SettingsSidebar = () => {
   const [overrideEmail, setOverrideEmail] = useState(false);
   const [enableRedirect, setEnableRedirect] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState('');
@@ -14,22 +15,22 @@ const SettingsSidebar = ({ onClose }: { onClose?: () => void }) => {
 
   return (
     <div className={styles.settingsSidebar}>
-      <div className={styles.sidebarHeader}>
+      {/* <div className={styles.sidebarHeader}>
         <Typography variant="h6" className={styles.sidebarTitle}>Document settings</Typography>
         {onClose && (
           <Button className={styles.closeButton} onClick={onClose}>
             <CustomIcon iconName="x" width={20} height={20} />
           </Button>
         )}
-      </div>
+      </div> */}
 
       <div className={styles.settingSection}>
         <div className={styles.switchRow}>
-          {/* Mocking Switch with a simple toggle for now if component not available */}
-          <label className={styles.switch}>
-            <input type="checkbox" checked={overrideEmail} onChange={(e) => setOverrideEmail(e.target.checked)} />
-            <span className={styles.slider}></span>
-          </label>
+          <Switch
+            checked={overrideEmail}
+            onChange={(e: any) => setOverrideEmail(e.target.checked)}
+            color='primary'
+          />
           <Typography className={styles.settingLabel}>Override Email Configuration</Typography>
           <CustomIcon iconName="info" width={16} height={16} variant="gray" />
         </div>
@@ -69,10 +70,11 @@ const SettingsSidebar = ({ onClose }: { onClose?: () => void }) => {
 
       <div className={styles.settingSection}>
         <div className={styles.switchRow}>
-          <label className={styles.switch}>
-            <input type="checkbox" checked={enableRedirect} onChange={(e) => setEnableRedirect(e.target.checked)} />
-            <span className={styles.slider}></span>
-          </label>
+          <Switch
+            checked={enableRedirect}
+            onChange={(e: any) => setEnableRedirect(e.target.checked)}
+            color='primary'
+          />
           <Typography className={styles.settingLabel}>Enable redirection to custom URL</Typography>
         </div>
 

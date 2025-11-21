@@ -203,6 +203,8 @@
   .pdfViewerContainer {
     height: 100%;
     width: 100%;
+    overflow: scroll;
+    scrollbar-width: none;
 
     .pdfPageContainer {
       width: auto;
@@ -410,14 +412,15 @@
     justify-content: space-between;
 
     .leftSideDrawerWrapper {
-      height: 900px;
-      width: auto;
+      // height: 900px;
+      height: 100%;
+      width: 349px;
       background-color: #FFFFFF;
       display: flex;
       justify-content: center;
       align-items: center;
 
-      .leftSideDrawerElement {
+      &.leftSideDrawerElement {
         width: 440px;
       }
     }
@@ -649,108 +652,6 @@
   }
 }
 
-.thumbnailSidebar {
-  width: 250px;
-  height: 100%;
-  min-width: 250px;
-  padding: 16px;
-  background: #f9fafb;
-  overflow: hidden;
-  gap: 16px;
-  display: flex;
-  flex-direction: column;
-
-  .thumbnailContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    overflow: auto;
-    scrollbar-width: none;
-    height: 100%;
-
-    .loadingWrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      width: 100%;
-    }
-
-    .thumbnailWrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      justify-content: center;
-
-      .thumbnailItem {
-        border: 2px solid transparent;
-        align-items: center;
-        border-radius: 4px;
-        cursor: pointer;
-        padding: 8px;
-        background: white;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-        display: flex;
-        flex-direction: column;
-
-        canvas {
-          width: 100%;
-          height: auto;
-          border-radius: 2px;
-        }
-
-        &:hover {
-          border-color: #007bff;
-        }
-
-        .thumbnailContent {
-          min-height: 100px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          overflow: hidden;
-          height: 255px;
-          width: 200px;
-          background: #f5f5f5;
-          padding: 8px 0;
-
-          .thumbnailImage {
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-            transition: transform 0.2s ease;
-
-            &:hover {
-              transform: scale(1.02);
-            }
-          }
-
-          .thumbnailLoading,
-          .thumbnailError {
-            padding: 8px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-          }
-
-          .thumbnailError {
-            color: #d32f2f;
-          }
-
-        }
-
-        .thumbnailPageNumber {
-          text-align: center;
-          font-size: 12px;
-          color: #666;
-        }
-      }
-    }
-  }
-}
-
 .loadingDiv,
 .errorDiv {
   position: absolute;
@@ -961,57 +862,64 @@
 
   .variablesList {
     padding: 16px 24px;
-    overflow-y: auto;
     flex: 1;
-  }
+    height: 100%;
+    max-height: calc(100% - 61px - 73px - 16px);
 
-  .variableItem {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #f3f4f6;
+    .variableItemsWrapper {
+      overflow-y: scroll;
+      scrollbar-width: none;
+      height: 100%;
 
-    &:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
+      .variableItem {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #f3f4f6;
 
-    .variableKey {
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
+        &:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
+        }
 
-    .variableValueContainer {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+        .variableKey {
+          font-size: 13px;
+          color: #6b7280;
+          margin-bottom: 8px;
+          font-weight: 500;
+        }
 
-      .variableValue {
-        flex: 1;
-        padding: 10px 12px;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        font-size: 14px;
-        color: #111827;
-      }
+        .variableValueContainer {
+          display: flex;
+          align-items: center;
+          gap: 8px;
 
-      .copyButton {
-        padding: 10px;
-        background: white;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
+          .variableValue {
+            flex: 1;
+            padding: 10px 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #111827;
+          }
 
-        &:hover {
-          background: #f9fafb;
-          border-color: #3b82f6;
+          .copyButton {
+            padding: 10px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+
+            &:hover {
+              background: #f9fafb;
+              border-color: #3b82f6;
+            }
+          }
         }
       }
     }
@@ -1244,6 +1152,11 @@
     padding: 16px 24px;
     flex: 1;
 
+    .noPdfLoadedEmptyMessage {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
     .thumbnailWrapper {
       display: flex;
       flex-direction: column;
@@ -1355,11 +1268,10 @@
   max-width: calc(100% - 64px);
   min-height: 115px;
   height: auto;
-  background: white;
   border: 2px solid #e5e7eb;
   border-radius: 4px;
   transition: all 0.2s ease;
-  overflow: hidden;
+  overflow: visible;
 
   &:hover {
     border-color: #3b82f6;
@@ -1386,15 +1298,14 @@
 
 .blockHeadingContent {
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
   padding: 16px;
   font-size: 32px;
   font-weight: 700;
   color: #111827;
   border-left: 4px solid #3b82f6;
-  background: white;
+  background: transparent;
+  word-wrap: break-word;
+  white-space: break-spaces;
 
   &:focus {
     outline: 2px solid #3b82f6;
@@ -1544,18 +1455,21 @@
 
 .blockDragHandle {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 28px;
-  height: 28px;
+  top: 0;
+  left: -24px;
+  width: 20px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(17, 24, 39, 0.05);
+  background: white;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
   cursor: grab;
   opacity: 0;
   transition: opacity 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  z-index: 10;
 
   .blockElement:hover & {
     opacity: 1;
