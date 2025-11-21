@@ -94,7 +94,6 @@ const PDFPage = React.memo((({
 
       cleanupRenderTask();
 
-      console.log("in render page")
       dispatch({ type: 'SET_IS_LOADING', payload: true })
       setError(null);
 
@@ -122,7 +121,6 @@ const PDFPage = React.memo((({
         await task.promise;
 
         if (isMounted) {
-          console.log({ isLoading, isMounted })
           setImageSrc(canvas.toDataURL('image/png'));
           setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
           dispatch({ type: 'SET_IS_LOADING', payload: false })

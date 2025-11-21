@@ -33,47 +33,7 @@ const BlockElement = ({
 }: BlockElementProps) => {
   const dispatch = useDispatch();
   const [isHovered, setIsHovered] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [height, setHeight] = useState(element.height);
   const elementRef = useRef<HTMLDivElement>(null);
-  const startYRef = useRef<number>(0);
-  const startHeightRef = useRef<number>(0);
-
-  const MIN_HEIGHT = 115;
-  const MAX_HEIGHT = 2000; // Reasonable max, can be adjusted
-
-  useEffect(() => {
-    setHeight(element.height);
-  }, [element.height]);
-
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-    startYRef.current = e.clientY;
-    startHeightRef.current = height;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaY = moveEvent.clientY - startYRef.current;
-      const newHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, startHeightRef.current + deltaY));
-      setHeight(newHeight);
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-
-      // Update element in Redux
-      dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
-        payload: { ...element, height }
-      });
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
 
   const handleContentChange = (newContent: string) => {
     if (element.type === 'heading') {
@@ -386,15 +346,6 @@ const BlockElement = ({
       {/* Content */}
       <div className={styles.blockContent}>
         {renderContent()}
-      </div>
-
-      {/* Bottom Resize Handle */}
-      <div
-        className={styles.blockResizeHandle}
-        onMouseDown={handleResizeStart}
-        data-html2canvas-ignore
-      >
-        <div className={styles.blockResizeIndicator} />
       </div>
 
       {/* Drag Handle Indicator */}

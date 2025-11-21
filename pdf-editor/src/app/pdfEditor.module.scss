@@ -343,7 +343,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-height: calc(100% - 24px);
+  // max-height: calc(100% - 24px);
   background: #f9fafb;
 
   .toolbarWrapper {
@@ -1311,7 +1311,6 @@
   font-size: 32px;
   font-weight: 700;
   color: #111827;
-  border-left: 4px solid #3b82f6;
   background: transparent;
   word-wrap: break-word;
   white-space: break-spaces;
@@ -1429,39 +1428,6 @@
   }
 }
 
-
-
-.blockResizeHandle {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 8px;
-  cursor: ns-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  transition: background 0.2s;
-
-  &:hover {
-    background: rgba(59, 130, 246, 0.1);
-
-    .blockResizeIndicator {
-      opacity: 1;
-    }
-  }
-}
-
-.blockResizeIndicator {
-  width: 40px;
-  height: 4px;
-  background: #3b82f6;
-  border-radius: 2px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
 .blockDragHandle {
   position: absolute;
   top: 0;
@@ -1542,9 +1508,6 @@
   gap: 8px;
 
   .dragHandle {
-    position: absolute;
-    top: 8px;
-    right: 8px;
     opacity: 0.4;
     transition: opacity 0.2s;
   }

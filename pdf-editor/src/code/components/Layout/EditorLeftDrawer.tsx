@@ -15,8 +15,6 @@ const EditorLeftDrawer = () => {
   const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
-  const currentBusiness = useSelector((state: any) => state?.auth?.business)
-  console.log({ currentBusiness })
   const businessName = useSelector((state: any) => state?.auth?.business?.name);
   const documentVariables = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.documentVariables);
 
@@ -39,7 +37,7 @@ const EditorLeftDrawer = () => {
   ]
 
   useEffect(() => {
-    if (!documentVariables) {
+    if (documentVariables?.length === 0) {
       defaultVariables.forEach(variable => dispatch({ type: 'ADD_DOCUMENT_VARIABLE', payload: variable }))
     }
   }, [])

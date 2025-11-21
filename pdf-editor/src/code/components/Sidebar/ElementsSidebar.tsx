@@ -19,7 +19,7 @@ const ElementsSidebar = ({ activeTool }: ElementsSidebarProps) => {
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
 
-  const isDraggable = isLoading && !!pdfBytes;
+  const isDraggable = !isLoading && !!pdfBytes;
 
   return (
     <div className={styles.elementsSidebar}>
