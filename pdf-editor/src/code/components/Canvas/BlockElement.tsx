@@ -160,33 +160,10 @@ const BlockElement = ({
               display: 'flex'
             }}
           >
-            {element.imageData ? (
-              <img
-                src={element.imageData}
-                alt="Block"
-                style={{
-                  width: element.width ? `${element.width}px` : '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  filter: element.imageEffect === 'grayscale' ? 'grayscale(100%)' : 'none'
-                }}
-              />
-            ) : (
-              <div className={styles.blockImagePlaceholder}>
-                <CustomIcon iconName="image" width={48} height={48} />
-                <Typography>Click to upload image</Typography>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                  id={`image-upload-${element.id}`}
-                />
-                <label htmlFor={`image-upload-${element.id}`} style={{ cursor: 'pointer' }}>
-                  <Button component="span">Upload Image</Button>
-                </label>
-              </div>
-            )}
+            <div className={styles.blockImagePlaceholder}>
+              <CustomIcon iconName="image" width={48} height={48} />
+              <Typography>Please select an image</Typography>
+            </div>
           </div>
         );
 
@@ -217,13 +194,7 @@ const BlockElement = ({
             ) : (
               <div className={styles.blockVideoPlaceholder}>
                 <CustomIcon iconName="video" width={48} height={48} />
-                <Typography>Enter video URL</Typography>
-                <input
-                  type="text"
-                  placeholder="https://example.com/video.mp4"
-                  onChange={(e) => handleVideoUrlChange(e.target.value)}
-                  className={styles.videoUrlInput}
-                />
+                <Typography>Please select a video</Typography>
               </div>
             )}
           </div>

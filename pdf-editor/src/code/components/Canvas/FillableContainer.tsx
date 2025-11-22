@@ -25,6 +25,7 @@ const FillableContainer = ({
   const [targets, setTargets] = React.useState<any>([]);
   const moveableRef = useRef<Moveable>(null);
   const selectoRef = useRef<Selecto>(null);
+  const selectoContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (moveableRef.current) {
@@ -40,7 +41,8 @@ const FillableContainer = ({
         resizable={true}
         rotatable={false}
         keepRatio={false}
-        renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
+        // renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
+        renderDirections={["se"]}
         target={targets}
         onClickGroup={e => {
           selectoRef.current!.clickTarget(e.inputEvent, e.inputTarget);
@@ -192,7 +194,7 @@ const FillableContainer = ({
 
       <Selecto
         ref={selectoRef}
-        dragContainer={containerRef.current}
+        dragContainer={selectoContainerRef.current}
         selectableTargets={[".draggable-element"]}
         hitRate={0}
         selectByClick={true}
@@ -204,7 +206,7 @@ const FillableContainer = ({
           const target = e.inputEvent.target;
 
           if (
-            !containerRef.current ||
+            !selectoContainerRef.current ||
             moveable.isMoveableElement(target) ||
             targets.some((t: any) => t === target || t.contains(target))
           ) {
@@ -224,7 +226,7 @@ const FillableContainer = ({
         }}
       ></Selecto>
 
-      <div className={styles.fillableContainer}>
+      <div ref={selectoContainerRef} className={styles.fillableContainer}>
         {fillableElements.map(element => (
           <div key={element.id} className={styles.fillableElementWrapper}>
             <DraggableElement

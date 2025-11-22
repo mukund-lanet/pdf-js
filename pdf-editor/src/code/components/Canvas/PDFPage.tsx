@@ -540,7 +540,7 @@ const PDFPage = React.memo((({
           </div>
 
           {/* Fillable Elements Container (z-index: 2) */}
-          <div className={styles.fillableLayerWrapper}>
+          <div className={styles.fillableLayerWrapper} ref={containerRef}>
             <FillableContainer
               pageNumber={pageNumber}
               containerRef={containerRef}

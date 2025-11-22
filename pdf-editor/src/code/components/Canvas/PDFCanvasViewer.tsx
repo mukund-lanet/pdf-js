@@ -5,6 +5,7 @@ import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import PDFPage from './PDFPage';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { noDocument } from '../../types';
 
 const PDFCanvasViewer = () => {
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
@@ -55,18 +56,6 @@ const PDFCanvasViewer = () => {
 
     loadPdfDocument();
   }, [pdfBytes, pdfjsLib]);
-
-  const noDocument = {
-    message: "No documents found",
-    description: "There are no documents to display.",
-    tips: [
-      "Create new document",
-      "Upload pdf and start editing",
-      "Add docusign in integration"
-    ],
-    iconName: "pen-line",
-    tipsTitle: "Quick tips"
-  }
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
