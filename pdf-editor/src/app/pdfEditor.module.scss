@@ -729,10 +729,9 @@
   background: white;
 
   .elementSection {
-
-    &:last-child {
-      margin-bottom: 0;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .sectionTitle {
@@ -1321,6 +1320,14 @@
   }
 }
 
+.blockHeadingText,
+.blockSubtitleText {
+  white-space: pre-wrap;
+  word-break: break-word;
+  width: 100%;
+  display: block;
+}
+
 .blockImageContent,
 .blockVideoContent {
   width: 100%;
@@ -1550,14 +1557,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.elementSection {
-  margin-bottom: 24px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
 }
 
 .sectionTitle {

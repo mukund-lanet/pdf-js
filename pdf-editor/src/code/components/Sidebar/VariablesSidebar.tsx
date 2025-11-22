@@ -8,7 +8,6 @@ import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/Cu
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CreateVariableDialog from './CreateVariableDialog';
 
-// const VariablesSidebar = ({ onClose }: { onClose?: () => void }) => {
 const VariablesSidebar = () => {
   const dispatch = useDispatch();
   const variables = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.documentVariables);
@@ -45,11 +44,6 @@ const VariablesSidebar = () => {
     <div className={styles.variablesSidebar}>
       <div className={styles.sidebarHeader}>
         <Typography variant="h6" className={styles.sidebarTitle}>Document variables</Typography>
-        {/* {onClose && (
-          <Button className={styles.closeButton} onClick={onClose}>
-            <CustomIcon iconName="x" width={20} height={20} />
-          </Button>
-        )} */}
       </div>
 
       <div className={styles.searchContainer}>

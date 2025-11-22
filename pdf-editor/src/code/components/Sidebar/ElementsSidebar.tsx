@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 
 interface ElementsSidebarProps {
   activeTool: string | null;
-  // onClose?: () => void;
 }
 
 const ElementsSidebar = ({ activeTool }: ElementsSidebarProps) => {
@@ -25,11 +24,6 @@ const ElementsSidebar = ({ activeTool }: ElementsSidebarProps) => {
     <div className={styles.elementsSidebar}>
       <div className={styles.sidebarHeader}>
         <Typography variant="h6" className={styles.sidebarTitle}>Add an Element</Typography>
-        {/* {onClose && (
-          <Button className={styles.closeButton} onClick={onClose}>
-            <CustomIcon iconName="x" width={20} height={20} />
-          </Button>
-        )} */}
       </div>
 
       <div className={styles.sidebarContent}>

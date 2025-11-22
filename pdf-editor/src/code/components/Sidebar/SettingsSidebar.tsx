@@ -6,7 +6,6 @@ import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/Cu
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch"
 
-// const SettingsSidebar = ({ onClose }: { onClose?: () => void }) => {
 const SettingsSidebar = () => {
   const [overrideEmail, setOverrideEmail] = useState(false);
   const [enableRedirect, setEnableRedirect] = useState(false);
@@ -15,15 +14,6 @@ const SettingsSidebar = () => {
 
   return (
     <div className={styles.settingsSidebar}>
-      {/* <div className={styles.sidebarHeader}>
-        <Typography variant="h6" className={styles.sidebarTitle}>Document settings</Typography>
-        {onClose && (
-          <Button className={styles.closeButton} onClick={onClose}>
-            <CustomIcon iconName="x" width={20} height={20} />
-          </Button>
-        )}
-      </div> */}
-
       <div className={styles.settingSection}>
         <div className={styles.switchRow}>
           <Switch

@@ -15,30 +15,17 @@ const EditorLeftDrawer = () => {
   const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
-  const businessName = useSelector((state: any) => state?.auth?.businessName);
-
-  useEffect(() => {
-    dispatch({ type: 'UPDATE_DOCUMENT_VARIABLE', payload: { name: "document.subAccountName", value: businessName } })
-  }, [businessName]);
-
-  // const handleClose = () => {
-  //   dispatch({ type: 'SET_DRAWER_COMPONENT_CATEGORY', payload: undefined });
-  // };
 
   return (
     <div className={`${styles.leftSideDrawerWrapper} ${drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS ? styles.leftSideDrawerElement : ''}`}>
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS && (
-        <ElementsSidebar
-          activeTool={activeTool}
-        // onClose={handleClose}
-        />
+        <ElementsSidebar activeTool={activeTool} />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.PAGES && (
         <ThumbnailSidebar
           pdfBytes={pdfBytes}
           currentPage={currentPage}
           onThumbnailClick={(i: number) => dispatch({ type: 'SET_CURRENT_PAGE', payload: i })}
-        // onClose={handleClose}
         />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.DOCUMENT_VARIABLES && (

@@ -10,11 +10,11 @@ interface ThumbnailPageProps {
   pageNumber: number;
   currentPage: number;
   onThumbnailClick: (pageNumber: number) => void;
+  isLoading: boolean;
 }
 
-const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnailClick }: ThumbnailPageProps) => {
+const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnailClick, isLoading }: ThumbnailPageProps) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
   const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements || []);
@@ -227,7 +227,6 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
       if (!pdfDoc) return;
 
       try {
-        setIsLoading(true);
         setError(null);
         cleanup();
 
@@ -266,14 +265,12 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
 
           const url = URL.createObjectURL(blob);
           setThumbnailUrl(url);
-          setIsLoading(false);
         }, 'image/jpeg', 0.7);
 
       } catch (error) {
         if (!isMounted) return;
         console.error(`Error rendering thumbnail for page ${pageNumber}:`, error);
         setError(`Failed to load page ${pageNumber}`);
-        setIsLoading(false);
       }
     };
 

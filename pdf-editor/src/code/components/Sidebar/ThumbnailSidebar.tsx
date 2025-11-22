@@ -16,7 +16,6 @@ interface ThumbnailSidebarProps {
   pdfBytes: Uint8Array | null;
   currentPage: number;
   onThumbnailClick: (pageNumber: number) => void;
-  // onClose?: () => void;
 }
 
 const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
@@ -60,11 +59,6 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
     <div className={styles.thumbnailSidebar}>
       <div className={styles.sidebarHeader}>
         <Typography variant="h6" className={styles.sidebarTitle}>Pages</Typography>
-        {/* {onClose && (
-          <Button className={styles.closeButton} onClick={onClose}>
-            <CustomIcon iconName="x" width={20} height={20} />
-          </Button>
-        )} */}
       </div>
 
       <div className={styles.thumbnailContainer}>
@@ -80,6 +74,7 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
               pageNumber={index + 1}
               currentPage={currentPage}
               onThumbnailClick={onThumbnailClick}
+              isLoading={isLoading}
             />
           ))
         ) : (

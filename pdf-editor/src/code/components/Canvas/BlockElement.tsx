@@ -111,7 +111,7 @@ const BlockElement = ({
             <div
               contentEditable
               suppressContentEditableWarning
-              onBlur={(e) => handleContentChange(e.currentTarget.textContent || '')}
+              onBlur={(e) => handleContentChange(e.currentTarget.innerText || '')}
               className={styles.blockHeadingText}
               style={{
                 fontSize: element.fontSize || 32,
@@ -124,7 +124,7 @@ const BlockElement = ({
             <div
               contentEditable
               suppressContentEditableWarning
-              onBlur={(e) => handleSubtitleChange(e.currentTarget.textContent || '')}
+              onBlur={(e) => handleSubtitleChange(e.currentTarget.innerText || '')}
               className={styles.blockSubtitleText}
               style={{
                 fontSize: element.subtitleFontSize || 16,
