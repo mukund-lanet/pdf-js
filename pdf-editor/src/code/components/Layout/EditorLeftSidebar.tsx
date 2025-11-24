@@ -40,26 +40,24 @@ const EditorLeftSidebar = () => {
   };
 
   return (
-    <div className={styles.leftSideBarDrawer} >
-      <Tabs
-        indicatorColor="primary"
-        textColor="primary"
-        value={drawerComponentType}
-        className={styles.leftSideTabs}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => dispatch({ type: 'SET_DRAWER_COMPONENT_CATEGORY', payload: event.target.value })}
-      >
-        {Object.entries(tabItems).map(([value, item]) => (
-          <Tab
-            key={value}
-            className={styles.leftSideTab}
-            classes={{ root: styles.leftSideTabRoot }}
-            icon={<CustomIcon iconName={item.icon} height={16} width={16} variant='gray' />}
-            label={item.name}
-            value={value}
-          />
-        ))}
-      </Tabs>
-    </div>
+    <Tabs
+      indicatorColor="primary"
+      textColor="primary"
+      value={drawerComponentType}
+      className={styles.leftSideTabs}
+      onChange={(event: React.ChangeEvent<HTMLInputElement>) => dispatch({ type: 'SET_DRAWER_COMPONENT_CATEGORY', payload: event.target.value })}
+    >
+      {Object.entries(tabItems).map(([value, item]) => (
+        <Tab
+          key={value}
+          className={styles.leftSideTab}
+          classes={{ root: styles.leftSideTabRoot }}
+          icon={<CustomIcon iconName={item.icon} height={16} width={16} variant='gray' />}
+          label={item.name}
+          value={value}
+        />
+      ))}
+    </Tabs>
   );
 };
 

@@ -108,6 +108,13 @@ export interface HeadingElement extends BlockStyle {
   subtitleFontSize?: number;
   subtitleFontWeight?: string;
   subtitleColor?: string;
+  // Text formatting properties
+  textAlign?: 'left' | 'center' | 'right';
+  fontStyle?: 'normal' | 'italic';
+  textDecoration?: 'none' | 'underline';
+  color?: string;
+  fontFamily?: string;
+  tagName?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p';
 }
 
 export interface VideoElement extends BlockStyle {
@@ -129,6 +136,14 @@ export interface TableElement extends BlockStyle {
   columns: number; // default: 2
   data?: string[][]; // Cell data
   page: number;
+  // Text formatting properties for table cells
+  textAlign?: 'left' | 'center' | 'right';
+  fontStyle?: 'normal' | 'italic';
+  textDecoration?: 'none' | 'underline';
+  color?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  fontFamily?: string;
 }
 
 export type BlockElement = HeadingElement | ImageElement | VideoElement | TableElement;

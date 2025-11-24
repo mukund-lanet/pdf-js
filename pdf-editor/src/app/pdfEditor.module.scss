@@ -346,6 +346,20 @@
   // max-height: calc(100% - 24px);
   background: #f9fafb;
 
+  .textToolbarEditorLeftSidebarWrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+    position: relative;
+    z-index: 1;
+    padding: 12px 16px;
+    justify-content: space-between;
+  }
+
   .toolbarWrapper {
     display: flex;
     align-items: center;
@@ -390,12 +404,6 @@
         }
       }
     }
-  }
-
-  .leftSideBarDrawer {
-    width: 100%;
-    background-color: #FFFFFF;
-    border-right: 1px solid #e5e7eb;
   }
 
   .moduleHeaderDivider {
@@ -551,105 +559,149 @@
   }
 }
 
-.textPropertiesToolbar {
+.textFormattingToolbarWrapper {
+  width: 100%;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  margin-top: -7px;
 
-  .toolbarGroup {
+  .textFormattingToolbar {
     display: flex;
-    gap: 4px;
     align-items: center;
-  }
-
-  .toolbarDivider {
-    width: 1px;
-    height: 24px;
-    background: #ddd;
-    margin: 0 4px;
-  }
-
-  .toolbarBtn {
-    padding: 6px 10px;
+    gap: 8px;
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 32px;
-    transition: all 0.2s;
-    height: 32px;
-    width: 32px;
+    width: fit-content;
 
-    &:hover {
-      background: #f0f0f0;
-      border-color: #007bff;
+    .toolbarGroup {
+      display: flex;
+      gap: 4px;
+      align-items: center;
     }
 
-    &.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
+    .toolbarDivider {
+      width: 1px;
+      height: 24px;
+      background: #ddd;
+      margin: 0 4px;
     }
 
-    strong,
-    em,
-    u {
+    .toolbarBtn {
+      padding: 6px 10px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      cursor: pointer;
       font-size: 14px;
-    }
-  }
-
-  .fontSizeSelect {
-    font-size: 13px;
-    cursor: pointer;
-    background: white;
-
-    .triggerBtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      transition: all 0.2s;
       height: 32px;
+      width: 32px;
+
+      &:hover {
+        background: #f0f0f0;
+        border-color: #007bff;
+      }
+
+      &.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+
+      strong,
+      em,
+      u {
+        font-size: 14px;
+      }
     }
 
-    &:hover {
-      border-color: #007bff;
+    .fontSizeSelect {
+      font-size: 13px;
+      cursor: pointer;
+      background: white;
+
+      .triggerBtn {
+        height: 32px;
+      }
+
+      &:hover {
+        border-color: #007bff;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+      }
     }
 
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+    .colorPicker {
+      width: 40px;
+      height: 32px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      cursor: pointer;
+      padding: 2px;
+
+      &:hover {
+        border-color: #007bff;
+      }
+
+      &::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      &::-webkit-color-swatch {
+        border: none;
+        border-radius: 2px;
+      }
     }
   }
+}
 
-  .colorPicker {
-    width: 40px;
-    height: 32px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    cursor: pointer;
-    padding: 2px;
+.headingOption-h1 {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  padding: 8px 16px !important;
+}
 
-    &:hover {
-      border-color: #007bff;
-    }
+.headingOption-h2 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  padding: 6px 16px !important;
+}
 
-    &::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
+.headingOption-h3 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  padding: 6px 16px !important;
+}
 
-    &::-webkit-color-swatch {
-      border: none;
-      border-radius: 2px;
-    }
-  }
+.headingOption-h4 {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  padding: 4px 16px !important;
+}
+
+.headingOption-h5 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  padding: 4px 16px !important;
+}
+
+.headingOption-p {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  padding: 4px 16px !important;
 }
 
 .loadingDiv,

@@ -200,6 +200,11 @@ const BlockElement = ({
               style={{
                 fontSize: element.fontSize || 32,
                 fontWeight: element.fontWeight || '700',
+                color: element.color || '#111827',
+                textAlign: element.textAlign || 'left',
+                fontStyle: element.fontStyle || 'normal',
+                textDecoration: element.textDecoration || 'none',
+                fontFamily: element.fontFamily || 'Open Sans, sans-serif',
                 outline: 'none',
               }}
             >
@@ -214,6 +219,8 @@ const BlockElement = ({
                 fontSize: element.subtitleFontSize || 16,
                 fontWeight: element.subtitleFontWeight || '400',
                 color: element.subtitleColor || '#374151',
+                textAlign: element.textAlign || 'left',
+                fontFamily: element.fontFamily || 'Open Sans, sans-serif',
                 outline: 'none'
               }}
               data-placeholder="Add a subtitle"
@@ -338,6 +345,15 @@ const BlockElement = ({
                         contentEditable
                         suppressContentEditableWarning
                         className={styles.blockTableCell}
+                        style={{
+                          fontSize: element.fontSize,
+                          fontWeight: element.fontWeight,
+                          color: element.color,
+                          textAlign: element.textAlign,
+                          fontStyle: element.fontStyle,
+                          textDecoration: element.textDecoration,
+                          fontFamily: element.fontFamily || 'Open Sans, sans-serif',
+                        }}
                       >
                         {element.data?.[rowIndex]?.[colIndex] || ''}
                       </td>

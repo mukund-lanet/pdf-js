@@ -11,6 +11,7 @@ import EditorLeftSidebar from './components/Layout/EditorLeftSidebar';
 import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
 import EditorMainArea from './components/Layout/EditorMainArea';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
+import TextFormattingToolbar from './components/Toolbar/TextFormattingToolbar';
 import { RootState } from './store/reducer/pdfEditor.reducer';
 
 const PdfEditor = () => {
@@ -55,8 +56,9 @@ const PdfEditor = () => {
       <div className={styles.pdfEditorContainer}>
         <EditorHeader />
 
-        <div className={styles.leftSideBarDrawer} >
+        <div className={styles.textToolbarEditorLeftSidebarWrapper} >
           <EditorLeftSidebar />
+          <TextFormattingToolbar />
         </div>
 
         <Divider orientation="horizontal" className={styles.toolbarDivider} />
