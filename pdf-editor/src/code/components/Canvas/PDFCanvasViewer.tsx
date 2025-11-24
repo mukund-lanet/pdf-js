@@ -36,14 +36,10 @@ const PDFCanvasViewer = () => {
       }
 
       try {
-        console.log('Loading PDF document...');
-
         // Create a fresh copy to avoid reference issues
         const pdfBytesCopy = new Uint8Array(pdfBytes);
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
-
-        console.log(`PDF loaded with ${pdf.numPages} pages`);
 
         setPdfDoc(pdf);
         setRenderKey(prev => prev + 1); // Force re-render of all pages
@@ -62,11 +58,10 @@ const PDFCanvasViewer = () => {
       {pdfBytes && totalPages > 0 ? (
         <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
           {Array.from({ length: totalPages }, (_, index) => {
-            // console.log(`Rendering page ${index + 1}`);
             return (<PDFPage
-              key={`page_${index + 1}_${renderKey}`} // Include renderKey to force re-render
+              key={`page_${index + 1}_${renderKey}`}
               pdfDoc={pdfDoc}
-              pageNumber={index + 1} // Pass the page number
+              pageNumber={index + 1}
             />)
           })}
         </div>)

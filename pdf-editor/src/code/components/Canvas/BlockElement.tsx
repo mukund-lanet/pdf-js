@@ -344,7 +344,6 @@ const BlockElement = ({
                     ))}
                   </tr>
                 ))}
-                {console.log({ element })}
               </tbody>
             </table>
           </div>
@@ -358,7 +357,7 @@ const BlockElement = ({
   return (
     <div
       ref={elementRef}
-      className={`${styles.blockElement} ${isDragging ? styles.blockDragging : ''} ${isHovered ? styles.blockHovered : ''}`}
+      className={`${styles.blockElement} ${isDragging ? styles.blockDragging : ''} ${isHovered ? styles.blockHovered : ''} ${element.type === 'table' ? styles.tableBlock : ''} `}
       // style={{ height: `${height}px`, minHeight: `${MIN_HEIGHT}px` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

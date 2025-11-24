@@ -287,7 +287,6 @@ const PDFPage = React.memo((({
       const info = pageSize;
       const elementType = type as 'text-field' | 'image' | 'signature' | 'date' | 'initials' | 'checkbox' | 'heading' | 'video' | 'table';
 
-      console.log({ x, y, info, pageNumber, type })
       dispatch({ type: 'SET_PAGE_DIMENSIONS', payload: { ...pageDimensions, [pageNumber]: info } })
 
       const defaultSize = {

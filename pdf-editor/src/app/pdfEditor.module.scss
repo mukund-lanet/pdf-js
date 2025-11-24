@@ -1295,6 +1295,10 @@
     border-color: #3b82f6;
   }
 
+  &.tableBlock {
+    padding: 14px 10px 0 10px;
+  }
+
   .blockDragHandle {
     position: absolute;
     top: 0;
@@ -1601,29 +1605,6 @@
     color: #374151;
     margin-bottom: 8px;
     display: block;
-  }
-
-  .requiredStar {
-    color: #ef4444;
-  }
-
-  .propertyInput {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-
-    &:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    &::placeholder {
-      color: #9ca3af;
-    }
   }
 
   .unitLabel {
@@ -2064,28 +2045,31 @@
   line-height: 1.4;
 }
 
-.inputWithUnit {
-  position: relative;
-
-  .propertyInput {
-    padding-right: 40px;
-  }
-
-  .unitLabel {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    color: #6b7280;
-    pointer-events: none;
-  }
-}
-
 .colorInputWrapper {
   position: relative;
 
   .propertyInput {
     padding-right: 48px;
+  }
+
+  .colorPickerIcon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
   }
 }

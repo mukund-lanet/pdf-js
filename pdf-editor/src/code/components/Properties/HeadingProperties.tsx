@@ -4,6 +4,9 @@ import { HeadingElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import Button from '@trenchaant/pkg-ui-component-library/build/Components/Button';
+import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
+import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
 
@@ -45,61 +48,77 @@ const HeadingProperties = ({ element }: HeadingPropertiesProps) => {
   return (
     <div className={styles.propertiesContentWrapper}>
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Heading Font Size</Typography>
-        <div className={styles.inputWithUnit}>
-          <input
-            type="number"
-            value={element.fontSize || 32}
-            onChange={(e) => updateElement({ fontSize: parseInt(e.target.value) || 32 })}
-            className={styles.propertyInput}
-          />
-          <span className={styles.unitLabel}>px</span>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter heading font size"}
+          label="Heading font size"
+          required
+          hideBorder={true}
+          value={element.fontSize}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ fontSize: parseInt(event.target.value) || 32 })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <span className={styles.unitLabel}>px</span>
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Subtitle Font Size</Typography>
-        <div className={styles.inputWithUnit}>
-          <input
-            type="number"
-            value={element.subtitleFontSize || 16}
-            onChange={(e) => updateElement({ subtitleFontSize: parseInt(e.target.value) || 16 })}
-            className={styles.propertyInput}
-          />
-          <span className={styles.unitLabel}>px</span>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter subtitle font size"}
+          label="Subtitle font size"
+          required
+          hideBorder={true}
+          value={element.subtitleFontSize}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleFontSize: parseInt(event.target.value) || 16 })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <span className={styles.unitLabel}>px</span>
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Subtitle Color</Typography>
-        <div className={styles.colorInputWrapper}>
-          <input
-            type="text"
-            placeholder="#374151"
-            value={element.subtitleColor || ''}
-            onChange={(e) => updateElement({ subtitleColor: e.target.value })}
-            className={styles.propertyInput}
-          />
-          <div className={styles.colorPickerIcon} style={{ background: element.subtitleColor || '#374151' }}>
-            <CustomIcon iconName="droplet" width={16} height={16} customColor="#fff" />
-          </div>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter subtitle color"}
+          label="Subtitle color"
+          hideBorder={true}
+          value={element.subtitleColor}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleColor: event.target?.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <CustomIcon iconName='droplet' height={20} width={20} variant="grey" />
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Background color</Typography>
-        <div className={styles.colorInputWrapper}>
-          <input
-            type="text"
-            placeholder="Please Input"
-            value={element.backgroundColor || ''}
-            onChange={(e) => updateElement({ backgroundColor: e.target.value })}
-            className={styles.propertyInput}
-          />
-          <div className={styles.colorPickerIcon}>
-            <CustomIcon iconName="droplet" width={16} height={16} customColor="#fff" />
-          </div>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter background color"}
+          label="Background color"
+          hideBorder={true}
+          value={element.backgroundColor}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: event.target?.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <CustomIcon iconName='droplet' height={20} width={20} variant="grey" />
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <BoxModelControl
