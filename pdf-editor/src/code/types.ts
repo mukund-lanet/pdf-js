@@ -31,7 +31,8 @@ export interface ImageElement extends BlockStyle {
   order: number; // Position in vertical stack
   height: number;
   width?: number; // Internal width
-  imageData: string; // base64
+  imageData?: string; // base64
+  imageUrl?: string; // URL-based image
   page: number;
   align?: 'left' | 'center' | 'right';
   imageEffect?: 'none' | 'grayscale';

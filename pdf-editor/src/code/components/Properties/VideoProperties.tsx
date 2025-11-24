@@ -64,9 +64,7 @@ const VideoProperties = ({ element }: VideoPropertiesProps) => {
             onChange={(e) => updateElement({ backgroundColor: e.target.value })}
             className={styles.propertyInput}
           />
-          <div className={styles.colorPickerIcon}>
-            <CustomIcon iconName="droplet" width={16} height={16} customColor="#fff" />
-          </div>
+          <CustomIcon iconName="droplet" width={16} height={16} customColor="#fff" />
         </div>
       </div>
 

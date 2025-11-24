@@ -83,6 +83,90 @@ const BlockElement = ({
     }
   };
 
+  // Helper function to convert video URLs to embed format
+  const getEmbedUrl = (url: string): string | null => {
+    if (!url) return null;
+
+    try {
+      const urlObj = new URL(url);
+
+      // YouTube
+      if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+        let videoId = '';
+
+        if (urlObj.hostname.includes('youtu.be')) {
+          // Short URL format: https://youtu.be/VIDEO_ID
+          videoId = urlObj.pathname.slice(1);
+        } else if (urlObj.searchParams.has('v')) {
+          // Standard format: https://www.youtube.com/watch?v=VIDEO_ID
+          videoId = urlObj.searchParams.get('v') || '';
+        } else if (urlObj.pathname.includes('/embed/')) {
+          // Already embed format
+          return url;
+        }
+
+        if (videoId) {
+          return `https://www.youtube.com/embed/${videoId}`;
+        }
+      }
+
+      // Vimeo
+      if (urlObj.hostname.includes('vimeo.com')) {
+        const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
+        if (videoId && urlObj.pathname.includes('/video/')) {
+          return url; // Already embed format
+        }
+        if (videoId) {
+          return `https://player.vimeo.com/video/${videoId}`;
+        }
+      }
+
+      // Dailymotion
+      if (urlObj.hostname.includes('dailymotion.com') || urlObj.hostname.includes('dai.ly')) {
+        let videoId = '';
+        if (urlObj.hostname.includes('dai.ly')) {
+          videoId = urlObj.pathname.slice(1);
+        } else {
+          videoId = urlObj.pathname.split('/').filter(Boolean).pop() || '';
+        }
+        if (videoId) {
+          return `https://www.dailymotion.com/embed/video/${videoId}`;
+        }
+      }
+
+      // Wistia
+      if (urlObj.hostname.includes('wistia.com')) {
+        const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
+        if (videoId) {
+          return `https://fast.wistia.net/embed/iframe/${videoId}`;
+        }
+      }
+
+      // Vidyard
+      if (urlObj.hostname.includes('vidyard.com')) {
+        const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
+        if (videoId) {
+          return `https://play.vidyard.com/${videoId}`;
+        }
+      }
+
+      // Loom
+      if (urlObj.hostname.includes('loom.com')) {
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        const videoId = pathParts[pathParts.length - 1];
+        if (videoId) {
+          return `https://www.loom.com/embed/${videoId}`;
+        }
+      }
+
+      // If no match, return original URL (might be already embedded)
+      return url;
+    } catch (e) {
+      console.error('Error parsing video URL:', e);
+      return null;
+    }
+  };
+
   const renderContent = () => {
     switch (element.type) {
       case 'heading':
@@ -140,6 +224,7 @@ const BlockElement = ({
         );
 
       case 'image':
+        const imageSource = element.imageUrl || element.imageData;
         return (
           <div
             className={styles.blockImageContent}
@@ -155,19 +240,30 @@ const BlockElement = ({
                 marginLeft: element.margin?.left,
               }),
               backgroundColor: element.backgroundColor,
-              // justifyContent: element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start',
+              display: 'flex',
               justifyContent: 'center',
-              display: 'flex'
             }}
           >
-            <div className={styles.blockImagePlaceholder}>
-              <CustomIcon iconName="image" width={48} height={48} />
-              <Typography>Please select an image</Typography>
-            </div>
+            {imageSource ? (
+              <img
+                src={imageSource}
+                alt="Uploaded content"
+                style={{
+                  width: element.width ? `${element.width}px` : '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: element.imageEffect === 'grayscale' ? 'grayscale(100%)' : 'none'
+                }}
+              />
+            ) : (
+              <Typography fontWeight="500" className={styles.blockContentText}>Please select an image</Typography>
+            )}
           </div>
         );
 
       case 'video':
+        const embedUrl = element.videoUrl ? getEmbedUrl(element.videoUrl) : null;
+
         return (
           <div
             className={styles.blockVideoContent}
@@ -182,20 +278,34 @@ const BlockElement = ({
                 marginBottom: element.margin?.bottom,
                 marginLeft: element.margin?.left,
               }),
-              backgroundColor: element.backgroundColor
+              backgroundColor: element.backgroundColor,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {element.videoUrl ? (
-              <video
-                src={element.videoUrl}
-                controls
-                style={{ width: element.width ? `${element.width}px` : '100%', height: '100%' }}
-              />
-            ) : (
-              <div className={styles.blockVideoPlaceholder}>
-                <CustomIcon iconName="video" width={48} height={48} />
-                <Typography>Please select a video</Typography>
+            {embedUrl ? (
+              <div className={styles.videoIframeContainer} style={{
+                width: element.width ? `${element.width}px` : '100%',
+                height: element.height ? `${element.height}px` : '100%',
+              }}>
+                <iframe
+                  src={embedUrl}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  title="Embedded video"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    borderRadius: '4px',
+                  }}
+                />
               </div>
+            ) : (
+              <Typography fontWeight="500" className={styles.blockContentText}>Please select a video</Typography>
             )}
           </div>
         );
@@ -234,6 +344,7 @@ const BlockElement = ({
                     ))}
                   </tr>
                 ))}
+                {console.log({ element })}
               </tbody>
             </table>
           </div>

@@ -38,12 +38,23 @@ export const PDF_EDITOR_ACTION_TYPES = {
   ADD_DOCUMENT_VARIABLE: 'ADD_DOCUMENT_VARIABLE',
   DELETE_DOCUMENT_VARIABLE: 'DELETE_DOCUMENT_VARIABLE',
   UPDATE_DOCUMENT_VARIABLE: 'UPDATE_DOCUMENT_VARIABLE',
+
+  // Properties Drawer Actions
+  SET_PROPERTIES_DRAWER_STATE: 'SET_PROPERTIES_DRAWER_STATE',
 } as const;
 
 // Action Interfaces
 interface SetPdfBytesAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES;
   payload: Uint8Array | null;
+}
+
+interface SetPropertiesDrawerStateAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.SET_PROPERTIES_DRAWER_STATE;
+  payload: {
+    anchorEl: null | HTMLElement;
+    isOpen: boolean;
+  };
 }
 
 interface SetDrawerComponentCategoryAction {
@@ -189,4 +200,5 @@ export type PdfEditorActionTypes =
   | SetActiveElementIdAction
   | AddDocumentVariableAction
   | DeleteDocumentVariableAction
-  | UpdateDocumentVariableAction;
+  | UpdateDocumentVariableAction
+  | SetPropertiesDrawerStateAction;

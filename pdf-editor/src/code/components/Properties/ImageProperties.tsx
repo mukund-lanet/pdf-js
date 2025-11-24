@@ -4,6 +4,9 @@ import { ImageElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import Button from '@trenchaant/pkg-ui-component-library/build/Components/Button';
+import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
+import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
 
@@ -34,32 +37,34 @@ const ImageProperties = ({ element }: ImagePropertiesProps) => {
   return (
     <div className={styles.propertiesContentWrapper}>
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Image URL</Typography>
-        <div className={styles.colorInputWrapper}>
-          <input
-            type="text"
-            placeholder="Please Input"
-            value={element.imageData?.startsWith('data:') ? 'Base64 Image' : element.imageData || ''}
-            readOnly
-            className={styles.propertyInput}
-          />
-          <div className={styles.inputIconWrapper}>
-            <CustomIcon iconName="image" width={20} height={20} />
-          </div>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter image url"}
+          label="Image URL"
+          hideBorder={true}
+          value={element.imageUrl}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ imageUrl: event.target?.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <CustomIcon iconName='image' height={20} width={20} variant="grey" />
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
         <Typography className={styles.propertyLabel}>Align</Typography>
         <div className={styles.buttonGroup}>
           {['left', 'center', 'right'].map((align) => (
-            <button
+            <Button
               key={align}
               className={`${styles.buttonGroupButton} ${element.align === align ? styles.active : ''}`}
               onClick={() => updateElement({ align: align as any })}
             >
               {align.charAt(0).toUpperCase() + align.slice(1)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -67,62 +72,73 @@ const ImageProperties = ({ element }: ImagePropertiesProps) => {
       <div className={styles.propertyGroup}>
         <Typography className={styles.propertyLabel}>Image effects</Typography>
         <div className={styles.buttonGroup}>
-          <button
+          <Button
             className={`${styles.buttonGroupButton} ${element.imageEffect !== 'grayscale' ? styles.active : ''}`}
             onClick={() => updateElement({ imageEffect: 'none' })}
           >
             Full color
-          </button>
-          <button
+          </Button>
+          <Button
             className={`${styles.buttonGroupButton} ${element.imageEffect === 'grayscale' ? styles.active : ''}`}
             onClick={() => updateElement({ imageEffect: 'grayscale' })}
           >
             Black & White
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Background color</Typography>
-        <div className={styles.colorInputWrapper}>
-          <input
-            type="text"
-            placeholder="Please Input"
-            value={element.backgroundColor || ''}
-            onChange={(e) => updateElement({ backgroundColor: e.target.value })}
-            className={styles.propertyInput}
-          />
-          <div className={styles.colorPickerIcon}>
-            <CustomIcon iconName="droplet" width={16} height={16} customColor="#fff" />
-          </div>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter background color"}
+          label="Background color"
+          hideBorder={true}
+          value={element.backgroundColor}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: event.target?.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <CustomIcon iconName='droplet' height={20} width={20} variant="grey" />
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Height <span className={styles.requiredStar}>*</span></Typography>
-        <div className={styles.inputWithUnit}>
-          <input
-            type="number"
-            value={element.height}
-            onChange={(e) => updateElement({ height: parseInt(e.target.value) || 0 })}
-            className={styles.propertyInput}
-          />
-          <span className={styles.unitLabel}>px</span>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter height"}
+          label="Height"
+          hideBorder={true}
+          value={element.height}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ height: parseInt(event.target?.value) || 0 })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <span className={styles.unitLabel}>px</span>
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Width <span className={styles.requiredStar}>*</span></Typography>
-        <div className={styles.inputWithUnit}>
-          <input
-            type="number"
-            value={element.width || ''}
-            placeholder="Auto"
-            onChange={(e) => updateElement({ width: parseInt(e.target.value) || undefined })}
-            className={styles.propertyInput}
-          />
-          <span className={styles.unitLabel}>px</span>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter width"}
+          label="Width"
+          hideBorder={true}
+          value={element.width}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ width: parseInt(event.target?.value) || 0 })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <span className={styles.unitLabel}>px</span>
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <BoxModelControl

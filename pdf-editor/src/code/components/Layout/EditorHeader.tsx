@@ -64,7 +64,6 @@ const EditorHeader = () => {
       dispatch({ type: 'SET_SELECTED_TEXT_ELEMENT', payload: null })
     } catch (error) {
       console.error('Error loading PDF:', error);
-      console.log('Error loading PDF:', error);
       alert('Failed to load PDF. Please make sure it is a valid PDF file.');
     } finally {
       dispatch({ type: 'SET_IS_LOADING', payload: false })

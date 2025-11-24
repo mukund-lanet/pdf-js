@@ -17,6 +17,10 @@ export interface PdfEditorState {
   drawerComponentCategory?: DRAWER_COMPONENT_CATEGORY;
   activeElementId: string | null;
   documentVariables: DocumentVariable[];
+  propertiesDrawerState?: {
+    anchorEl: null | HTMLElement;
+    isOpen: boolean;
+  };
 }
 
 export interface RootState {
@@ -56,6 +60,10 @@ const initialState: PdfEditorState = {
       isSystem: true
     },
   ],
+  propertiesDrawerState: {
+    anchorEl: null,
+    isOpen: false
+  }
 };
 
 // Reducer
@@ -64,26 +72,36 @@ export const pdfEditorReducer = (
   action: PdfEditorActionTypes
 ): PdfEditorState => {
   switch (action.type) {
+    case PDF_EDITOR_ACTION_TYPES.SET_PROPERTIES_DRAWER_STATE:
+      return {
+        ...state,
+        propertiesDrawerState: action.payload
+      };
+
     case PDF_EDITOR_ACTION_TYPES.SET_DRAWER_COMPONENT_CATEGORY:
       return {
         ...state,
         drawerComponentCategory: action.payload
       };
+
     case PDF_EDITOR_ACTION_TYPES.SET_ACTIVE_ELEMENT_ID:
       return {
         ...state,
         activeElementId: action.payload
       };
+
     case PDF_EDITOR_ACTION_TYPES.ADD_DOCUMENT_VARIABLE:
       return {
         ...state,
         documentVariables: [...state.documentVariables, action.payload]
       };
+
     case PDF_EDITOR_ACTION_TYPES.DELETE_DOCUMENT_VARIABLE:
       return {
         ...state,
         documentVariables: state.documentVariables.filter(v => v.name !== action.payload)
       };
+
     case PDF_EDITOR_ACTION_TYPES.UPDATE_DOCUMENT_VARIABLE:
       return {
         ...state,
@@ -91,11 +109,13 @@ export const pdfEditorReducer = (
           v.name === action.payload.name ? action.payload : v
         )
       };
+
     case PDF_EDITOR_ACTION_TYPES.SET_IS_LOADING:
       return {
         ...state,
         isLoading: action.payload
       };
+
     case PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES:
       return {
         ...state,
