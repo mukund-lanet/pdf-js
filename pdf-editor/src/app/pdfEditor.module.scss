@@ -356,7 +356,7 @@
     background: #fff;
     position: relative;
     z-index: 1;
-    padding: 12px 16px;
+    padding: 4px 12px;
     justify-content: space-between;
   }
 
@@ -379,19 +379,13 @@
       align-items: center;
 
       .toolbarItem {
-        padding: 10px 16px;
+        padding: 0 10px;
         background: white;
         border: 2px solid #ddd;
         border-radius: 6px;
         cursor: pointer;
         user-select: none;
         transition: all 0.2s ease;
-        min-width: 100px;
-        text-align: center;
-        font-size: 16px;
-        font-weight: 500;
-        color: #344256;
-        height: 44px;
 
         .label {
           font-size: 14px;
@@ -437,7 +431,7 @@
       width: 350px;
       height: 900px;
       background-color: #FFFFFF;
-      border-right: 1px solid #e5e7eb;
+      border: 1px solid #ddd;
 
       .emptyMessage {
         text-align: center;
@@ -779,6 +773,7 @@
   flex-direction: column;
   height: 100%;
   background: white;
+  border: 1px solid #ddd;
 
   .elementSection {
     display: flex;
@@ -1350,32 +1345,32 @@
   &.tableBlock {
     padding: 14px 10px 0 10px;
   }
+}
 
-  .blockDragHandle {
-    position: absolute;
-    top: 0;
-    left: -24px;
-    width: 20px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    cursor: grab;
-    opacity: 0;
-    transition: opacity 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    z-index: 10;
+.blockDragHandle {
+  position: absolute;
+  top: 0;
+  left: -24px;
+  width: 20px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  z-index: 10;
 
-    .blockElement:hover & {
-      opacity: 1;
-    }
+  .blockElement:hover & {
+    opacity: 1;
+  }
 
-    &:active {
-      cursor: grabbing;
-    }
+  &:active {
+    cursor: grabbing;
   }
 }
 
@@ -1651,14 +1646,6 @@
 .propertyGroup {
   margin-bottom: 24px;
 
-  .propertyLabel {
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 8px;
-    display: block;
-  }
-
   .unitLabel {
     font-size: 14px;
     color: #6b7280;
@@ -1788,7 +1775,7 @@
 
 // Margin positions
 .marginTop {
-  top: -2px;
+  top: 0px;
   left: 50%;
   transform: translateX(-50%);
 
@@ -1801,7 +1788,7 @@
 }
 
 .marginRight {
-  right: 8px;
+  right: 0px;
   top: 50%;
   transform: translateY(-50%);
 
@@ -1814,7 +1801,7 @@
 }
 
 .marginBottom {
-  bottom: -2px;
+  bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
 
@@ -1827,7 +1814,7 @@
 }
 
 .marginLeft {
-  left: 8px;
+  left: 0px;
   top: 50%;
   transform: translateY(-50%);
 
@@ -1841,7 +1828,7 @@
 
 // Padding positions
 .paddingTop {
-  top: -2px;
+  top: 0px;
   left: 50%;
   transform: translateX(-50%);
 
@@ -1854,7 +1841,7 @@
 }
 
 .paddingRight {
-  right: 8px;
+  right: 0px;
   top: 50%;
   transform: translateY(-50%);
 
@@ -1867,7 +1854,7 @@
 }
 
 .paddingBottom {
-  bottom: -2px;
+  bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
 
@@ -1880,7 +1867,7 @@
 }
 
 .paddingLeft {
-  left: 8px;
+  left: 0px;
   top: 50%;
   transform: translateY(-50%);
 
@@ -2099,10 +2086,6 @@
 
 .colorInputWrapper {
   position: relative;
-
-  .propertyInput {
-    padding-right: 48px;
-  }
 
   .colorPickerIcon {
     position: absolute;

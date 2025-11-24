@@ -9,6 +9,7 @@ import TextField from "@trenchaant/pkg-ui-component-library/build/Components/Tex
 import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
+import DebouncedColorInput from './DebouncedColorInput';
 
 interface ImagePropertiesProps {
   element: ImageElement;
@@ -88,20 +89,11 @@ const ImageProperties = ({ element }: ImagePropertiesProps) => {
       </div>
 
       <div className={styles.propertyGroup}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder={"Please enter background color"}
+        <DebouncedColorInput
           label="Background color"
-          hideBorder={true}
+          placeholder="Please enter background color"
           value={element.backgroundColor}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: event.target?.value })}
-          inputProps={{ className: 'py-10 text-13' }}
-          endAdornment={(
-            <InputAdornment position="end" >
-              <CustomIcon iconName='droplet' height={20} width={20} variant="grey" />
-            </InputAdornment>
-          )}
+          onChange={(value) => updateElement({ backgroundColor: value })}
         />
       </div>
 

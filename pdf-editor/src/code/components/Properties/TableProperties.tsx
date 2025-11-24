@@ -4,6 +4,7 @@ import { TableElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
+import DebouncedColorInput from './DebouncedColorInput';
 
 interface TablePropertiesProps {
   element: TableElement;
@@ -31,6 +32,15 @@ const TableProperties = ({ element }: TablePropertiesProps) => {
 
   return (
     <div className={styles.propertiesContentWrapper}>
+      <div className={styles.propertyGroup}>
+        <DebouncedColorInput
+          label="Background color"
+          placeholder="Please enter background color"
+          value={element.backgroundColor}
+          onChange={(value) => updateElement({ backgroundColor: value })}
+        />
+      </div>
+
       <BoxModelControl
         margin={element.margin}
         padding={element.padding}

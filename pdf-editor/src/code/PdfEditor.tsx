@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
-import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import { injectReducer } from 'components/store';
 import reducer from './store/index'
@@ -60,8 +59,6 @@ const PdfEditor = () => {
           <EditorLeftSidebar />
           <TextFormattingToolbar />
         </div>
-
-        <Divider orientation="horizontal" className={styles.toolbarDivider} />
 
         <div className={styles.mainContainer}>
           <EditorLeftDrawer />

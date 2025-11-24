@@ -4,8 +4,12 @@ import { VideoElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import Button from '@trenchaant/pkg-ui-component-library/build/Components/Button';
+import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
+import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
+import DebouncedColorInput from './DebouncedColorInput';
 
 interface VideoPropertiesProps {
   element: VideoElement;
@@ -41,13 +45,20 @@ const VideoProperties = ({ element }: VideoPropertiesProps) => {
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Video URL</Typography>
-        <input
-          type="text"
-          placeholder="Paste a video URL"
-          value={element.videoUrl || ''}
-          onChange={(e) => updateElement({ videoUrl: e.target.value })}
-          className={styles.propertyInput}
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter video url"}
+          label="Video URL"
+          hideBorder={true}
+          value={element.videoUrl}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ videoUrl: event.target?.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <CustomIcon iconName='video' height={20} width={20} variant="grey" />
+            </InputAdornment>
+          )}
         />
         <Typography className={styles.helperText}>
           Paste a video URL to embed it in your document. YouTube, Vimeo, Wistia and Vidyard are supported.
@@ -55,44 +66,48 @@ const VideoProperties = ({ element }: VideoPropertiesProps) => {
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Background color</Typography>
-        <div className={styles.colorInputWrapper}>
-          <input
-            type="text"
-            placeholder="Please Input"
-            value={element.backgroundColor || ''}
-            onChange={(e) => updateElement({ backgroundColor: e.target.value })}
-            className={styles.propertyInput}
-          />
-          <CustomIcon iconName="droplet" width={16} height={16} customColor="#fff" />
-        </div>
+        <DebouncedColorInput
+          label="Background color"
+          placeholder="Please enter background color"
+          value={element.backgroundColor}
+          onChange={(value) => updateElement({ backgroundColor: value })}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Height</Typography>
-        <div className={styles.inputWithUnit}>
-          <input
-            type="number"
-            value={element.height}
-            onChange={(e) => updateElement({ height: parseInt(e.target.value) || 0 })}
-            className={styles.propertyInput}
-          />
-          <span className={styles.unitLabel}>px</span>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter video height"}
+          label="Height"
+          hideBorder={true}
+          value={element.height || ''}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ height: parseInt(event.target?.value) })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <span className={styles.unitLabel}>px</span>
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <div className={styles.propertyGroup}>
-        <Typography className={styles.propertyLabel}>Width</Typography>
-        <div className={styles.inputWithUnit}>
-          <input
-            type="number"
-            value={element.width || ''}
-            placeholder="Auto"
-            onChange={(e) => updateElement({ width: parseInt(e.target.value) || undefined })}
-            className={styles.propertyInput}
-          />
-          <span className={styles.unitLabel}>px</span>
-        </div>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder={"Please enter video width"}
+          label="Width"
+          hideBorder={true}
+          value={element.width || ''}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ width: parseInt(event.target?.value) || undefined })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end" >
+              <span className={styles.unitLabel}>px</span>
+            </InputAdornment>
+          )}
+        />
       </div>
 
       <BoxModelControl
