@@ -358,6 +358,7 @@
     z-index: 1;
     padding: 4px 12px;
     justify-content: space-between;
+    height: 48px;
   }
 
   .toolbarWrapper {
@@ -589,10 +590,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 32px;
       transition: all 0.2s;
-      height: 32px;
-      width: 32px;
+      height: 28px;
+      width: 28px;
 
       &:hover {
         background: #f0f0f0;
@@ -618,7 +618,8 @@
       background: white;
 
       .triggerBtn {
-        height: 32px;
+        height: 28px;
+        padding: 0 12px;
       }
 
       &:hover {
@@ -1942,11 +1943,33 @@
 .spacingSlider {
   flex: 1;
   height: 6px;
-  border-radius: 3px;
+  background: transparent;
   outline: none;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(to right, #3b82f6 0%, #3b82f6 var(--value, 0%), #e5e7eb var(--value, 0%), #e5e7eb 100%);
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right,
+        #3b82f6 0%,
+        #3b82f6 var(--val),
+        #e5e7eb var(--val),
+        #e5e7eb 100%);
+  }
+
+  &::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #e5e7eb;
+  }
+
+  &::-moz-range-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: #3b82f6;
+  }
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -1956,14 +1979,13 @@
     border-radius: 50%;
     background: white;
     border: 2px solid #3b82f6;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
+    transition: 0.2s;
+    margin-top: -5px;
+  }
 
-    &:hover {
-      transform: scale(1.1);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    }
+  &::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
 
   &::-moz-range-thumb {
@@ -1972,25 +1994,12 @@
     border-radius: 50%;
     background: white;
     border: 2px solid #3b82f6;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
-
-    &:hover {
-      transform: scale(1.1);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    }
+    transition: 0.2s;
   }
 
-  &::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: 3px;
-  }
-
-  &::-moz-range-track {
-    height: 6px;
-    border-radius: 3px;
-    background: #e5e7eb;
+  &::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
 }
 
@@ -2135,5 +2144,118 @@
       transform: translateY(-50%) scale(1.05);
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
     }
+  }
+}
+
+.propertyLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.sectionHeader {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 24px 0 16px 0;
+  display: block;
+}
+
+.userInfoCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.userAvatarSmall {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.userDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.userEmail {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.userBadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  span {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+}
+
+.badgePrimary {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.badgeSigner {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.addCustomFieldsBtn {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  border: 1px solid #dbeafe !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  padding: 12px !important;
+
+  &:hover {
+    background: #dbeafe !important;
   }
 }

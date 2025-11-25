@@ -23,6 +23,8 @@ export interface TextElement {
   page: number;
   fontSize?: number;
   color?: string;
+  required?: boolean;
+  placeholder?: string;
 }
 
 export interface ImageElement extends BlockStyle {
@@ -47,6 +49,8 @@ export interface SignatureElement {
   height: number;
   imageData: string; // base64
   page: number;
+  content?: string;
+  showSignerName?: boolean;
 }
 
 export interface DateElement {
@@ -58,6 +62,10 @@ export interface DateElement {
   height: number;
   value?: string; // Selected date value (ISO format)
   page: number;
+  placeholder?: string;
+  dateFormat?: string;
+  availableDates?: string;
+  required?: boolean;
 }
 
 export interface InitialsElement {
@@ -80,6 +88,7 @@ export interface CheckboxElement {
   height: number;
   checked: boolean;
   page: number;
+  required?: boolean;
 }
 
 export interface BoxSpacing {

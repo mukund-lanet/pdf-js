@@ -39,6 +39,8 @@ const SpacingControl = ({ value, onChange, onReset, label }: SpacingControlProps
               max="100"
               value={value}
               onChange={(e) => onChange(parseInt(e.target.value))}
+              // @ts-ignore
+              style={{ "--val": `${value}%` }}
               className={styles.spacingSlider}
             />
             <div className={styles.spacingInputWrapper}>

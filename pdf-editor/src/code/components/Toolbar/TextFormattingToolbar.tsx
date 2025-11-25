@@ -8,6 +8,7 @@ import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/Menu
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import { HeadingElement, TableElement } from '../../types';
+import DebouncedColorInput from '../Properties/DebouncedColorInput';
 
 const TextFormattingToolbar = () => {
   const dispatch = useDispatch();
@@ -32,10 +33,6 @@ const TextFormattingToolbar = () => {
 
   const handleFontSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     updateElement({ fontSize: parseInt(e.target.value) });
-  };
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateElement({ color: e.target.value });
   };
 
   const handleBoldToggle = () => {
@@ -104,73 +101,60 @@ const TextFormattingToolbar = () => {
   return (
     <div className={styles.textFormattingToolbarWrapper}>
       <div className={styles.textFormattingToolbar}>
+        <Select
+          value={element.fontFamily || 'Open Sans, sans-serif'}
+          size="small"
+          onChange={handleFontFamilyChange}
+          className={styles.fontFamilySelect}
+          classes={{ trigger: styles.triggerBtn }}
+        >
+          {fontFamilyList.map((font) => (
+            <MenuItem key={font.name} value={font.value} style={{ fontFamily: font.value }}>
+              {font.name}
+            </MenuItem>
+          ))}
+        </Select>
 
-        {/* Font Family */}
-        <div className={styles.toolbarGroup}>
-          <Select
-            value={element.fontFamily || 'Open Sans, sans-serif'}
-            size="small"
-            onChange={handleFontFamilyChange}
-            className={styles.fontFamilySelect}
-            classes={{ trigger: styles.triggerBtn }}
-            style={{ width: 140 }}
-          >
-            {fontFamilyList.map((font) => (
-              <MenuItem key={font.name} value={font.value} style={{ fontFamily: font.value }}>
-                {font.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </div>
+        <Divider orientation="vertical" className={styles.toolbarDivider} />
+        <Select
+          value={element.fontSize || (element.type === 'heading' ? 32 : 14)}
+          size="small"
+          onChange={handleFontSizeChange}
+          className={styles.fontSizeSelect}
+          classes={{ trigger: styles.triggerBtn }}
+        >
+          {fontSizeList.map((size) => (
+            <MenuItem key={size} value={size}>{size}px</MenuItem>
+          ))}
+        </Select>
 
         <Divider orientation="vertical" className={styles.toolbarDivider} />
 
-        {/* Font Size */}
-        <div className={styles.toolbarGroup}>
-          <Select
-            value={element.fontSize || (element.type === 'heading' ? 32 : 14)}
-            size="small"
-            onChange={handleFontSizeChange}
-            className={styles.fontSizeSelect}
-            classes={{ trigger: styles.triggerBtn }}
-          >
-            {fontSizeList.map((size) => (
-              <MenuItem key={size} value={size}>{size}px</MenuItem>
-            ))}
-          </Select>
-        </div>
-
-        <Divider orientation="vertical" className={styles.toolbarDivider} />
-
-        {/* Heading Level (Only for Headings) */}
         {element.type === 'heading' && (
           <>
-            <div className={styles.toolbarGroup}>
-              <Select
-                value={element.tagName || 'h1'}
-                size="small"
-                onChange={handleHeadingLevelChange}
-                className={styles.headingLevelSelect}
-                classes={{ trigger: styles.triggerBtn }}
-                style={{ width: 120 }}
-              >
-                {headingLevels.map((level) => (
-                  <MenuItem key={level.value} value={level.value} className={styles[`headingOption-${level.value}`]}>
-                    {level.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </div>
+            <Select
+              value={element.tagName || 'h1'}
+              size="small"
+              onChange={handleHeadingLevelChange}
+              className={styles.headingLevelSelect}
+              classes={{ trigger: styles.triggerBtn }}
+            >
+              {headingLevels.map((level) => (
+                <MenuItem key={level.value} value={level.value} className={styles[`headingOption-${level.value}`]}>
+                  {level.label}
+                </MenuItem>
+              ))}
+            </Select>
             <Divider orientation="vertical" className={styles.toolbarDivider} />
           </>
         )}
 
-        {/* Bold, Italic, Underline */}
         <div className={styles.toolbarGroup}>
           <Button
             className={`${styles.toolbarBtn} ${element.fontWeight === 'bold' ? styles.active : ''}`}
             onClick={handleBoldToggle}
             title="Bold"
+            variant="contained"
           >
             <CustomIcon iconName="bold" width={16} height={16} customColor="#000000" />
           </Button>
@@ -178,6 +162,7 @@ const TextFormattingToolbar = () => {
             className={`${styles.toolbarBtn} ${element.fontStyle === 'italic' ? styles.active : ''}`}
             onClick={handleItalicToggle}
             title="Italic"
+            variant="contained"
           >
             <CustomIcon iconName="italic" width={16} height={16} customColor="#000000" />
           </Button>
@@ -185,6 +170,7 @@ const TextFormattingToolbar = () => {
             className={`${styles.toolbarBtn} ${element.textDecoration === 'underline' ? styles.active : ''}`}
             onClick={handleUnderlineToggle}
             title="Underline"
+            variant="contained"
           >
             <CustomIcon iconName="underline" width={16} height={16} customColor="#000000" />
           </Button>
@@ -198,6 +184,7 @@ const TextFormattingToolbar = () => {
             className={`${styles.toolbarBtn} ${element.textAlign === 'left' ? styles.active : ''}`}
             onClick={() => handleAlignmentChange('left')}
             title="Align Left"
+            variant="contained"
           >
             <CustomIcon iconName="align-left" width={16} height={16} customColor="#000000" />
           </Button>
@@ -205,6 +192,7 @@ const TextFormattingToolbar = () => {
             className={`${styles.toolbarBtn} ${element.textAlign === 'center' ? styles.active : ''}`}
             onClick={() => handleAlignmentChange('center')}
             title="Align Center"
+            variant="contained"
           >
             <CustomIcon iconName="align-center" width={16} height={16} customColor="#000000" />
           </Button>
@@ -212,6 +200,7 @@ const TextFormattingToolbar = () => {
             className={`${styles.toolbarBtn} ${element.textAlign === 'right' ? styles.active : ''}`}
             onClick={() => handleAlignmentChange('right')}
             title="Align Right"
+            variant="contained"
           >
             <CustomIcon iconName="align-right" width={16} height={16} customColor="#000000" />
           </Button>
@@ -219,14 +208,12 @@ const TextFormattingToolbar = () => {
 
         <Divider orientation="vertical" className={styles.toolbarDivider} />
 
-        {/* Text Color */}
         <div className={styles.toolbarGroup}>
-          <input
-            type="color"
+          <DebouncedColorInput
             value={element.color || '#000000'}
-            onChange={handleColorChange}
-            className={styles.colorPicker}
-            title="Text Color"
+            onChange={(color) => updateElement({ color })}
+            label="Text Color"
+            isOnlyColor
           />
         </div>
       </div>

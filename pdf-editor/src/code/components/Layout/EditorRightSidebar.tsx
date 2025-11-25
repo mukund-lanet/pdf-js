@@ -5,11 +5,26 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import { HeadingElement, ImageElement, TableElement, VideoElement } from '../../types';
+import {
+  HeadingElement,
+  ImageElement,
+  TableElement,
+  VideoElement,
+  SignatureElement,
+  TextElement,
+  DateElement,
+  InitialsElement,
+  CheckboxElement
+} from '../../types';
 import HeadingProperties from '../Properties/HeadingProperties';
 import ImageProperties from '../Properties/ImageProperties';
 import VideoProperties from '../Properties/VideoProperties';
 import TableProperties from '../Properties/TableProperties';
+import SignatureProperties from '../Properties/SignatureProperties';
+import TextFieldProperties from '../Properties/TextFieldProperties';
+import DateProperties from '../Properties/DateProperties';
+import InitialsProperties from '../Properties/InitialsProperties';
+import CheckboxProperties from '../Properties/CheckboxProperties';
 
 const EditorRightSidebar = () => {
   const activeElementId = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeElementId);
@@ -42,6 +57,16 @@ const EditorRightSidebar = () => {
         return <VideoProperties element={activeElement as VideoElement} />;
       case 'table':
         return <TableProperties element={activeElement as TableElement} />;
+      case 'signature':
+        return <SignatureProperties element={activeElement as SignatureElement} />;
+      case 'text-field':
+        return <TextFieldProperties element={activeElement as TextElement} />;
+      case 'date':
+        return <DateProperties element={activeElement as DateElement} />;
+      case 'initials':
+        return <InitialsProperties element={activeElement as InitialsElement} />;
+      case 'checkbox':
+        return <CheckboxProperties element={activeElement as CheckboxElement} />;
       default:
         return (
           <div className={styles.emptyMessage}>

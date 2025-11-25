@@ -23,6 +23,7 @@ const DraggableElement = ({
   onSelect
 }: DraggableElementProps) => {
   const dispatch = useDispatch();
+  const [showToolbar, setShowToolbar] = useState(false);
   const targetRef = useRef<HTMLDivElement>(null);
 
   const [localSize, setLocalSize] = useState({ width: element.width, height: element.height });
@@ -46,6 +47,11 @@ const DraggableElement = ({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelect(element.id, e.shiftKey);
+    setShowToolbar(true);
+    dispatch({
+      type: 'SET_ACTIVE_ELEMENT_ID',
+      payload: element.id
+    });
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -67,13 +73,26 @@ const DraggableElement = ({
     dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (targetRef.current && !targetRef.current.contains(event.target as Node)) {
+        setShowToolbar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const renderContent = () => {
     switch (element.type) {
       case 'text-field':
         return (
           <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
             <Typography fontWeight="400" className={styles.contentLabel}>
-              {element.content || 'Enter text here...'}
+              {element.content || element.placeholder || 'Enter value'}
             </Typography>
           </div>
         );
@@ -84,7 +103,7 @@ const DraggableElement = ({
             <div className={styles.contentDiv}>
               <CustomIcon iconName="pencil-line" width={24} height={24} customColor="#00acc1" />
               <Typography fontWeight="400" className={styles.contentLabel}>
-                Click to sign
+                {element.content || 'Signature'}
               </Typography>
             </div>
           </div>
@@ -96,7 +115,7 @@ const DraggableElement = ({
             <div className={styles.contentDiv}>
               <CustomIcon iconName="calendar" width={20} height={20} customColor="#00acc1" />
               <Typography fontWeight="400" className={styles.contentLabel}>
-                {element.value || 'Select date'}
+                {element.value || element.placeholder || 'Select date'}
               </Typography>
             </div>
           </div>
@@ -142,12 +161,12 @@ const DraggableElement = ({
     zIndex: isDragging ? 100 : 10,
     userSelect: 'none',
     pointerEvents: 'auto',
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1, // Visual feedback for dragging
   };
 
   return (
     <>
-      {isSelected ? (
+      {showToolbar && isSelected ? (
         <Resizable
           width={localSize.width}
           height={localSize.height}
@@ -173,7 +192,7 @@ const DraggableElement = ({
             style={elementStyle}
             onClick={handleClick}
           >
-            {isSelected && (
+            {showToolbar && isSelected && (
               <div className={styles.elementToolbar}>
                 <Button
                   className={styles.toolbarButton}
