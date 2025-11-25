@@ -4,6 +4,10 @@ import { useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import { CanvasElement, isBlockElement, isFillableElement } from '../../types';
+import Typography from '@trenchaant/pkg-ui-component-library/build/Components/Typography';
+
+import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
 interface ThumbnailPageProps {
   pdfDoc: any;
@@ -11,9 +15,10 @@ interface ThumbnailPageProps {
   currentPage: number;
   onThumbnailClick: (pageNumber: number) => void;
   isLoading: boolean;
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
-const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnailClick, isLoading }: ThumbnailPageProps) => {
+const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnailClick, isLoading, dragHandleProps }: ThumbnailPageProps) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
@@ -208,7 +213,16 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
       const elementX = 0;
       const elementY = currentY;
       const elementWidth = currentPageDimensions.pageWidth;
-      const elementHeight = element.height;
+      let elementHeight = element.height;
+
+      // Adjust height for empty blocks to match editor rendering (min-height: 107px)
+      if (element.type === 'image' && !element.imageData) {
+        elementHeight = 110;
+      } else if (element.type === 'video' && !element.videoUrl) {
+        elementHeight = 110;
+      } else if (element.type === 'table') {
+        elementHeight = 100;
+      }
 
       renderElement(element, elementX, elementY, elementWidth, elementHeight);
       currentY += elementHeight;
@@ -284,39 +298,44 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
 
   return (
     <div className={styles.thumbnailWrapper}>
-      <div
-        key={`thumbnail_page_${pageNumber}`}
-        className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}
-        onClick={() => onThumbnailClick(pageNumber)}
-      >
-        <div className={styles.thumbnailContent}>
-          {isLoading && (
-            <div className={styles.thumbnailLoading}>
-              Loading...
-            </div>
-          )}
+      <div className={styles.thumbnailDragHandle} {...dragHandleProps}>
+        <Typography className={styles.thumbnailPageNumber}>{pageNumber}</Typography>
+        <CustomIcon iconName="grip-vertical" width={16} height={16} variant="white" />
+      </div>
+      <div className={styles.thumbnailPageContainer}>
+        <div
+          key={`thumbnail_page_${pageNumber}`}
+          className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}
+          onClick={() => onThumbnailClick(pageNumber)}
+        >
+          <div className={styles.thumbnailContent}>
+            {isLoading && (
+              <div className={styles.thumbnailLoading}>
+                Loading...
+              </div>
+            )}
 
-          {error && (
-            <div className={styles.thumbnailError}>
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className={styles.thumbnailError}>
+                {error}
+              </div>
+            )}
 
-          {thumbnailUrl && !isLoading && !error && (
-            <div
-              className={styles.thumbnailImage}
-              style={{
-                backgroundImage: `url(${thumbnailUrl})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                width: '100%',
-                height: '100%',
-              }}
-            />
-          )}
+            {thumbnailUrl && !isLoading && !error && (
+              <div
+                className={styles.thumbnailImage}
+                style={{
+                  backgroundImage: `url(${thumbnailUrl})`,
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  width: '201px',
+                  height: '255px',
+                }}
+              />
+            )}
+          </div>
         </div>
-        <div className={styles.thumbnailPageNumber}>Page {pageNumber}</div>
       </div>
     </div>
   );

@@ -1,5 +1,9 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
+import { useDrag } from 'react-dnd';
+// @ts-ignore
+import { Resizable } from 'react-resizable';
+import 'react-resizable/css/styles.css';
 import { useDispatch } from 'react-redux';
 import { FillableFieldElement } from '../../types';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
@@ -9,30 +13,39 @@ import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/Cu
 
 interface DraggableElementProps {
   element: FillableFieldElement;
+  isSelected: boolean;
+  onSelect: (id: string, multi: boolean) => void;
 }
 
 const DraggableElement = ({
   element,
+  isSelected,
+  onSelect
 }: DraggableElementProps) => {
   const dispatch = useDispatch();
-  const [isDragging, setIsDragging] = useState(false);
-  const [showToolbar, setShowToolbar] = useState(false);
-
   const targetRef = useRef<HTMLDivElement>(null);
 
-  // Use element coordinates directly
-  const position = { x: element.x, y: element.y };
-  const size = { width: element.width, height: element.height };
+  const [localSize, setLocalSize] = useState({ width: element.width, height: element.height });
 
-  // drag handling
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Allow event to propagate to Selecto/Moveable
-    setIsDragging(true);
-  };
+  useEffect(() => {
+    setLocalSize({ width: element.width, height: element.height });
+  }, [element.width, element.height]);
+
+  const position = { x: element.x, y: element.y };
+
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'FILLABLE_ELEMENT',
+    item: { id: element.id, type: element.type, x: element.x, y: element.y },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }), [element.id, element.x, element.y, element.type]);
+
+  drag(targetRef);
 
   const handleClick = (e: React.MouseEvent) => {
-    // Allow event to propagate to Selecto
-    setShowToolbar(true);
+    e.stopPropagation();
+    onSelect(element.id, e.shiftKey);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -52,24 +65,6 @@ const DraggableElement = ({
       y: element.y + 20
     };
     dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
-  };
-
-  // Hide toolbar when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (targetRef.current && !targetRef.current.contains(event.target as Node)) {
-        setShowToolbar(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
   };
 
   const renderContent = () => {
@@ -140,58 +135,79 @@ const DraggableElement = ({
     position: 'absolute',
     left: position.x,
     top: position.y,
-    width: size.width,
-    height: size.height,
-    border: (isDragging) ? '2px solid #007bff' : '2px dashed #007bff',
+    width: localSize.width,
+    height: localSize.height,
     background: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
     cursor: isDragging ? 'grabbing' : 'grab',
-    zIndex: (isDragging) ? 100 : 10,
+    zIndex: isDragging ? 100 : 10,
     userSelect: 'none',
     pointerEvents: 'auto',
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
     <>
-      <div
-        ref={targetRef}
-        className="draggable-element"
-        data-id={element.id}
-        style={elementStyle}
-        onMouseDown={handleMouseDown}
-        onClick={handleClick}
-        onMouseLeave={handleMouseLeave}
-      >
-        {showToolbar && (
-          <div className={styles.elementToolbar}>
-            <Button
-              className={styles.toolbarButton}
-              onClick={handleCopy}
-              onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
-              title="Copy"
-            >
-              <CustomIcon iconName="copy" width={14} height={14} customColor="#ffffff" />
-            </Button>
-            <Button
-              className={styles.toolbarButton}
-              onClick={handleDelete}
-              onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
-              title="Delete"
-            >
-              <CustomIcon iconName="trash-2" width={14} height={14} customColor="#ffffff" />
-            </Button>
-            <Button
-              className={styles.toolbarButton}
-              onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
-              title="More options"
-            >
-              <CustomIcon iconName="ellipsis" width={14} height={14} customColor="#ffffff" />
-            </Button>
-          </div>
-        )}
+      {isSelected ? (
+        <Resizable
+          width={localSize.width}
+          height={localSize.height}
+          onResize={(e: any, data: any) => {
+            setLocalSize({ width: data.size.width, height: data.size.height });
+          }}
+          onResizeStop={(e: any, data: any) => {
+            dispatch({
+              type: 'UPDATE_CANVAS_ELEMENT',
+              payload: {
+                ...element,
+                width: data.size.width,
+                height: data.size.height
+              }
+            });
+          }}
+          draggableOpts={{ enableUserSelectHack: false }}
+        >
+          <div
+            ref={targetRef}
+            className="draggable-element"
+            data-id={element.id}
+            style={elementStyle}
+            onClick={handleClick}
+          >
+            {isSelected && (
+              <div className={styles.elementToolbar}>
+                <Button
+                  className={styles.toolbarButton}
+                  onClick={handleCopy}
+                  onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+                  title="Copy"
+                >
+                  <CustomIcon iconName="copy" width={14} height={14} customColor="#ffffff" />
+                </Button>
+                <Button
+                  className={styles.toolbarButton}
+                  onClick={handleDelete}
+                  onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+                  title="Delete"
+                >
+                  <CustomIcon iconName="trash-2" width={14} height={14} customColor="#ffffff" />
+                </Button>
+              </div>
+            )}
 
-        {renderContent()}
-      </div>
+            {renderContent()}
+          </div>
+        </Resizable>
+      ) : (
+        <div
+          ref={targetRef}
+          className="draggable-element"
+          data-id={element.id}
+          style={elementStyle}
+          onClick={handleClick}
+        >
+          {renderContent()}
+        </div>
+      )}
     </>
   );
 };

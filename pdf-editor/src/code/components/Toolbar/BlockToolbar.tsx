@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Draggable } from 'react-beautiful-dnd';
+import { useDrag } from 'react-dnd';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -29,23 +29,47 @@ const BlockToolbar = ({ activeTool, isDraggable }: BlockToolbarProps) => {
 
   return (
     <div className={styles.blockToolbarWrapper}>
-      {blocks.map((item, index) => (
-        <div
+      {blocks.map((item) => (
+        <DraggableBlockItem
           key={item.type}
-          className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
-          draggable={isDraggable}
-          onDragStart={(e) => handleDragStart(e, item.type)}
-          onClick={() => dispatch({ type: 'SET_ACTIVE_TOOL', payload: item.type })}
-        >
-          <div className={styles.dragHandle}>
-            <CustomIcon iconName="grip-horizontal" width={16} height={16} />
-          </div>
-          <div className={styles.elementIcon}>
-            <CustomIcon iconName={item.icon} width={20} height={20} />
-          </div>
-          <Typography className={styles.elementLabel}>{item.label}</Typography>
-        </div>
+          item={item}
+          activeTool={activeTool}
+          dispatch={dispatch}
+        />
       ))}
+    </div>
+  );
+};
+
+interface DraggableBlockItemProps {
+  item: { type: string; label: string; icon: string };
+  activeTool: string | null;
+  dispatch: any;
+}
+
+const DraggableBlockItem = ({ item, activeTool, dispatch }: DraggableBlockItemProps) => {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'TOOLBAR_ITEM',
+    item: { type: item.type, label: item.label },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }), [item.type, item.label]);
+
+  return (
+    <div
+      ref={drag}
+      className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
+      style={{ opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}
+      onClick={() => dispatch({ type: 'SET_ACTIVE_TOOL', payload: item.type })}
+    >
+      <div className={styles.dragHandle}>
+        <CustomIcon iconName="grip-horizontal" width={16} height={16} />
+      </div>
+      <div className={styles.elementIcon}>
+        <CustomIcon iconName={item.icon} width={20} height={20} />
+      </div>
+      <Typography className={styles.elementLabel}>{item.label}</Typography>
     </div>
   );
 };

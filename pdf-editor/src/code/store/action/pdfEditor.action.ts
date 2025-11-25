@@ -29,6 +29,7 @@ export const PDF_EDITOR_ACTION_TYPES = {
   // Batch Operations
   UPDATE_MULTIPLE_ELEMENTS: 'UPDATE_MULTIPLE_ELEMENTS',
   RESET_EDITOR: 'RESET_EDITOR',
+  REORDER_PAGE_ELEMENTS: 'REORDER_PAGE_ELEMENTS',
 
   SET_IS_LOADING: 'SET_IS_LOADING',
   SET_DRAWER_COMPONENT_CATEGORY: 'SET_DRAWER_COMPONENT_CATEGORY',
@@ -176,6 +177,14 @@ interface ResetEditorAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.RESET_EDITOR;
 }
 
+interface ReorderPageElementsAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.REORDER_PAGE_ELEMENTS;
+  payload: {
+    sourceIndex: number; // 0-based index
+    destinationIndex: number; // 0-based index
+  };
+}
+
 // Union type for all actions
 export type PdfEditorActionTypes =
   | SetPdfBytesAction
@@ -201,4 +210,5 @@ export type PdfEditorActionTypes =
   | AddDocumentVariableAction
   | DeleteDocumentVariableAction
   | UpdateDocumentVariableAction
-  | SetPropertiesDrawerStateAction;
+  | SetPropertiesDrawerStateAction
+  | ReorderPageElementsAction;

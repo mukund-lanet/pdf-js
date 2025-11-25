@@ -1,13 +1,15 @@
 
 'use client';
 import React, { useEffect, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { PDFDocument } from 'pdf-lib';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 // import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 // import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import ThumbnailPage from './ThumbnailPage';
 import { noDocument } from '../../types';
@@ -19,6 +21,7 @@ interface ThumbnailSidebarProps {
 }
 
 const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
+  const dispatch = useDispatch();
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,20 +43,56 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
       if (!pdfBytes || !pdfjsLib) return;
 
       try {
-        setIsLoading(true);
+        // Only show loading if we don't have a doc yet or if bytes changed significantly
+        // We don't want to flash loading on every reorder if we can avoid it, 
+        // but here we re-load the doc from bytes every time bytes change.
+        // Optimization: We could keep the pdfjs doc in state and only update it when bytes change.
+        // For now, simple approach.
         const pdfBytesCopy = new Uint8Array(pdfBytes);
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
         setPdfDoc(pdf);
       } catch (error) {
         console.error('Error loading PDF for thumbnails:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     loadPdf();
   }, [pdfBytes, pdfjsLib]);
+
+  const onDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) return;
+
+    try {
+      setIsLoading(true);
+      if (!pdfBytes) return;
+
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const pages = pdfDoc.getPages();
+      const pageToMove = pages[sourceIndex];
+
+      pdfDoc.removePage(sourceIndex);
+      pdfDoc.insertPage(destinationIndex, pageToMove);
+
+      const newPdfBytes = await pdfDoc.save();
+
+      dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
+      dispatch({
+        type: 'REORDER_PAGE_ELEMENTS',
+        payload: { sourceIndex, destinationIndex }
+      });
+
+    } catch (error) {
+      console.error('Error reordering pages:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className={styles.thumbnailSidebar}>
@@ -67,16 +106,43 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
             <SimpleLoading />
           </div>
         ) : pdfDoc && totalPages > 0 ? (
-          Array.from(new Array(totalPages), (el, index) => (
-            <ThumbnailPage
-              key={`thumbnail_page_${index + 1}_${pdfDoc ? pdfDoc._pdfInfo.fingerprint : 'no_pdf'}`}
-              pdfDoc={pdfDoc}
-              pageNumber={index + 1}
-              currentPage={currentPage}
-              onThumbnailClick={onThumbnailClick}
-              isLoading={isLoading}
-            />
-          ))
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="thumbnail-pages">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{ height: '100%' }}
+                >
+                  {Array.from(new Array(totalPages), (el, index) => (
+                    <Draggable key={`page-${index + 1}`} draggableId={`page-${index + 1}`} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          style={{
+                            ...provided.draggableProps.style,
+                            marginBottom: '16px'
+                          }}
+                        >
+                          <ThumbnailPage
+                            key={`thumbnail_page_${index + 1}_${pdfDoc ? pdfDoc._pdfInfo.fingerprint : 'no_pdf'}`}
+                            pdfDoc={pdfDoc}
+                            pageNumber={index + 1}
+                            currentPage={currentPage}
+                            onThumbnailClick={onThumbnailClick}
+                            isLoading={isLoading}
+                            dragHandleProps={provided.dragHandleProps}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         ) : (
           <div className={styles.noPdfLoaded} >
             <EmptyMessageComponent className={styles.noPdfLoadedEmptyMessage} {...noDocument} />

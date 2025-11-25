@@ -308,6 +308,7 @@ const BlockElement = ({
                     height: '100%',
                     border: 'none',
                     borderRadius: '4px',
+                    pointerEvents: 'none' // Disable interaction with iframe in editor
                   }}
                 />
               </div>

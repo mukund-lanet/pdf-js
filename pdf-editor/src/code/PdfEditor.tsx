@@ -1,6 +1,8 @@
 'use client';
 import React, { useEffect } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import { injectReducer } from 'components/store';
@@ -52,20 +54,22 @@ const PdfEditor = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className={styles.pdfEditorContainer}>
-        <EditorHeader />
+      <DndProvider backend={HTML5Backend}>
+        <div className={styles.pdfEditorContainer}>
+          <EditorHeader />
 
-        <div className={styles.textToolbarEditorLeftSidebarWrapper} >
-          <EditorLeftSidebar />
-          <TextFormattingToolbar />
-        </div>
+          <div className={styles.textToolbarEditorLeftSidebarWrapper} >
+            <EditorLeftSidebar />
+            <TextFormattingToolbar />
+          </div>
 
-        <div className={styles.mainContainer}>
-          <EditorLeftDrawer />
-          <EditorMainArea />
-          <EditorRightSidebar />
+          <div className={styles.mainContainer}>
+            <EditorLeftDrawer />
+            <EditorMainArea />
+            <EditorRightSidebar />
+          </div>
         </div>
-      </div>
+      </DndProvider>
     </DragDropContext>
   );
 };

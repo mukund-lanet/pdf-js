@@ -287,6 +287,76 @@ export const pdfEditorReducer = (
         ...initialState
       };
 
+    case PDF_EDITOR_ACTION_TYPES.REORDER_PAGE_ELEMENTS: {
+      const { sourceIndex, destinationIndex } = action.payload;
+      const sourcePage = sourceIndex + 1;
+      const destPage = destinationIndex + 1;
+
+      // Update Canvas Elements
+      const updatedElements = state.canvasElements.map(el => {
+        if (el.page === sourcePage) {
+          return { ...el, page: destPage };
+        }
+
+        if (sourcePage < destPage) {
+          // Moving down (e.g., 1 -> 3)
+          // Pages between source and dest (exclusive of source, inclusive of dest) shift down (-1)
+          if (el.page > sourcePage && el.page <= destPage) {
+            return { ...el, page: el.page - 1 };
+          }
+        } else {
+          // Moving up (e.g., 3 -> 1)
+          // Pages between dest and source (inclusive of dest, exclusive of source) shift up (+1)
+          if (el.page >= destPage && el.page < sourcePage) {
+            return { ...el, page: el.page + 1 };
+          }
+        }
+
+        return el;
+      });
+
+      // Update Page Dimensions
+      const newPageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } } = {};
+      Object.entries(state.pageDimensions).forEach(([key, value]) => {
+        const pageNum = parseInt(key);
+        let newPageNum = pageNum;
+
+        if (pageNum === sourcePage) {
+          newPageNum = destPage;
+        } else if (sourcePage < destPage) {
+          if (pageNum > sourcePage && pageNum <= destPage) {
+            newPageNum = pageNum - 1;
+          }
+        } else {
+          if (pageNum >= destPage && pageNum < sourcePage) {
+            newPageNum = pageNum + 1;
+          }
+        }
+        newPageDimensions[newPageNum] = value;
+      });
+
+      // Update Current Page if needed
+      let newCurrentPage = state.currentPage;
+      if (state.currentPage === sourcePage) {
+        newCurrentPage = destPage;
+      } else if (sourcePage < destPage) {
+        if (state.currentPage > sourcePage && state.currentPage <= destPage) {
+          newCurrentPage = state.currentPage - 1;
+        }
+      } else {
+        if (state.currentPage >= destPage && state.currentPage < sourcePage) {
+          newCurrentPage = state.currentPage + 1;
+        }
+      }
+
+      return {
+        ...state,
+        canvasElements: updatedElements,
+        pageDimensions: newPageDimensions,
+        currentPage: newCurrentPage
+      };
+    }
+
     default:
       return state;
   }

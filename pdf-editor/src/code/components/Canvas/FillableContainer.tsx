@@ -1,7 +1,6 @@
 'use client';
 import React, { useRef, useEffect } from 'react';
-import Moveable from 'react-moveable';
-import Selecto from 'react-selecto';
+import { useDrop, useDragLayer } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module.scss';
 import DraggableElement from './DraggableElement';
@@ -18,224 +17,289 @@ const FillableContainer = ({
   containerRef
 }: FillableContainerProps) => {
   const dispatch = useDispatch();
-  const fillableElements = useSelector((state: RootState) =>
-    state.pdfEditor.pdfEditorReducer.canvasElements.filter(el => el.page === pageNumber && isFillableElement(el))
-  ) as FillableFieldElement[];
+  const allElements = useSelector((state: RootState) =>
+    state.pdfEditor.pdfEditorReducer.canvasElements.filter(el => el.page === pageNumber)
+  );
+  const fillableElements = allElements.filter(el => isFillableElement(el)) as FillableFieldElement[];
 
-  const [targets, setTargets] = React.useState<any>([]);
-  const moveableRef = useRef<Moveable>(null);
-  const selectoRef = useRef<Selecto>(null);
-  const selectoContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
 
-  useEffect(() => {
-    if (moveableRef.current) {
-      moveableRef.current.updateRect();
+  // Helper to generate ID
+  const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+
+  const { isDragging } = useDragLayer((monitor) => ({
+    isDragging: monitor.isDragging(),
+  }));
+
+  const [, drop] = useDrop({
+    accept: ['FILLABLE_ELEMENT', 'TOOLBAR_ITEM'],
+    drop: (item: { id?: string; type: string; x?: number; y?: number; label?: string }, monitor) => {
+      const delta = monitor.getDifferenceFromInitialOffset();
+      const clientOffset = monitor.getClientOffset();
+
+      // Handle existing element move
+      if (monitor.getItemType() === 'FILLABLE_ELEMENT' && delta && item.id && item.x !== undefined && item.y !== undefined) {
+        const element = fillableElements.find(el => el.id === item.id);
+        if (!element) return;
+
+        const newX = Math.round(item.x + delta.x);
+        const newY = Math.round(item.y + delta.y);
+
+        dispatch({
+          type: 'UPDATE_CANVAS_ELEMENT',
+          payload: {
+            ...element,
+            x: newX,
+            y: newY
+          }
+        });
+        return;
+      }
+
+      // Handle new element creation from toolbar
+      if (monitor.getItemType() === 'TOOLBAR_ITEM' && clientOffset && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = clientOffset.x - rect.left;
+        const y = clientOffset.y - rect.top;
+        const type = item.type;
+
+        const defaultSize = {
+          heading: { height: 115 },
+          'text-field': { width: 200, height: 40 },
+          image: { height: 300 },
+          signature: { width: 150, height: 80 },
+          date: { width: 150, height: 40 },
+          initials: { width: 100, height: 60 },
+          checkbox: { width: 40, height: 40 },
+          video: { height: 300 },
+          table: { height: 200 }
+        };
+
+        // Calculate order for block elements (if needed, though blocks are usually appended or inserted)
+        // For now, we append to end of page list
+        // We need access to all canvas elements to calculate order correctly, but here we only have fillableElements
+        // We can dispatch an action that handles order calculation in reducer, or fetch all elements.
+        // Let's assume we can dispatch ADD_CANVAS_ELEMENT and let reducer handle order if missing?
+        // Actually, the reducer usually just adds it. We should calculate order here if possible.
+        // But we don't have all elements.
+        // Let's use a selector to get all elements for this page to calculate order.
+
+        // Wait, we can't use hooks inside the callback easily if dependencies change.
+        // But we can dispatch a thunk or custom action.
+        // Or we can just pass the current max order + 1.
+        // Since we don't have all elements in props, let's try to get them or use a safe default.
+        // Actually, let's just dispatch the element with a placeholder order and let the reducer or a saga fix it?
+        // No, let's just use a large number or 0.
+        // Better: The previous logic in PDFPage used `canvasElements` from Redux.
+        // We can select all elements in this component too.
+
+        const elementType = type as 'text-field' | 'image' | 'signature' | 'date' | 'initials' | 'checkbox' | 'heading' | 'video' | 'table';
+
+        const getNextOrder = () => {
+          const pageBlocks = allElements.filter(el => ['heading', 'image', 'video', 'table'].includes(el.type));
+          return pageBlocks.length > 0
+            ? Math.max(...pageBlocks.map((el: any) => el.order || 0)) + 1
+            : 0;
+        };
+
+        switch (elementType) {
+          case 'heading':
+            // We need to calculate order. Let's fetch all elements in the component body.
+            // See below for the selector update.
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'heading',
+                id: generateId(),
+                order: getNextOrder(),
+                height: defaultSize.heading.height,
+                content: 'Heading',
+                page: pageNumber,
+                fontSize: 32,
+                fontWeight: '700'
+              }
+            });
+            break;
+
+          case 'text-field':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'text-field',
+                id: generateId(),
+                x: x - defaultSize['text-field'].width / 2,
+                y: y - defaultSize['text-field'].height / 2,
+                width: defaultSize['text-field'].width,
+                height: defaultSize['text-field'].height,
+                content: 'Enter text here...',
+                page: pageNumber,
+                fontSize: 12,
+                color: '#000000',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                textAlign: 'left'
+              }
+            });
+            break;
+
+          case 'image':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'image',
+                id: generateId(),
+                order: getNextOrder(),
+                height: defaultSize.image.height,
+                imageData: '',
+                page: pageNumber
+              }
+            });
+            break;
+
+          case 'video':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'video',
+                id: generateId(),
+                order: getNextOrder(),
+                height: defaultSize.video.height,
+                videoUrl: '',
+                page: pageNumber
+              }
+            });
+            break;
+
+          case 'table':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'table',
+                id: generateId(),
+                order: getNextOrder(),
+                height: defaultSize.table.height,
+                rows: 2,
+                columns: 2,
+                page: pageNumber
+              }
+            });
+            break;
+
+          case 'signature':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'signature',
+                id: generateId(),
+                x: x - defaultSize.signature.width / 2,
+                y: y - defaultSize.signature.height / 2,
+                width: defaultSize.signature.width,
+                height: defaultSize.signature.height,
+                imageData: '',
+                page: pageNumber
+              }
+            });
+            break;
+
+          case 'date':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'date',
+                id: generateId(),
+                x: x - defaultSize.date.width / 2,
+                y: y - defaultSize.date.height / 2,
+                width: defaultSize.date.width,
+                height: defaultSize.date.height,
+                value: '',
+                page: pageNumber
+              }
+            });
+            break;
+
+          case 'initials':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'initials',
+                id: generateId(),
+                x: x - defaultSize.initials.width / 2,
+                y: y - defaultSize.initials.height / 2,
+                width: defaultSize.initials.width,
+                height: defaultSize.initials.height,
+                content: '',
+                page: pageNumber
+              }
+            });
+            break;
+
+          case 'checkbox':
+            dispatch({
+              type: 'ADD_CANVAS_ELEMENT',
+              payload: {
+                type: 'checkbox',
+                id: generateId(),
+                x: x - defaultSize.checkbox.width / 2,
+                y: y - defaultSize.checkbox.height / 2,
+                width: defaultSize.checkbox.width,
+                height: defaultSize.checkbox.height,
+                checked: false,
+                page: pageNumber
+              }
+            });
+            break;
+        }
+
+        dispatch({ type: 'SET_ACTIVE_TOOL', payload: null });
+      }
+    },
+  });
+
+  const handleSelect = (id: string, multi: boolean) => {
+    if (multi) {
+      setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    } else {
+      setSelectedIds([id]);
     }
-  }, [fillableElements]);
+  };
+
+  const handleContainerClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedIds([]);
+    }
+  };
+
+  // Attach drop ref to the container div
+  // We need to combine refs if containerRef is used elsewhere, but here it seems passed from parent.
+  // However, useDrop returns a ref function.
+  // We can just use a wrapper div or merge refs.
+  // Since containerRef is passed from props, let's assume we can attach drop to the internal div.
 
   return (
-    <>
-      <Moveable
-        ref={moveableRef}
-        draggable={true}
-        resizable={true}
-        rotatable={false}
-        keepRatio={false}
-        // renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
-        renderDirections={["se"]}
-        target={targets}
-        onClickGroup={e => {
-          selectoRef.current!.clickTarget(e.inputEvent, e.inputTarget);
-        }}
-        onDrag={e => {
-          e.target.style.transform = e.transform;
-        }}
-        onDragEnd={e => {
-          const target = e.target as HTMLElement;
-          const id = target.getAttribute('data-id');
-          if (!id) return;
-
-          const element = fillableElements.find(el => el.id === id);
-          if (!element) return;
-
-          const translate = e.lastEvent?.translate;
-
-          if (translate) {
-            const [translateX, translateY] = translate;
-
-            if (!isNaN(translateX) && !isNaN(translateY)) {
-              const newElement = {
-                ...element,
-                x: element.x + translateX,
-                y: element.y + translateY
-              };
-
-              dispatch({ type: 'UPDATE_CANVAS_ELEMENT', payload: newElement });
-            }
-
-            target.style.transform = '';
-          }
-        }}
-        onDragGroup={e => {
-          e.events.forEach(ev => {
-            ev.target.style.transform = ev.transform;
-          });
-        }}
-        onDragGroupEnd={e => {
-          const updates: CanvasElement[] = [];
-
-          e.events.forEach(ev => {
-            const target = ev.target as HTMLElement;
-            const id = target.getAttribute('data-id');
-            if (!id) return;
-
-            const element = fillableElements.find(el => el.id === id);
-            if (!element) return;
-
-            const translate = ev.lastEvent?.translate;
-
-            if (translate) {
-              const [translateX, translateY] = translate;
-
-              if (!isNaN(translateX) && !isNaN(translateY)) {
-                updates.push({
-                  ...element,
-                  x: element.x + translateX,
-                  y: element.y + translateY
-                });
-              }
-
-              target.style.transform = '';
-            }
-          });
-
-          if (updates.length > 0) {
-            dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updates });
-          }
-        }}
-        onResize={e => {
-          e.target.style.width = `${e.width}px`;
-          e.target.style.height = `${e.height}px`;
-          e.target.style.transform = e.drag.transform;
-        }}
-        onResizeEnd={e => {
-          const target = e.target as HTMLElement;
-          const id = target.getAttribute('data-id');
-          if (!id) return;
-
-          const element = fillableElements.find(el => el.id === id);
-          if (!element) return;
-
-          const transform = target.style.transform;
-          const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
-          let translateX = 0;
-          let translateY = 0;
-          if (match) {
-            translateX = parseFloat(match[1]);
-            translateY = parseFloat(match[2]);
-          }
-
-          const newElement = {
-            ...element,
-            width: e.lastEvent?.width || element.width,
-            height: e.lastEvent?.height || element.height,
-            x: element.x + translateX,
-            y: element.y + translateY
-          };
-
-          dispatch({ type: 'UPDATE_CANVAS_ELEMENT', payload: newElement });
-          target.style.transform = '';
-        }}
-        onResizeGroup={e => {
-          e.events.forEach(ev => {
-            ev.target.style.width = `${ev.width}px`;
-            ev.target.style.height = `${ev.height}px`;
-            ev.target.style.transform = ev.drag.transform;
-          });
-        }}
-        onResizeGroupEnd={e => {
-          const updates: CanvasElement[] = [];
-
-          e.events.forEach(ev => {
-            const target = ev.target as HTMLElement;
-            const id = target.getAttribute('data-id');
-            if (!id) return;
-
-            const element = fillableElements.find(el => el.id === id);
-            if (!element) return;
-
-            const transform = target.style.transform;
-            const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
-            let translateX = 0;
-            let translateY = 0;
-            if (match) {
-              translateX = parseFloat(match[1]);
-              translateY = parseFloat(match[2]);
-            }
-
-            updates.push({
-              ...element,
-              width: ev.lastEvent?.width || element.width,
-              height: ev.lastEvent?.height || element.height,
-              x: element.x + translateX,
-              y: element.y + translateY
-            });
-
-            target.style.transform = '';
-          });
-
-          if (updates.length > 0) {
-            dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updates });
-          }
-        }}
-      ></Moveable>
-
-      <Selecto
-        ref={selectoRef}
-        dragContainer={selectoContainerRef.current}
-        selectableTargets={[".draggable-element"]}
-        hitRate={0}
-        selectByClick={true}
-        selectFromInside={false}
-        toggleContinueSelect={["shift"]}
-        ratio={0}
-        onDragStart={e => {
-          const moveable = moveableRef.current!;
-          const target = e.inputEvent.target;
-
-          if (
-            !selectoContainerRef.current ||
-            moveable.isMoveableElement(target) ||
-            targets.some((t: any) => t === target || t.contains(target))
-          ) {
-            e.stop();
-          }
-        }}
-        onSelectEnd={e => {
-          const moveable = moveableRef.current!;
-          if (e.isDragStart) {
-            e.inputEvent.preventDefault();
-
-            moveable.waitToChangeTarget().then(() => {
-              moveable.dragStart(e.inputEvent);
-            });
-          }
-          setTargets(e.selected);
-        }}
-      ></Selecto>
-
-      <div ref={selectoContainerRef} className={styles.fillableContainer}>
-        {fillableElements.map(element => (
-          <div key={element.id} className={styles.fillableElementWrapper}>
-            <DraggableElement
-              element={element}
-            />
-          </div>
-        ))}
-      </div>
-    </>
+    <div
+      ref={drop}
+      className={styles.fillableContainer}
+      onClick={handleContainerClick}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: isDragging ? 'auto' : 'none'
+      }}
+    >
+      {fillableElements.map(element => (
+        <div key={element.id} className={styles.fillableElementWrapper}>
+          <DraggableElement
+            element={element}
+            isSelected={selectedIds.includes(element.id)}
+            onSelect={handleSelect}
+          />
+        </div>
+      ))}
+    </div>
   );
 };
 
