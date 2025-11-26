@@ -8,7 +8,7 @@ import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/Menu
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import { HeadingElement, TableElement } from '../../types';
-import DebouncedColorInput from '../Properties/DebouncedColorInput';
+import ColorInput from '../Properties/ColorInput';
 
 const TextFormattingToolbar = () => {
   const dispatch = useDispatch();
@@ -209,11 +209,9 @@ const TextFormattingToolbar = () => {
         <Divider orientation="vertical" className={styles.toolbarDivider} />
 
         <div className={styles.toolbarGroup}>
-          <DebouncedColorInput
+          <ColorInput
             value={element.color || '#000000'}
             onChange={(color) => updateElement({ color })}
-            label="Text Color"
-            isOnlyColor
           />
         </div>
       </div>

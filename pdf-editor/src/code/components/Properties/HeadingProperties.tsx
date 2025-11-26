@@ -9,7 +9,7 @@ import TextField from "@trenchaant/pkg-ui-component-library/build/Components/Tex
 import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
-import DebouncedColorInput from './DebouncedColorInput';
+import ColorInput from './ColorInput';
 
 interface HeadingPropertiesProps {
   element: HeadingElement;
@@ -87,20 +87,46 @@ const HeadingProperties = ({ element }: HeadingPropertiesProps) => {
       </div>
 
       <div className={styles.propertyGroup}>
-        <DebouncedColorInput
+        <TextField
+          fullWidth
+          variant="outlined"
           label="Subtitle color"
-          placeholder="Please enter subtitle color"
-          value={element.subtitleColor}
-          onChange={(value) => updateElement({ subtitleColor: value })}
+          placeholder="Enter subtitle color"
+          hideBorder={true}
+          value={element.subtitleColor || ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleColor: e.target.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end">
+              <ColorInput
+                value={element.subtitleColor}
+                onChange={(value) => updateElement({ subtitleColor: value })}
+                iconName="droplet"
+              />
+            </InputAdornment>
+          )}
         />
       </div>
 
       <div className={styles.propertyGroup}>
-        <DebouncedColorInput
+        <TextField
+          fullWidth
+          variant="outlined"
           label="Background color"
-          placeholder="Please enter background color"
-          value={element.backgroundColor}
-          onChange={(value) => updateElement({ backgroundColor: value })}
+          placeholder="Enter background color"
+          hideBorder={true}
+          value={element.backgroundColor || ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end">
+              <ColorInput
+                value={element.backgroundColor}
+                onChange={(value) => updateElement({ backgroundColor: value })}
+                iconName="droplet"
+              />
+            </InputAdornment>
+          )}
         />
       </div>
 

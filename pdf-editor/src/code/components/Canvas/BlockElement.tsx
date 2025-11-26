@@ -346,6 +346,8 @@ const BlockElement = ({
                         contentEditable
                         suppressContentEditableWarning
                         className={styles.blockTableCell}
+                        rowSpan={1}
+                        colSpan={1}
                         style={{
                           fontSize: element.fontSize,
                           fontWeight: element.fontWeight,

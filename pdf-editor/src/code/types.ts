@@ -129,9 +129,9 @@ export interface HeadingElement extends BlockStyle {
 export interface VideoElement extends BlockStyle {
   type: 'video';
   id: string;
-  order: number; // Position in vertical stack
+  order: number;
   height: number;
-  width?: number; // Internal width
+  width?: number;
   videoUrl?: string;
   page: number;
 }
@@ -139,13 +139,13 @@ export interface VideoElement extends BlockStyle {
 export interface TableElement extends BlockStyle {
   type: 'table';
   id: string;
-  order: number; // Position in vertical stack
+  order: number;
   height: number;
-  rows: number; // default: 2
-  columns: number; // default: 2
-  data?: string[][]; // Cell data
+  rows: number;
+  columns: number;
+  data?: string[][];
   page: number;
-  // Text formatting properties for table cells
+
   textAlign?: 'left' | 'center' | 'right';
   fontStyle?: 'normal' | 'italic';
   textDecoration?: 'none' | 'underline';

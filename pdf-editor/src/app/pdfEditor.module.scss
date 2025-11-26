@@ -151,6 +151,17 @@
   }
 }
 
+.requiredIndicator {
+  position: absolute;
+  top: -20px;
+  right: -8px;
+  color: #ef4444;
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  z-index: 103;
+}
+
 .headingBlock {
   width: 100%;
   height: 100%;
@@ -205,6 +216,9 @@
     width: 100%;
     overflow: scroll;
     scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
 
     .pdfPageContainer {
       width: auto;
@@ -234,7 +248,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; // Allow clicks to pass through to canvas if no element is hit
+            pointer-events: none;
 
             .innerSelectoMovableDivWrapper {
               position: absolute;
@@ -409,8 +423,9 @@
   }
 
   .mainContainer {
+    height: 100%;
+    max-height: calc(100% - 65px - 48px);
     display: flex;
-    flex-grow: 1;
     overflow: hidden;
     justify-content: space-between;
 
@@ -430,7 +445,7 @@
 
     .rightSideBarDrawer {
       width: 350px;
-      height: 900px;
+      height: 100%;
       background-color: #FFFFFF;
       border: 1px solid #ddd;
 
@@ -1314,6 +1329,7 @@
   width: 100%;
   z-index: 1;
   pointer-events: auto;
+  padding-top: 24px;
 }
 
 .blockContainer {
@@ -1663,6 +1679,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px 24px;
+    scrollbar-width: none;
   }
 }
 
@@ -1671,10 +1688,12 @@
   padding: 20px;
   overflow-y: auto;
   height: calc(100% - 73px);
+  scrollbar-width: none;
 }
 
 .propertyGroup {
   margin-bottom: 24px;
+  width: 100%;
 
   .unitLabel {
     font-size: 14px;
@@ -2022,6 +2041,7 @@
   font-weight: 500;
   color: #111827;
   text-align: center;
+  appearance: textfield;
   -moz-appearance: textfield;
 
   &::-webkit-outer-spin-button,
@@ -2254,8 +2274,25 @@
   font-weight: 500 !important;
   text-transform: none !important;
   padding: 12px !important;
+  width: 100%;
 
   &:hover {
     background: #dbeafe !important;
+  }
+}
+
+.colorPickerIcon {
+  position: relative;
+  height: 24px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  .colorViewer {
+    height: 24px;
+    width: 24px;
+    border: 1px solid #e5e7eb;
   }
 }

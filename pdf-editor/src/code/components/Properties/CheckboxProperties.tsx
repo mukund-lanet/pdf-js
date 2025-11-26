@@ -59,11 +59,25 @@ const CheckboxProperties = ({ element }: CheckboxPropertiesProps) => {
       <Typography className={styles.sectionHeader}>OPTIONS</Typography>
 
       <div className={styles.propertyGroup}>
-        <Checkbox
-          checked={element.required || false}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ required: e.target.checked })}
-          label="Required"
-        />
+        {element.type === 'checkbox' && (
+          <Checkbox
+            checked={element.checked}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              dispatch({
+                type: 'UPDATE_CANVAS_ELEMENT',
+                payload: { ...element, checked: e.target.checked },
+              })
+            }
+            label="Is checked"
+          />
+        )}
+        {(element.type === 'text-field' || element.type === 'date' || element.type === 'checkbox') && (
+          <Checkbox
+            checked={element.required || false}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ required: e.target.checked })}
+            label="Required"
+          />
+        )}
       </div>
 
       <Typography className={styles.sectionHeader}>LINKED FIELDS</Typography>

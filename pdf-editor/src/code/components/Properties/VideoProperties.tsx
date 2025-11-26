@@ -9,7 +9,7 @@ import TextField from "@trenchaant/pkg-ui-component-library/build/Components/Tex
 import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import BoxModelControl from './BoxModelControl';
 import SpacingControl from './SpacingControl';
-import DebouncedColorInput from './DebouncedColorInput';
+import ColorInput from './ColorInput';
 
 interface VideoPropertiesProps {
   element: VideoElement;
@@ -66,11 +66,24 @@ const VideoProperties = ({ element }: VideoPropertiesProps) => {
       </div>
 
       <div className={styles.propertyGroup}>
-        <DebouncedColorInput
+        <TextField
+          fullWidth
+          variant="outlined"
           label="Background color"
-          placeholder="Please enter background color"
-          value={element.backgroundColor}
-          onChange={(value) => updateElement({ backgroundColor: value })}
+          placeholder="Enter background color"
+          hideBorder={true}
+          value={element.backgroundColor || ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+          inputProps={{ className: 'py-10 text-13' }}
+          endAdornment={(
+            <InputAdornment position="end">
+              <ColorInput
+                value={element.backgroundColor}
+                onChange={(value) => updateElement({ backgroundColor: value })}
+                iconName="droplet"
+              />
+            </InputAdornment>
+          )}
         />
       </div>
 

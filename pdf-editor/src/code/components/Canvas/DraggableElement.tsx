@@ -10,6 +10,10 @@ import styles from 'app/(after-login)/(with-header)/pdf-builder/pdfEditor.module
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import IconButton from '@trenchaant/pkg-ui-component-library/build/Components/IconButton';
+import Popover from "@trenchaant/pkg-ui-component-library/build/Components/Popover";
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
 
 interface DraggableElementProps {
   element: FillableFieldElement;
@@ -17,14 +21,16 @@ interface DraggableElementProps {
   onSelect: (id: string, multi: boolean) => void;
 }
 
-const DraggableElement = ({
+const DraggableElement = React.memo(({
   element,
   isSelected,
   onSelect
 }: DraggableElementProps) => {
   const dispatch = useDispatch();
   const [showToolbar, setShowToolbar] = useState(false);
+  const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null);
   const targetRef = useRef<HTMLDivElement>(null);
+  const dateElementRef = useRef<HTMLDivElement>(null);
 
   const [localSize, setLocalSize] = useState({ width: element.width, height: element.height });
 
@@ -46,8 +52,12 @@ const DraggableElement = ({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelect(element.id, e.shiftKey);
+
+    // Support multi-select with Ctrl/Cmd key
+    const isMultiSelect = e.ctrlKey || e.metaKey || e.shiftKey;
+    onSelect(element.id, isMultiSelect);
     setShowToolbar(true);
+
     dispatch({
       type: 'SET_ACTIVE_ELEMENT_ID',
       payload: element.id
@@ -73,6 +83,68 @@ const DraggableElement = ({
     dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
   };
 
+  // Toggle the checked state of a checkbox element
+  const handleChecked = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Set as active element to show properties
+    onSelect(element.id, false);
+    setShowToolbar(true);
+    dispatch({
+      type: 'SET_ACTIVE_ELEMENT_ID',
+      payload: element.id
+    });
+
+    // Toggle checked state
+    if (element.type === 'checkbox') {
+      dispatch({
+        type: 'UPDATE_CANVAS_ELEMENT',
+        payload: { ...element, checked: !element.checked },
+      });
+    }
+  };
+
+  // Handle date element click to open date picker
+  const handleDateClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (element.type === 'date' && dateElementRef.current) {
+      setDatePickerAnchor(dateElementRef.current);
+
+      // Also set as active element to show properties
+      onSelect(element.id, false);
+      setShowToolbar(true);
+      dispatch({
+        type: 'SET_ACTIVE_ELEMENT_ID',
+        payload: element.id
+      });
+    }
+  };
+
+  // Handle date selection from DayPicker
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date && element.type === 'date') {
+      const formattedDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+      dispatch({
+        type: 'UPDATE_CANVAS_ELEMENT',
+        payload: { ...element, value: formattedDate },
+      });
+    }
+    setDatePickerAnchor(null);
+  };
+
+  // Close date picker
+  const handleCloseDatePicker = () => {
+    setDatePickerAnchor(null);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (targetRef.current && !targetRef.current.contains(event.target as Node)) {
@@ -85,6 +157,13 @@ const DraggableElement = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const isRequired = () => {
+    if (element.type === 'text-field' || element.type === 'date' || element.type === 'checkbox') {
+      return element.required === true;
+    }
+    return false;
+  };
 
   const renderContent = () => {
     switch (element.type) {
@@ -111,7 +190,12 @@ const DraggableElement = ({
 
       case 'date':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
+          <div
+            ref={dateElementRef}
+            className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}
+            onClick={handleDateClick}
+            style={{ cursor: 'pointer' }}
+          >
             <div className={styles.contentDiv}>
               <CustomIcon iconName="calendar" width={20} height={20} customColor="#00acc1" />
               <Typography fontWeight="400" className={styles.contentLabel}>
@@ -136,12 +220,14 @@ const DraggableElement = ({
       case 'checkbox':
         return (
           <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
-            <CustomIcon
-              iconName={element.checked ? "check-square" : "square"}
-              width={24}
-              height={24}
-              customColor="#00acc1"
-            />
+            <IconButton color="secondary" onClick={handleChecked}>
+              <CustomIcon
+                iconName={element.checked ? "check-square" : "square"}
+                width={24}
+                height={24}
+                customColor="#00acc1"
+              />
+            </IconButton>
           </div>
         );
 
@@ -213,6 +299,10 @@ const DraggableElement = ({
               </div>
             )}
 
+            {isRequired() && (
+              <div className={styles.requiredIndicator}>*</div>
+            )}
+
             {renderContent()}
           </div>
         </Resizable>
@@ -224,11 +314,45 @@ const DraggableElement = ({
           style={elementStyle}
           onClick={handleClick}
         >
+          {isRequired() && (
+            <span className={styles.requiredIndicator}>*</span>
+          )}
+
           {renderContent()}
         </div>
       )}
+
+      {/* DatePicker Popover with react-day-picker */}
+      {element.type === 'date' && (
+        <Popover
+          open={Boolean(datePickerAnchor)}
+          anchorEl={datePickerAnchor}
+          onClose={handleCloseDatePicker}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+          disablePortal={false}
+          container={document.body}
+        >
+          <div style={{ padding: '16px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+            <DayPicker
+              mode="single"
+              selected={element.value ? new Date(element.value) : undefined}
+              onSelect={handleDateSelect}
+              showOutsideDays
+            />
+          </div>
+        </Popover>
+      )}
     </>
   );
-};
+});
+
+DraggableElement.displayName = 'DraggableElement';
 
 export default DraggableElement;
