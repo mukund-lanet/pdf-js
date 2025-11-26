@@ -1,0 +1,72 @@
+'use client';
+import React from 'react';
+import { useDrag } from 'react-dnd';
+import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
+import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
+import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { useDispatch } from 'react-redux';
+
+interface FillableToolbarProps {
+  activeTool: string | null;
+}
+
+const FillableToolbar = ({ activeTool }: FillableToolbarProps) => {
+
+  const dispatch = useDispatch();
+
+  const fillableFields = [
+    { type: 'signature', label: 'Signature', icon: 'pencil-line' },
+    { type: 'text-field', label: 'Text Field', icon: 'type' },
+    { type: 'date', label: 'Date', icon: 'calendar' },
+    { type: 'initials', label: 'Initials', icon: 'pencil-line' },
+    { type: 'checkbox', label: 'Checkbox', icon: 'check-square' },
+  ];
+
+  return (
+    <div className={styles.fillableToolbarWrapper}>
+      {fillableFields.map((item) => (
+        <DraggableToolbarItem
+          key={item.type}
+          item={item}
+          activeTool={activeTool}
+          dispatch={dispatch}
+        />
+      ))}
+    </div>
+  );
+};
+
+interface DraggableToolbarItemProps {
+  item: { type: string; label: string; icon: string };
+  activeTool: string | null;
+  dispatch: any;
+}
+
+const DraggableToolbarItem = ({ item, activeTool, dispatch }: DraggableToolbarItemProps) => {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'TOOLBAR_ITEM',
+    item: { type: item.type, label: item.label },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }), [item.type, item.label]);
+
+  return (
+    <div
+      ref={drag}
+      className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
+      style={{ opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}
+      onClick={() => dispatch({ type: 'SET_ACTIVE_TOOL', payload: item.type })}
+    >
+      <div className={styles.dragHandle}>
+        <CustomIcon iconName="grip-horizontal" width={16} height={16} />
+      </div>
+      <div className={styles.elementIcon}>
+        <CustomIcon iconName={item.icon} width={20} height={20} />
+      </div>
+      <Typography className={styles.elementLabel}>{item.label}</Typography>
+    </div>
+  );
+};
+
+export default FillableToolbar;

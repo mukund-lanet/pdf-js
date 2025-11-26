@@ -79,6 +79,10 @@
     align-items: center;
     display: flex;
     gap: 8px;
+
+    &.isDatePicker {
+      cursor: pointer;
+    }
   }
 
   .contentLabel {
@@ -1329,7 +1333,6 @@
   width: 100%;
   z-index: 1;
   pointer-events: auto;
-  padding-top: 24px;
 }
 
 .blockContainer {
