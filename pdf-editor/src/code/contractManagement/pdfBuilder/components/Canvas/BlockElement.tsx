@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
@@ -31,6 +31,7 @@ const BlockElement = ({
 }: BlockElementProps) => {
   const dispatch = useDispatch();
   const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
 
   const handleContentChange = (newContent: string) => {
@@ -41,6 +42,21 @@ const BlockElement = ({
       });
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!elementRef.current) return;
+
+      if (!elementRef.current.contains(e.target as Node)) {
+        setIsClicked(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,6 +84,7 @@ const BlockElement = ({
 
   const handleBlockClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setIsClicked(true);
     dispatch({
       type: 'SET_ACTIVE_ELEMENT_ID',
       payload: element.id
@@ -382,9 +399,9 @@ const BlockElement = ({
       onClick={handleBlockClick}
     >
       {/* the hover toolbar */}
-      {isHovered && !isDragging && (
+      {(isClicked || isHovered) && !isDragging && (
         <div className={styles.blockToolbar} data-html2canvas-ignore>
-          <div className={styles.blockToolbarActions}>
+          <div className={styles.blockToolbarActions} data-html2canvas-ignore>
             <Tooltip title="Copy" placement="top">
               <Button
                 className={styles.blockToolbarButton}
@@ -393,7 +410,7 @@ const BlockElement = ({
                   onCopy(element);
                 }}
               >
-                <CustomIcon iconName="copy" width={16} height={16} variant="white" />
+                <CustomIcon iconName="copy" width={16} height={16} variant="black" />
               </Button>
             </Tooltip>
 
@@ -408,7 +425,7 @@ const BlockElement = ({
                   });
                 }}
               >
-                <CustomIcon iconName="trash2" width={16} height={16} variant="white" />
+                <CustomIcon iconName="trash2" width={16} height={16} variant="black" />
               </Button>
             </Tooltip>
 
@@ -421,7 +438,7 @@ const BlockElement = ({
                     onMoveUp();
                   }}
                 >
-                  <CustomIcon iconName="chevron-up" width={16} height={16} variant="white" />
+                  <CustomIcon iconName="chevron-up" width={16} height={16} variant="black" />
                 </Button>
               </Tooltip>
             )}
@@ -435,7 +452,7 @@ const BlockElement = ({
                     onMoveDown();
                   }}
                 >
-                  <CustomIcon iconName="chevron-down" width={16} height={16} variant="white" />
+                  <CustomIcon iconName="chevron-down" width={16} height={16} variant="black" />
                 </Button>
               </Tooltip>
             )}
@@ -448,14 +465,15 @@ const BlockElement = ({
         {renderContent()}
       </div>
 
-      {/* the drag handle indicator */}
-      <div
-        className={styles.blockDragHandle}
-        data-html2canvas-ignore
-        {...dragHandleProps}
-      >
-        <CustomIcon iconName="grip-horizontal" width={16} height={16} />
-      </div>
+      <Tooltip title="Drag to move" placement="top">
+        <div
+          className={styles.blockDragHandle}
+          data-html2canvas-ignore
+          {...dragHandleProps}
+        >
+          <CustomIcon iconName="grip-horizontal" width={16} height={16} />
+        </div>
+      </Tooltip>
     </div>
   );
 };

@@ -30,15 +30,6 @@ const VariablesSidebar = () => {
     });
   };
 
-  const handleSaveVariable = (name: string, value: string) => {
-    const finalName = name.startsWith('document.') ? name : `document.${name}`;
-
-    dispatch({
-      type: 'ADD_DOCUMENT_VARIABLE',
-      payload: { name: finalName, value, isSystem: false }
-    });
-  };
-
   return (
     <div className={styles.variablesSidebar}>
       <div className={styles.sidebarHeader}>
@@ -86,10 +77,7 @@ const VariablesSidebar = () => {
       </div>
 
       {isDialogOpen && (
-        <CreateVariableDialog
-          onClose={() => setIsDialogOpen(false)}
-          onSave={handleSaveVariable}
-        />
+        <CreateVariableDialog setIsDialogOpen={setIsDialogOpen} />
       )}
     </div>
   );

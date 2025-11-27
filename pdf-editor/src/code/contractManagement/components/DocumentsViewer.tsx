@@ -1,16 +1,15 @@
 import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveFilter } from '../store/action/contractManagement.actions';
-import { RootState } from '../types';
-import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { setDocumentActiveFilter, setCreatePdfDocumentDrawerOpen } from '../store/action/contractManagement.actions';
+import { noDocument, RootState } from '../types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
-import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 
 const DocumentsViewer = () => {
   const dispatch = useDispatch();
-  const activeFilter = useSelector((state: RootState) => state.contractManagement?.contractManagementReducer?.activeFilter);
-  const documents = useSelector((state: RootState) => state.contractManagement?.contractManagementReducer?.documents);
+  const activeFilter = useSelector((state: RootState) => state.contractManagement?.documentActiveFilter);
+  const documents = useSelector((state: RootState) => state.contractManagement?.documents);
 
   const filters = [
     { id: 'all', label: 'All', count: 0 },
@@ -24,13 +23,13 @@ const DocumentsViewer = () => {
   return (
     <div className={styles.viewerArea}>
       <div className={styles.viewerHeader}>
-        <Typography variant="h2" fontWeight="600">Documents</Typography>
+        <Typography fontWeight="600">Documents</Typography>
         <div className={styles.filterTabs}>
           {filters.map(filter => (
             <div 
               key={filter.id}
               className={`${styles.filterTab} ${activeFilter === filter.id ? styles.active : ''}`}
-              onClick={() => dispatch(setActiveFilter(filter.id) as any)}
+              onClick={() => dispatch(setDocumentActiveFilter(filter.id))}
             >
               <Typography>{filter.label}</Typography>
               <span className={styles.count}>{filter.count}</span>
@@ -41,19 +40,19 @@ const DocumentsViewer = () => {
 
       {documents && documents.length > 0 ? (
         <div>
-          {/* Render document list here */}
           <Typography>Document list goes here</Typography>
         </div>
       ) : (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>
-            <CustomIcon iconName="file-text" width={32} height={32} />
-          </div>
-          <Typography fontWeight="600" className={styles.emptyTitle}>No documents yet</Typography>
-          <Typography className={styles.emptyDesc}>Create your first document to get started with e-signatures.</Typography>
-          <Button className={styles.createBtn}>
-            Create First Document
-          </Button>
+        <div className={styles.emptyMsgComponentWrapper} >
+            <EmptyMessageComponent 
+              {...noDocument} 
+              button={{
+                label: "Create First Document",
+                variant: "contained",
+                color: "primary",
+                onClick: () => {dispatch(setCreatePdfDocumentDrawerOpen(true))}
+              }} 
+            />
         </div>
       )}
     </div>

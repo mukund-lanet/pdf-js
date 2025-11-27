@@ -5,11 +5,8 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import BlockToolbar from '../Toolbar/BlockToolbar';
 import FillableToolbar from '../Toolbar/FillableToolbar';
 
-interface ElementsSidebarProps {
-  activeTool: string | null;
-}
 
-const ElementsSidebar = ({ activeTool }: ElementsSidebarProps) => {
+const ElementsSidebar = () => {
 
   return (
     <div className={styles.elementsSidebar}>
@@ -21,14 +18,14 @@ const ElementsSidebar = ({ activeTool }: ElementsSidebarProps) => {
         <div className={styles.elementSection}>
           <Typography variant="caption" className={styles.sectionTitle}>BLOCKS</Typography>
           <div className={styles.elementsGrid}>
-            <BlockToolbar activeTool={activeTool} />
+            <BlockToolbar />
           </div>
         </div>
 
         <div className={styles.elementSection}>
           <Typography variant="caption" className={styles.sectionTitle}>FILLABLE FIELDS</Typography>
           <div className={styles.elementsGrid}>
-            <FillableToolbar activeTool={activeTool} />
+            <FillableToolbar />
           </div>
         </div>
       </div>

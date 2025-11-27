@@ -287,7 +287,7 @@ const DraggableElement = React.memo(({
                   onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
                   title="Copy"
                 >
-                  <CustomIcon iconName="copy" width={14} height={14} customColor="#ffffff" />
+                  <CustomIcon iconName="copy" width={14} height={14} customColor="#000000" />
                 </Button>
                 <Button
                   className={styles.toolbarButton}
@@ -295,7 +295,7 @@ const DraggableElement = React.memo(({
                   onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
                   title="Delete"
                 >
-                  <CustomIcon iconName="trash-2" width={14} height={14} customColor="#ffffff" />
+                  <CustomIcon iconName="trash-2" width={14} height={14} customColor="#000000" />
                 </Button>
               </div>
             )}

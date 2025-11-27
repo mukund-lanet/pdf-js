@@ -3,19 +3,31 @@ import styles from 'app/(after-login)/(with-header)/contract-management/pdfEdito
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { useDispatch } from 'react-redux';
 
 interface CreateVariableDialogProps {
-  onClose: () => void;
-  onSave: (name: string, value: string) => void;
+  setIsDialogOpen: (value: boolean) => void;
 }
 
-const CreateVariableDialog = ({ onClose, onSave }: CreateVariableDialogProps) => {
+const CreateVariableDialog = ({ setIsDialogOpen }: CreateVariableDialogProps) => {
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const dispatch = useDispatch();
+
+  const handleSaveVariable = (name: string, value: string) => {
+    const finalName = name.startsWith('document.') ? name : `document.${name}`;
+
+    dispatch({
+      type: 'ADD_DOCUMENT_VARIABLE',
+      payload: { name: finalName, value, isSystem: false }
+    });
+  };
+
+  const onClose = () => setIsDialogOpen(false);
 
   const handleSave = () => {
     if (name && value) {
-      onSave(name, value);
+      handleSaveVariable(name, value);
       onClose();
     }
   };

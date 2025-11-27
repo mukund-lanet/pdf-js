@@ -1,16 +1,15 @@
 import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveFilter } from '../store/action/contractManagement.actions';
-import { RootState } from '../types';
-import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { setContractActiveFilter } from '../store/action/contractManagement.actions';
+import { noContracts, RootState } from '../types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
-import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 
 const ContractsViewer = () => {
   const dispatch = useDispatch();
-  const activeFilter = useSelector((state: RootState) => state.contractManagement?.contractManagementReducer?.activeFilter);
-  const contracts = useSelector((state: RootState) => state.contractManagement?.contractManagementReducer?.contracts);
+  const activeFilter = useSelector((state: RootState) => state.contractManagement?.contractActiveFilter);
+  const contracts = useSelector((state: RootState) => state.contractManagement?.contracts);
 
   const filters = [
     { id: 'all', label: 'All', count: 0 },
@@ -28,7 +27,7 @@ const ContractsViewer = () => {
             <div 
               key={filter.id}
               className={`${styles.filterTab} ${activeFilter === filter.id ? styles.active : ''}`}
-              onClick={() => dispatch(setActiveFilter(filter.id) as any)}
+              onClick={() => dispatch(setContractActiveFilter(filter.id) as any)}
             >
               <Typography>{filter.label}</Typography>
               <span className={styles.count}>{filter.count}</span>
@@ -39,19 +38,19 @@ const ContractsViewer = () => {
 
       {contracts && contracts.length > 0 ? (
         <div>
-          {/* Render contract list here */}
           <Typography>Contract list goes here</Typography>
         </div>
       ) : (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>
-            <CustomIcon iconName="check-square" width={32} height={32} />
-          </div>
-          <Typography fontWeight="600" className={styles.emptyTitle}>No contracts yet</Typography>
-          <Typography className={styles.emptyDesc}>Create your first contract to get started.</Typography>
-          <Button className={styles.createBtn}>
-            Create First Contract
-          </Button>
+        <div className={styles.emptyMsgComponentWrapper} >
+            <EmptyMessageComponent 
+              {...noContracts} 
+              button={{
+                label: "Create First Contract",
+                variant: "contained",
+                color: "primary",
+                onClick: () => {}
+              }} 
+            />
         </div>
       )}
     </div>

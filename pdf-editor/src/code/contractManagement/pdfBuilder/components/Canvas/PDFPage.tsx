@@ -11,10 +11,7 @@ import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/Menu
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import {
-  TextElement, ImageElement, SignatureElement, DateElement, InitialsElement,
-  CheckboxElement, HeadingElement, VideoElement, TableElement, PageDimension
-} from '../../types';
+import { PageDimension } from '../../types';
 
 interface PDFPageProps {
   pdfDoc: any;
@@ -49,9 +46,6 @@ const PDFPage = React.memo((({
   const handleMenuClose = () => {
     setActionMenuAnchorEl(null);
   };
-
-  // Generate unique ID
-  const generateId = () => `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
   const handleAddBlankPage = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -371,6 +365,7 @@ const PDFPage = React.memo((({
     </div>
   );
 }));
+
 PDFPage.displayName = 'PDFPage';
 
 export default PDFPage;

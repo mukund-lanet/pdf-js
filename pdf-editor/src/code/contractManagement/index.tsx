@@ -11,54 +11,21 @@ import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
 import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
 import { contractManagementReducer } from './store';
-import { setActiveTab } from './store/action/contractManagement.actions';
+import { setActiveTab, setCreateDocumentDrawerOpen } from './store/action/contractManagement.actions';
 import { CONTRACT_MANAGEMENT_TAB, RootState } from './types';
 import FolderSidebar from './components/FolderSidebar';
 import DocumentsViewer from './components/DocumentsViewer';
 import ContractsViewer from './components/ContractsViewer';
+import { displayCardList } from './types';
+import CreateDocumentDrawer from './components/drawers/CreateDocumentDrawer';
 
 const ContractManagement = () => {
   const dispatch = useDispatch();
-  const activeTab = useSelector((state: RootState) => state.contractManagement?.contractManagementReducer?.activeTab);
+  const activeTab = useSelector((state: RootState) => state?.contractManagement?.activeTab);
 
   useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
   }, []);
-
-  const displayCardList = [
-    {
-      title: 'Total Documents',
-      value: 2,
-      description: 'All documents',
-      iconName: 'file-text',
-      iconColor: '#1d4ed8',
-      iconBgColor: '#bfdbfe',
-    },
-    {
-      title: 'Active Contracts',
-      value: 4,
-      description: 'Contracts currently active',
-      iconName: 'file-check',
-      iconColor: '#15803d',
-      iconBgColor: '#dcfce7',
-    },
-    {
-      title: 'Pending Signatures',
-      value: 5,
-      description: 'Awaiting signature',
-      iconName: 'clock',
-      iconColor: '#ea580c',
-      iconBgColor: '#ffedd5',
-    },
-    {
-      title: 'Contract Value',
-      value: `$${10000}`,
-      description: 'Total contract value',
-      iconName: 'dollar-sign',
-      iconColor: '#444444',
-      iconBgColor: '#f3f4f6',
-    }
-  ];
 
   return (
     <div className={styles.contractManagementContainer}>
@@ -69,18 +36,27 @@ const ContractManagement = () => {
           icon={"file-text"}
         />
         <div className={styles.actionsBlock}>
-          <Button className={styles.actionBtn}>
-            <CustomIcon iconName="settings" width={16} height={16} /> Global Settings
+          <Button variant="outlined" color="secondary">
+            <CustomIcon iconName="settings" width={16} height={16} /> 
+            <Typography>Global Settings</Typography>
           </Button>
-          <Button className={styles.actionBtn}>
-            <CustomIcon iconName="shield" width={16} height={16} /> Branding
+          <Button variant="outlined" color="secondary">
+            <CustomIcon iconName="shield" width={16} height={16} /> 
+            <Typography>Branding</Typography>
           </Button>
-          <Button className={styles.actionBtn}>
-            <CustomIcon iconName="shield" width={16} height={16} /> Identity Verification
+          <Button variant="outlined" color="secondary">
+            <CustomIcon iconName="shield" width={16} height={16} /> 
+            <Typography>Identity Verification</Typography>
           </Button>
-          <Button className={`${styles.actionBtn} ${styles.primaryBtn}`}>
-            <CustomIcon iconName="plus" width={16} height={16} /> New Document
+          <Button 
+            variant="contained"
+            color="primary"
+            onClick={() => {dispatch(setCreateDocumentDrawerOpen(true))}}
+          >
+            <CustomIcon iconName="plus" width={16} height={16} variant="white" /> 
+            <Typography>New Document</Typography>
           </Button>
+          <CreateDocumentDrawer />
         </div>
       </div>
       <div className={styles.contractManagementStatsGrid} >
@@ -137,7 +113,7 @@ const ContractManagement = () => {
 
         <div className={styles.contentBody}>
           <FolderSidebar />
-          {activeTab === 'documents' ? <DocumentsViewer /> : <ContractsViewer />}
+          {activeTab === CONTRACT_MANAGEMENT_TAB.DOCUMENTS ? <DocumentsViewer /> : <ContractsViewer />}
         </div>
       </div>
     </div>

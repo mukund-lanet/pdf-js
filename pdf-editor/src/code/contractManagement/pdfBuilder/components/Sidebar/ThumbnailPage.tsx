@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import { CanvasElement, isBlockElement, isFillableElement } from '../../types';
@@ -12,18 +12,18 @@ import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 interface ThumbnailPageProps {
   pdfDoc: any;
   pageNumber: number;
-  currentPage: number;
-  onThumbnailClick: (pageNumber: number) => void;
   isLoading: boolean;
   dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
-const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnailClick, isLoading, dragHandleProps }: ThumbnailPageProps) => {
+const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandleProps }: ThumbnailPageProps) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
   const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements || []);
   const pageDimensions = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions || {});
+  const dispatch = useDispatch();
+  const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
 
   // cleanup function
   const cleanup = () => {
@@ -298,7 +298,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, currentPage, onThumbnail
         <div
           key={`thumbnail_page_${pageNumber}`}
           className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}
-          onClick={() => onThumbnailClick(pageNumber)}
+          onClick={() => dispatch({ type: 'SET_CURRENT_PAGE', payload: pageNumber })}
         >
           <div className={styles.thumbnailContent}>
             {isLoading && (

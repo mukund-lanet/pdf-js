@@ -4,27 +4,26 @@ import { useDrag } from 'react-dnd';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
 
-interface BlockToolbarProps {
-  activeTool: string | null;
-}
-
-const BlockToolbar = ({ activeTool }: BlockToolbarProps) => {
+const FillableToolbar = () => {
 
   const dispatch = useDispatch();
+  const activeTool = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeTool);
 
-  const blocks = [
-    { type: 'heading', label: 'Heading', icon: 'type' },
-    { type: 'image', label: 'Image', icon: 'image' },
-    { type: 'video', label: 'Video', icon: 'video' },
-    { type: 'table', label: 'Table', icon: 'table' },
+  const fillableFields = [
+    { type: 'signature', label: 'Signature', icon: 'pencil-line' },
+    { type: 'text-field', label: 'Text Field', icon: 'type' },
+    { type: 'date', label: 'Date', icon: 'calendar' },
+    { type: 'initials', label: 'Initials', icon: 'pencil-line' },
+    { type: 'checkbox', label: 'Checkbox', icon: 'check-square' },
   ];
 
   return (
-    <div className={styles.blockToolbarWrapper}>
-      {blocks.map((item) => (
-        <DraggableBlockItem
+    <div className={styles.fillableToolbarWrapper}>
+      {fillableFields.map((item) => (
+        <DraggableToolbarItem
           key={item.type}
           item={item}
           activeTool={activeTool}
@@ -35,13 +34,13 @@ const BlockToolbar = ({ activeTool }: BlockToolbarProps) => {
   );
 };
 
-interface DraggableBlockItemProps {
+interface DraggableToolbarItemProps {
   item: { type: string; label: string; icon: string };
   activeTool: string | null;
   dispatch: any;
 }
 
-const DraggableBlockItem = ({ item, activeTool, dispatch }: DraggableBlockItemProps) => {
+const DraggableToolbarItem = ({ item, activeTool, dispatch }: DraggableToolbarItemProps) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'TOOLBAR_ITEM',
     item: { type: item.type, label: item.label },
@@ -68,4 +67,4 @@ const DraggableBlockItem = ({ item, activeTool, dispatch }: DraggableBlockItemPr
   );
 };
 
-export default BlockToolbar;
+export default FillableToolbar;

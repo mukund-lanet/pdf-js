@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
+import CustomScrollbar from "@trenchaant/pkg-ui-component-library/build/Components/ScrollBar";
+import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
+import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
 import PDFPage from './PDFPage';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import { noDocument } from '../../types';
@@ -10,6 +13,8 @@ import { noDocument } from '../../types';
 const PDFCanvasViewer = () => {
   const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
   const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
+  const dispatch = useDispatch();
+  const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
 
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
@@ -54,21 +59,28 @@ const PDFCanvasViewer = () => {
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
       {pdfBytes && totalPages > 0 ? (
-        <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
-          {Array.from({ length: totalPages }, (_, index) => {
-            return (<PDFPage
-              key={`page_${index + 1}_${renderKey}`}
-              pdfDoc={pdfDoc}
-              pageNumber={index + 1}
-            />)
-          })}
-        </div>)
+        <CustomScrollbar className={styles.scrollPdfViewerContainer} >
+          <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
+            {Array.from({ length: totalPages }, (_, index) => {
+              return (<PDFPage
+                key={`page_${index + 1}_${renderKey}`}
+                pdfDoc={pdfDoc}
+                pageNumber={index + 1}
+                />)
+              })}
+          </div>
+        </CustomScrollbar>)
         : (
           <div className={styles.emptyMsgComponentWrapper} >
             <EmptyMessageComponent {...noDocument} />
           </div>
         )
       }
+      {/* {totalPages > 0 && currentPage > 1 && ( */}
+        <IconButton onClick={() => dispatch({ type: 'SET_CURRENT_PAGE', payload: 1 })}>
+          <CustomIcon iconName="chevron-up" height={24} width={24} />
+        </IconButton>
+      {/* )} */}
     </div>
   );
 };

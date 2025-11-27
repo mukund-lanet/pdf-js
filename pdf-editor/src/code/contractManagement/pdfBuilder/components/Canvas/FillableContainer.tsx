@@ -253,14 +253,6 @@ const FillableContainer = ({
       ref={drop}
       className={styles.fillableContainer}
       onClick={handleContainerClick}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: isDragging ? 'auto' : 'none'
-      }}
     >
       {fillableElements.map(element => (
         <div key={element.id} className={styles.fillableElementWrapper}>

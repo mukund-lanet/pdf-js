@@ -12,18 +12,13 @@ import { RootState } from '../../store/reducer/pdfEditor.reducer';
 import ThumbnailPage from './ThumbnailPage';
 import { noDocument } from '../../types';
 
-interface ThumbnailSidebarProps {
-  pdfBytes: Uint8Array | null;
-  currentPage: number;
-  onThumbnailClick: (pageNumber: number) => void;
-}
-
-const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: ThumbnailSidebarProps) => {
+const ThumbnailSidebar = () => {
   const dispatch = useDispatch();
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
+  const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -122,8 +117,6 @@ const ThumbnailSidebar = ({ pdfBytes, currentPage, onThumbnailClick }: Thumbnail
                             key={`thumbnail_page_${index + 1}_${pdfDoc ? pdfDoc._pdfInfo.fingerprint : 'no_pdf'}`}
                             pdfDoc={pdfDoc}
                             pageNumber={index + 1}
-                            currentPage={currentPage}
-                            onThumbnailClick={onThumbnailClick}
                             isLoading={isLoading}
                             dragHandleProps={provided.dragHandleProps}
                           />
