@@ -10,9 +10,9 @@ import ModuleHeader from "@trenchaant/pkg-ui-component-library/build/Components/
 import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
 import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
-import { contractManagementReducer } from './store';
+import { contractManagementReducer, RootState } from './store';
 import { setActiveTab, setCreateDocumentDrawerOpen } from './store/action/contractManagement.actions';
-import { CONTRACT_MANAGEMENT_TAB, RootState } from './types';
+import { CONTRACT_MANAGEMENT_TAB } from './types';
 import FolderSidebar from './components/FolderSidebar';
 import DocumentsViewer from './components/DocumentsViewer';
 import ContractsViewer from './components/ContractsViewer';
@@ -26,6 +26,10 @@ const ContractManagement = () => {
   useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
   }, []);
+
+  const handleStateChange = (dataObj: any) => {
+    console.log({dataObj})
+  }
 
   return (
     <div className={styles.contractManagementContainer}>

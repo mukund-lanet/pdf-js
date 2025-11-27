@@ -19,35 +19,6 @@
     .actionsBlock {
       display: flex;
       gap: 12px;
-
-      .actionBtn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border: 1px solid #e2e8f0;
-        background: #fff;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #475569;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #f1f5f9;
-        }
-
-        &.primaryBtn {
-          background: #2563eb;
-          color: #fff;
-          border-color: #2563eb;
-
-          &:hover {
-            background: #1d4ed8;
-          }
-        }
-      }
     }
 
     .statsRow {
@@ -225,11 +196,9 @@
           align-items: center;
           margin-bottom: 24px;
 
-          h2 {
-            font-size: 18px;
-            font-weight: 600;
+          .tabElementTitle {
+            font-size: 24px;
             color: #0f172a;
-            margin: 0;
           }
 
           .filterTabs {
@@ -272,53 +241,115 @@
           }
         }
 
-        .emptyState {
+        .emptyMsgComponentWrapper {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           height: 400px;
           text-align: center;
+        }
+      }
+    }
+  }
+}
 
-          .emptyIcon {
-            width: 64px;
-            height: 64px;
-            background: #f8fafc;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            margin-bottom: 16px;
-          }
+.createNewDocumentDrawer {
+  .createNewDocumentOptionsWrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
 
-          h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #0f172a;
-            margin: 0 0 8px 0;
-          }
+    .documentScratchTextField {
+      width: 100%;
+    }
+    
+    .createWithAiCard {
+      background: #f3e8ff;
 
-          p {
-            color: #64748b;
-            margin: 0 0 24px 0;
-            max-width: 300px;
-          }
+      svg {
+        stroke: #9333ea;
+      }
+    }
 
-          .createBtn {
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
+    .newDocumentCard {
+      background: #dbeafe;
+    }
 
-            &:hover {
-              background: #1d4ed8;
-            }
-          }
+    .uploadPdfCard {
+      background: #dcfce7;
+
+      svg {
+        stroke: #16a34a;
+      }
+    }
+
+    .importTemplateCard {
+      background: #f1d9ba;
+
+      svg {
+        stroke: #EA580C;
+      }
+    }
+  }
+}
+
+.createNewContractDrawer {
+  height: 100%;
+
+  .stepperWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: space-between;
+    
+    .startEndDateWrapper {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+  
+      .starEndDate {
+        width: 100%;
+      }
+    }
+
+    .contractTypeValueWrapper {
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      width: 100%;
+      
+      .simpleSelectContractType {
+        width: 100%;
+      }
+      
+      .contractValueWrapper {
+        display: flex;
+        gap: 8px;
+        flex-direction: column;
+        
+        .contractValueLabel {
+          font-weight: 500;
+          font-size: 14px;
+          color: #344256;
+        }
+
+        .contractValueInputWrapper {
+          display: flex;
+          gap: 8px;
+        }
+        
+        .simpleSelectContractCurrency {
+          width: 100px;
+        }
+
+        .contractCurrencyTextField {
+          width: 100%;
         }
       }
     }

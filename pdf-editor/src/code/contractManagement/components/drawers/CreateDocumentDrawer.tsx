@@ -2,7 +2,7 @@ import React from 'react';
 import Drawer from "@trenchaant/pkg-ui-component-library/build/Components/Drawer";
 import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from "../../types";
+import { RootState } from "../../store";
 import { setCreateDocumentDrawerOpen } from "../../store/action/contractManagement.actions";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 

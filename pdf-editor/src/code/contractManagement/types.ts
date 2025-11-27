@@ -13,38 +13,6 @@ export interface ContractItem {
   date: string;
 }
 
-export interface ContractManagementState {
-  createPdfDocumentDrawerOpen: boolean;
-  createDocumentDrawerOpen: boolean;
-  activeTab: CONTRACT_MANAGEMENT_TAB;
-  documentActiveFilter: string;
-  contractActiveFilter: string;
-  documentsFilters: {
-    all: number;
-    draft: number;
-    waiting: number;
-    completed: number;
-    archived: number;
-  };
-  contractsFilters: {
-    all: number;
-    active: number;
-    expired: number;
-  };
-  stats: {
-    totalDocuments: number;
-    activeContracts: number;
-    pendingSignatures: number;
-    contractValue: number;
-  };
-  documents: DocumentItem[];
-  contracts: ContractItem[];
-}
-
-export interface RootState {
-  contractManagement: ContractManagementState;
-}
-
 export enum CONTRACT_MANAGEMENT_TAB {
   DOCUMENTS = 'documents',
   CONTRACTS = 'contracts'
@@ -52,11 +20,13 @@ export enum CONTRACT_MANAGEMENT_TAB {
 
 export enum CONTRACT_MANAGEMENT_ACTION_TYPES {
   SET_CREATE_PDF_DOCUMENT_DRAWER_OPEN = "SET_CREATE_PDF_DOCUMENT_DRAWER_OPEN",
-  SET_ACTIVE_TAB = 'CONTRACT_MANAGEMENT/SET_ACTIVE_TAB',
-  SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT/SET_DOCUMENT_ACTIVE_FILTER',
-  SET_CONTRACT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT/SET_CONTRACT_ACTIVE_FILTER',
-  TOGGLE_FOLDER = 'CONTRACT_MANAGEMENT/TOGGLE_FOLDER',
-  SET_CREATE_DOCUMENT_DRAWER_OPEN = "SET_CREATE_DOCUMENT_DRAWER_OPEN"
+  SET_ACTIVE_TAB = 'CONTRACT_MANAGEMENT_SET_ACTIVE_TAB',
+  SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_DOCUMENT_ACTIVE_FILTER',
+  SET_CONTRACT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_CONTRACT_ACTIVE_FILTER',
+  TOGGLE_FOLDER = 'CONTRACT_MANAGEMENT_TOGGLE_FOLDER',
+  SET_CREATE_DOCUMENT_DRAWER_OPEN = "SET_CREATE_DOCUMENT_DRAWER_OPEN",
+  SET_CREATE_CONTRACT_DRAWER_OPEN = "SET_CREATE_CONTRACT_DRAWER_OPEN",
+  SET_CONTRACT_DRAWER_FIELDS = "SET_CONTRACT_DRAWER_FIELDS"
 }
 
 export const displayCardList = [
@@ -118,3 +88,19 @@ export const noContracts = {
   iconName: "file-check",
   tipsTitle: "Quick tips",
 }
+
+export const contractTypeOptions = [
+  { key: "employment", value: "Employment" },
+  { key: "sales_agreement", value: "Sales Agreement" },
+  { key: "service_contract", value: "Service Contract" },
+  { key: "nda", value: "NDA" },
+  { key: "partnership", value: "Partnership" },
+  { key: "lease_agreement", value: "Lease Agreement" },
+  { key: "other", value: "Other" }
+];
+
+export const contractValueOptions = [
+  {key: "usd", value: "USD"},
+  {key: "eur", value: "EUR"},
+  {key: "gbp", value: "GBP"},
+]

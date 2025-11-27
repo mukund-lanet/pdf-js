@@ -28,3 +28,8 @@ export const setContractActiveFilter = (filter: string): AppDispatch => ({
   type: CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CONTRACT_ACTIVE_FILTER,
   payload: filter,
 });
+
+export const setCreateContractDrawerOpen = (open: boolean): AppDispatch => ({
+  type: CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CREATE_CONTRACT_DRAWER_OPEN,
+  payload: open,
+});

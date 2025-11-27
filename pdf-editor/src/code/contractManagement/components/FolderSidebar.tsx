@@ -1,10 +1,10 @@
 import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector } from 'react-redux';
-import { RootState } from '../types';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
+import { RootState } from "../store";
 
 const FolderSidebar = () => {
   const activeTab = useSelector((state: RootState) => state.contractManagement?.activeTab);

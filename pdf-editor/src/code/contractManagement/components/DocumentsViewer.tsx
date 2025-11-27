@@ -2,9 +2,10 @@ import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
 import { setDocumentActiveFilter, setCreatePdfDocumentDrawerOpen } from '../store/action/contractManagement.actions';
-import { noDocument, RootState } from '../types';
+import { noDocument } from '../types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
+import {RootState} from "../store/reducer/contractManagement.reducer"
 
 const DocumentsViewer = () => {
   const dispatch = useDispatch();
@@ -23,7 +24,7 @@ const DocumentsViewer = () => {
   return (
     <div className={styles.viewerArea}>
       <div className={styles.viewerHeader}>
-        <Typography fontWeight="600">Documents</Typography>
+        <Typography fontWeight="600" className={styles.tabElementTitle} >Documents</Typography>
         <div className={styles.filterTabs}>
           {filters.map(filter => (
             <div 

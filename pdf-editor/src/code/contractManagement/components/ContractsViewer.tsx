@@ -1,10 +1,12 @@
 import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
-import { setContractActiveFilter } from '../store/action/contractManagement.actions';
-import { noContracts, RootState } from '../types';
+import { setContractActiveFilter, setCreateContractDrawerOpen } from '../store/action/contractManagement.actions';
+import { noContracts } from '../types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
+import { RootState } from "../store/reducer/contractManagement.reducer";
+import CreateContractDrawer from './drawers/createContractDrawer';
 
 const ContractsViewer = () => {
   const dispatch = useDispatch();
@@ -21,7 +23,7 @@ const ContractsViewer = () => {
   return (
     <div className={styles.viewerArea}>
       <div className={styles.viewerHeader}>
-        <Typography variant="h2" fontWeight="600">Contracts</Typography>
+        <Typography variant="h2" fontWeight="600" className={styles.tabElementTitle} >Contracts</Typography>
         <div className={styles.filterTabs}>
           {filters.map(filter => (
             <div 
@@ -36,6 +38,8 @@ const ContractsViewer = () => {
         </div>
       </div>
 
+      <CreateContractDrawer />
+      
       {contracts && contracts.length > 0 ? (
         <div>
           <Typography>Contract list goes here</Typography>
@@ -48,7 +52,7 @@ const ContractsViewer = () => {
                 label: "Create First Contract",
                 variant: "contained",
                 color: "primary",
-                onClick: () => {}
+                onClick: () => {dispatch(setCreateContractDrawerOpen(true))}
               }} 
             />
         </div>
