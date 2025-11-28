@@ -42,8 +42,10 @@ export const PDF_EDITOR_ACTION_TYPES = {
 
   // Properties Drawer Actions
   SET_PROPERTIES_DRAWER_STATE: 'SET_PROPERTIES_DRAWER_STATE',
-} as const;
 
+  SET_PDF_MEDIA: 'SET_PDF_MEDIA',
+} as const;
+  
 // Action Interfaces
 interface SetPdfBytesAction {
   type: typeof PDF_EDITOR_ACTION_TYPES.SET_PDF_BYTES;
@@ -56,6 +58,11 @@ interface SetPropertiesDrawerStateAction {
     anchorEl: null | HTMLElement;
     isOpen: boolean;
   };
+}
+
+interface SetPdfMediaAction {
+  type: typeof PDF_EDITOR_ACTION_TYPES.SET_PDF_MEDIA;
+  payload: any;
 }
 
 interface SetDrawerComponentCategoryAction {
@@ -211,4 +218,5 @@ export type PdfEditorActionTypes =
   | DeleteDocumentVariableAction
   | UpdateDocumentVariableAction
   | SetPropertiesDrawerStateAction
+  | SetPdfMediaAction
   | ReorderPageElementsAction;

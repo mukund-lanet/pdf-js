@@ -399,7 +399,7 @@ const BlockElement = ({
       onClick={handleBlockClick}
     >
       {/* the hover toolbar */}
-      {(isClicked || isHovered) && !isDragging && (
+      {(isClicked) && !isDragging && (
         <div className={styles.blockToolbar} data-html2canvas-ignore>
           <div className={styles.blockToolbarActions} data-html2canvas-ignore>
             <Tooltip title="Copy" placement="top">

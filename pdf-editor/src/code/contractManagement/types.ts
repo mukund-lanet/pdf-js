@@ -18,17 +18,6 @@ export enum CONTRACT_MANAGEMENT_TAB {
   CONTRACTS = 'contracts'
 }
 
-export enum CONTRACT_MANAGEMENT_ACTION_TYPES {
-  SET_CREATE_PDF_DOCUMENT_DRAWER_OPEN = "SET_CREATE_PDF_DOCUMENT_DRAWER_OPEN",
-  SET_ACTIVE_TAB = 'CONTRACT_MANAGEMENT_SET_ACTIVE_TAB',
-  SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_DOCUMENT_ACTIVE_FILTER',
-  SET_CONTRACT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_CONTRACT_ACTIVE_FILTER',
-  TOGGLE_FOLDER = 'CONTRACT_MANAGEMENT_TOGGLE_FOLDER',
-  SET_CREATE_DOCUMENT_DRAWER_OPEN = "SET_CREATE_DOCUMENT_DRAWER_OPEN",
-  SET_CREATE_CONTRACT_DRAWER_OPEN = "SET_CREATE_CONTRACT_DRAWER_OPEN",
-  SET_CONTRACT_DRAWER_FIELDS = "SET_CONTRACT_DRAWER_FIELDS"
-}
-
 export const displayCardList = [
   {
     title: 'Total Documents',
@@ -38,14 +27,14 @@ export const displayCardList = [
     iconColor: '#1d4ed8',
     iconBgColor: '#bfdbfe',
   },
-  {
-    title: 'Active Contracts',
-    value: 4,
-    description: 'Contracts currently active',
-    iconName: 'file-check',
-    iconColor: '#15803d',
-    iconBgColor: '#dcfce7',
-  },
+  // {
+  //   title: 'Active Contracts',
+  //   value: 4,
+  //   description: 'Contracts currently active',
+  //   iconName: 'file-check',
+  //   iconColor: '#15803d',
+  //   iconBgColor: '#dcfce7',
+  // },
   {
     title: 'Pending Signatures',
     value: 5,
@@ -54,14 +43,14 @@ export const displayCardList = [
     iconColor: '#ea580c',
     iconBgColor: '#ffedd5',
   },
-  {
-    title: 'Contract Value',
-    value: `$${10000}`,
-    description: 'Total contract value',
-    iconName: 'dollar-sign',
-    iconColor: '#444444',
-    iconBgColor: '#f3f4f6',
-  }
+  // {
+  //   title: 'Contract Value',
+  //   value: `$${10000}`,
+  //   description: 'Total contract value',
+  //   iconName: 'dollar-sign',
+  //   iconColor: '#444444',
+  //   iconBgColor: '#f3f4f6',
+  // }
 ];
 
 export const noDocument = {

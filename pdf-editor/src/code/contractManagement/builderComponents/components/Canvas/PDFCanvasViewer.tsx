@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
@@ -19,6 +19,7 @@ const PDFCanvasViewer = () => {
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [renderKey, setRenderKey] = useState(0); 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -56,10 +57,21 @@ const PDFCanvasViewer = () => {
     loadPdfDocument();
   }, [pdfBytes, pdfjsLib]);
 
+  const handleScrollToTop = () => {
+    dispatch({ type: 'SET_CURRENT_PAGE', payload: 1 });
+    
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
       {pdfBytes && totalPages > 0 ? (
-        <CustomScrollbar className={styles.scrollPdfViewerContainer} >
+        <CustomScrollbar ref={scrollContainerRef} className={styles.scrollPdfViewerContainer} >
           <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
             {Array.from({ length: totalPages }, (_, index) => {
               return (<PDFPage
@@ -76,11 +88,9 @@ const PDFCanvasViewer = () => {
           </div>
         )
       }
-      {/* {totalPages > 0 && currentPage > 1 && ( */}
-        <IconButton onClick={() => dispatch({ type: 'SET_CURRENT_PAGE', payload: 1 })}>
-          <CustomIcon iconName="chevron-up" height={24} width={24} />
-        </IconButton>
-      {/* )} */}
+      <IconButton onClick={handleScrollToTop}>
+        <CustomIcon iconName="chevron-up" height={24} width={24} />
+      </IconButton>
     </div>
   );
 };

@@ -8,6 +8,8 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
+// import MediaButton from "@trenchaant/common-component/dist/commonComponent/mediaButton";
+import MediaButton from "components/commonComponentCode/mediaButton";
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../store/reducer/pdfEditor.reducer';
@@ -59,11 +61,9 @@ const PDFPage = React.memo((({
       pdfDoc.insertPage(pageNumber, [600, 800]);
       const newPdfBytes = await pdfDoc.save();
 
-      // Update state in a single batch to prevent multiple re-renders
       dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
       dispatch({ type: 'SET_TOTAL_PAGES', payload: pdfDoc.getPageCount() });
 
-      // Update elements to shift page numbers
       const updatedElements = canvasElements.map((el: { page: number; }) => {
         if (el.page > pageNumber) {
           return { ...el, page: el.page + 1 };
@@ -72,11 +72,9 @@ const PDFPage = React.memo((({
       });
       dispatch({ type: 'SET_CANVAS_ELEMENTS', payload: updatedElements });
 
-      // Update page dimensions
       const newPageDimensions: { [key: number]: PageDimension } = {};
       const newPageSize = { pageWidth: 600, pageHeight: 800 };
 
-      // Copy existing dimensions, shifting where necessary
       Object.keys(pageDimensions).forEach(key => {
         const pageNum = parseInt(key);
         if (pageNum <= pageNumber) {
@@ -86,7 +84,6 @@ const PDFPage = React.memo((({
         }
       });
 
-      // Add the new page dimension
       newPageDimensions[pageNumber + 1] = newPageSize;
 
       dispatch({ type: 'SET_PAGE_DIMENSIONS', payload: newPageDimensions });
@@ -138,61 +135,70 @@ const PDFPage = React.memo((({
     }
   };
 
-  const handleUploadAndInsert = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    handleMenuClose();
+  const handleUploadAndInsert = async (fileToUpload: any) => {
+    if (!fileToUpload || !pdfBytes) return;
 
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/pdf';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file || !pdfBytes) return;
-
-      try {
-        dispatch({ type: 'SET_IS_LOADING', payload: true })
-        const mainDoc = await PDFDocument.load(pdfBytes);
-        const uploadedBytes = await file.arrayBuffer();
-        const uploadedDoc = await PDFDocument.load(uploadedBytes);
-
-        const copiedPages = await mainDoc.copyPages(uploadedDoc, uploadedDoc.getPageIndices());
-        const numNewPages = copiedPages.length;
-
-        let lastInsertedIndex = pageNumber;
-        for (const copiedPage of copiedPages) {
-          mainDoc.insertPage(lastInsertedIndex, copiedPage);
-          lastInsertedIndex++;
+    try {
+      dispatch({ type: 'SET_IS_LOADING', payload: true });
+      
+      let arrayBuffer: ArrayBuffer;
+      
+      // Handle MediaButton media object (has original_url or url)
+      if (fileToUpload.original_url || fileToUpload.url) {
+        const fileUrl = fileToUpload.original_url || fileToUpload.url;
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error('Failed to fetch PDF from URL');
         }
-
-        const newPdfBytes = await mainDoc.save();
-        dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
-        dispatch({ type: 'SET_TOTAL_PAGES', payload: mainDoc.getPageCount() })
-
-        // Update elements to shift page numbers
-        const updatedElements = canvasElements.map((el: { page: number; }) => {
-          if (el.page > pageNumber) {
-            return { ...el, page: el.page + numNewPages };
-          }
-          return el;
-        });
-        dispatch({ type: 'SET_CANVAS_ELEMENTS', payload: updatedElements });
-
-        // Regenerate all dimensions
-        const dimensions: { [key: number]: PageDimension } = {};
-        mainDoc.getPages().forEach((page, i) => {
-          const { width, height } = page.getSize();
-          dimensions[i + 1] = { pageWidth: width, pageHeight: height };
-        });
-        dispatch({ type: 'SET_PAGE_DIMENSIONS', payload: dimensions })
-        dispatch({ type: 'SET_CURRENT_PAGE', payload: pageNumber + 1 })
-        dispatch({ type: 'SET_IS_LOADING', payload: false })
-      } catch (error) {
-        dispatch({ type: 'SET_IS_LOADING', payload: false })
-        console.error('Error inserting PDF pages:', error);
-        alert('Failed to insert PDF pages.');
+        arrayBuffer = await response.arrayBuffer();
+      } 
+      // Handle direct File object
+      else if (fileToUpload instanceof File) {
+        arrayBuffer = await fileToUpload.arrayBuffer();
+      } 
+      else {
+        throw new Error('Invalid file format');
       }
-    };
-    input.click();
+
+      const mainDoc = await PDFDocument.load(pdfBytes);
+      const uploadedDoc = await PDFDocument.load(arrayBuffer);
+
+      const copiedPages = await mainDoc.copyPages(uploadedDoc, uploadedDoc.getPageIndices());
+      const numNewPages = copiedPages.length;
+
+      let lastInsertedIndex = pageNumber;
+      for (const copiedPage of copiedPages) {
+        mainDoc.insertPage(lastInsertedIndex, copiedPage);
+        lastInsertedIndex++;
+      }
+
+      const newPdfBytes = await mainDoc.save();
+      dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
+      dispatch({ type: 'SET_TOTAL_PAGES', payload: mainDoc.getPageCount() })
+
+      // Update elements to shift page numbers
+      const updatedElements = canvasElements.map((el: { page: number; }) => {
+        if (el.page > pageNumber) {
+          return { ...el, page: el.page + numNewPages };
+        }
+        return el;
+      });
+      dispatch({ type: 'SET_CANVAS_ELEMENTS', payload: updatedElements });
+
+      // Regenerate all dimensions
+      const dimensions: { [key: number]: PageDimension } = {};
+      mainDoc.getPages().forEach((page, i) => {
+        const { width, height } = page.getSize();
+        dimensions[i + 1] = { pageWidth: width, pageHeight: height };
+      });
+      dispatch({ type: 'SET_PAGE_DIMENSIONS', payload: dimensions })
+      dispatch({ type: 'SET_CURRENT_PAGE', payload: pageNumber + 1 })
+      dispatch({ type: 'SET_IS_LOADING', payload: false })
+    } catch (error) {
+      dispatch({ type: 'SET_IS_LOADING', payload: false })
+      console.error('Error inserting PDF pages:', error);
+      alert('Failed to insert PDF pages.');
+    }
   };
 
   // Cleanup function to cancel any ongoing render tasks
@@ -288,22 +294,6 @@ const PDFPage = React.memo((({
           className={styles.canvasContainer}
           style={{ position: 'relative' }}
         >
-          {isLoading && (
-            <div className={styles.loadingDiv}>
-              <Typography>
-                Loading page {pageNumber}...
-              </Typography>
-            </div>
-          )}
-
-          {error && (
-            <div className={styles.errorDiv}>
-              <Typography>
-                {error}
-              </Typography>
-            </div>
-          )}
-
           <Menu
             anchorEl={actionMenuAnchorEl}
             open={Boolean(actionMenuAnchorEl)}
@@ -312,11 +302,24 @@ const PDFPage = React.memo((({
             <MenuItem onClick={handleAddBlankPage}>
               <Typography>Add blank page after</Typography>
             </MenuItem>
-            <MenuItem onClick={handleUploadAndInsert}>
-              <Typography>Upload PDF to insert after</Typography>
-            </MenuItem>
             <MenuItem onClick={handleDeletePage}>
               <Typography>Delete Page</Typography>
+            </MenuItem>
+            <MenuItem>
+              <MediaButton
+                classes={{mediaButton: styles.mediaBtnMenu, mediaButtonWrap: styles.mediaBtnMenuWrap}}
+                noBtnIcon
+                noTooltip
+                title="Insert PDF from media manager"
+                setSelectedMedia={(selectedMedia: any) => {
+                  if (selectedMedia && selectedMedia.length > 0) {
+                    handleUploadAndInsert(selectedMedia[0]);
+                  }
+                }}
+                allow={true}
+                allowFromLocal={true}
+                supportedDocTypes="pdf"
+              />
             </MenuItem>
           </Menu>
 

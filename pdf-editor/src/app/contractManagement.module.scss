@@ -7,7 +7,6 @@
   font-family: 'Inter', sans-serif;
   padding: 24px;
   box-sizing: border-box;
-  justify-content: space-between;
   gap: 24px;
 
   .headerSection {
@@ -98,90 +97,6 @@
       gap: 24px;
       flex: 1;
 
-      .sidebar {
-        width: 260px;
-        background: #fff;
-        border-radius: 12px;
-        padding: 16px;
-        border: 1px solid #e2e8f0;
-        height: fit-content;
-
-        .sidebarHeader {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-
-          h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #475569;
-            margin: 0;
-          }
-
-          button {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: none;
-            border: none;
-            color: #3b82f6;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-
-            &:hover {
-              background: #eff6ff;
-            }
-          }
-        }
-
-        .navItem {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 8px 12px;
-          border-radius: 6px;
-          color: #475569;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-
-          &:hover {
-            background: #f1f5f9;
-          }
-
-          &.active {
-            background: #eff6ff;
-            color: #2563eb;
-          }
-
-          .arrow {
-            color: #94a3b8;
-          }
-        }
-
-        .subItems {
-          padding-left: 36px;
-          
-          .subItem {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            color: #64748b;
-            font-size: 13px;
-            cursor: pointer;
-
-            &:hover {
-              color: #334155;
-            }
-          }
-        }
-      }
-
       .viewerArea {
         flex: 1;
         background: #fff;
@@ -254,7 +169,7 @@
   }
 }
 
-.createNewDocumentDrawer {
+.createDocumentDrawer {
   .createNewDocumentOptionsWrapper {
     width: 100%;
     display: flex;
@@ -292,6 +207,66 @@
 
       svg {
         stroke: #EA580C;
+      }
+    }
+  }
+
+  .stepperRoot {
+    height: 100%;
+    width: 100%;
+  }
+
+  .docsNameFileWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .errorText {
+    margin-top: 2px;
+    color: #ff0000;
+  }
+
+  .signersNameEmailSelectWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .addSignerBtnWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .displaySignersWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .displaySignerItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #f9fafb;
+
+        .signerEmail {
+          font-size: 12px;
+          color: #6b7280; 
+        }
+
+        .signerType {
+          font-size: 12px;
+          color: #6b7280;
+          text-transform: capitalize;
+        }
+
+        .signerChip {
+          border: 1px solid #e5e7eb;
+          padding: 2px 10px;
+        }
       }
     }
   }

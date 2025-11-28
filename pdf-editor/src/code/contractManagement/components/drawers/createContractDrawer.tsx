@@ -7,7 +7,7 @@ import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/Menu
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
-import { setCreateContractDrawerOpen } from "../../store/action/contractManagement.actions";
+// import { setCreateContractDrawerOpen } from "../../store/action/contractManagement.actions";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 import { contractTypeOptions, contractValueOptions } from '../../types';
 
@@ -55,7 +55,7 @@ const CreateContractDrawer = () => {
   };
 
   const handleDrawerClose = () => {
-    dispatch(setCreateContractDrawerOpen(false));
+    // dispatch(setCreateContractDrawerOpen(false));
   }
   
   return (

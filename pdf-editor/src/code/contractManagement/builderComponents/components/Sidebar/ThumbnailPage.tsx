@@ -307,12 +307,6 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
               </div>
             )}
 
-            {error && (
-              <div className={styles.thumbnailError}>
-                {error}
-              </div>
-            )}
-
             {thumbnailUrl && !isLoading && !error && (
               <div
                 className={styles.thumbnailImage}

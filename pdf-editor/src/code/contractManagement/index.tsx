@@ -8,28 +8,23 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import ModuleHeader from "@trenchaant/pkg-ui-component-library/build/Components/ModuleHeader";
 import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
-import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
-import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
+// import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
+// import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
 import { contractManagementReducer, RootState } from './store';
-import { setActiveTab, setCreateDocumentDrawerOpen } from './store/action/contractManagement.actions';
-import { CONTRACT_MANAGEMENT_TAB } from './types';
-import FolderSidebar from './components/FolderSidebar';
+import { setActiveTab, setPdfBuilderDrawerOpen } from './store/action/contractManagement.actions';
+// import { CONTRACT_MANAGEMENT_TAB } from './types';
 import DocumentsViewer from './components/DocumentsViewer';
-import ContractsViewer from './components/ContractsViewer';
+// import ContractsViewer from './components/ContractsViewer';
 import { displayCardList } from './types';
 import CreateDocumentDrawer from './components/drawers/CreateDocumentDrawer';
 
 const ContractManagement = () => {
   const dispatch = useDispatch();
-  const activeTab = useSelector((state: RootState) => state?.contractManagement?.activeTab);
+  // const activeTab = useSelector((state: RootState) => state?.contractManagement?.activeTab);
 
   useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
   }, []);
-
-  const handleStateChange = (dataObj: any) => {
-    console.log({dataObj})
-  }
 
   return (
     <div className={styles.contractManagementContainer}>
@@ -55,7 +50,7 @@ const ContractManagement = () => {
           <Button 
             variant="contained"
             color="primary"
-            onClick={() => {dispatch(setCreateDocumentDrawerOpen(true))}}
+            onClick={() => dispatch(setPdfBuilderDrawerOpen(true))}
           >
             <CustomIcon iconName="plus" width={16} height={16} variant="white" /> 
             <Typography>New Document</Typography>
@@ -91,7 +86,7 @@ const ContractManagement = () => {
       </div>
 
       <div className={styles.mainContentSection}>
-        <Segmented
+        {/* <Segmented
           indicatorColor="primary"
           textColor="primary"
           value={activeTab}
@@ -113,11 +108,11 @@ const ContractManagement = () => {
             label={'Contracts'}
             value={CONTRACT_MANAGEMENT_TAB.CONTRACTS}
           />
-        </Segmented>
+        </Segmented> */}
 
         <div className={styles.contentBody}>
-          <FolderSidebar />
-          {activeTab === CONTRACT_MANAGEMENT_TAB.DOCUMENTS ? <DocumentsViewer /> : <ContractsViewer />}
+          {/* {activeTab === CONTRACT_MANAGEMENT_TAB.DOCUMENTS ? <DocumentsViewer /> : <ContractsViewer />} */}
+          <DocumentsViewer />
         </div>
       </div>
     </div>

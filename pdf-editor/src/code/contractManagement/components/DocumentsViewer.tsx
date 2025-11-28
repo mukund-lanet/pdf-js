@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
-import { setDocumentActiveFilter, setCreatePdfDocumentDrawerOpen } from '../store/action/contractManagement.actions';
+import { setDocumentActiveFilter, setDocumentDrawerOpen } from '../store/action/contractManagement.actions';
 import { noDocument } from '../types';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
@@ -51,7 +51,7 @@ const DocumentsViewer = () => {
                 label: "Create First Document",
                 variant: "contained",
                 color: "primary",
-                onClick: () => {dispatch(setCreatePdfDocumentDrawerOpen(true))}
+                onClick: () => dispatch(setDocumentDrawerOpen(true))
               }} 
             />
         </div>

@@ -1,20 +1,18 @@
-import { AppDispatch } from '..';
+import * as Actions from '../action/contractManagement.actions';
 import { 
-  CONTRACT_MANAGEMENT_ACTION_TYPES,
   CONTRACT_MANAGEMENT_TAB,
   DocumentItem,
   ContractItem
 } from '../../types';
 
 export interface ContractManagementState {
-  createPdfDocumentDrawerOpen: boolean;
-  createDocumentDrawerOpen: boolean;
+  pdfBuilderDrawerOpen: boolean;
   activeTab: CONTRACT_MANAGEMENT_TAB;
   documentActiveFilter: string;
   contractActiveFilter: string;
+  documentDrawerOpen: boolean;
   contractDrawer: {
     createContractDrawerOpen: boolean;
-    contractDrawerProgress: number;
     contractName: string;
     contractType: string;
     contractValue: number;
@@ -54,14 +52,13 @@ export interface RootState {
 }
 
 const initialState: ContractManagementState = {
-  createPdfDocumentDrawerOpen: false,
-  createDocumentDrawerOpen: false,
+  pdfBuilderDrawerOpen: false,
   activeTab: CONTRACT_MANAGEMENT_TAB.DOCUMENTS,
   documentActiveFilter: 'all',
   contractActiveFilter: 'all',
+  documentDrawerOpen: false,
   contractDrawer: {
     createContractDrawerOpen: false,
-    contractDrawerProgress: 0,
     contractName: "",
     contractType: "Service Contract",
     contractValue: 0.00,
@@ -96,45 +93,29 @@ const initialState: ContractManagementState = {
   contracts: [],
 };
 
-export const contractManagementReducer = (state = initialState, action: AppDispatch): ContractManagementState => {
+export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
   switch (action.type) {
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CREATE_PDF_DOCUMENT_DRAWER_OPEN:
+    case Actions.SET_PDF_BUILDER_DRAWER_OPEN:
       return {
         ...state,
-        createPdfDocumentDrawerOpen: action.payload,
+        pdfBuilderDrawerOpen: action.payload,
       };
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CONTRACT_DRAWER_FIELDS:
+    case Actions.SET_DOCUMENT_DRAWER_OPEN:
       return {
         ...state,
-        contractDrawer: {
-          ...state.contractDrawer,
-          ...action.payload,
-        },
+        documentDrawerOpen: action.payload,
       };
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CREATE_CONTRACT_DRAWER_OPEN:
-      return {
-        ...state,
-        contractDrawer: {
-          ...state.contractDrawer,
-          createContractDrawerOpen: action.payload,
-        },
-      };
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CREATE_DOCUMENT_DRAWER_OPEN:
-      return {
-        ...state,
-        createDocumentDrawerOpen: action.payload,
-      };
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_ACTIVE_TAB:
+    case Actions.SET_ACTIVE_TAB:
       return {
         ...state,
         activeTab: action.payload,
       };
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_DOCUMENT_ACTIVE_FILTER:
+    case Actions.SET_DOCUMENT_ACTIVE_FILTER:
       return {
         ...state,
         documentActiveFilter: action.payload,
       };
-    case CONTRACT_MANAGEMENT_ACTION_TYPES.SET_CONTRACT_ACTIVE_FILTER:
+    case Actions.SET_CONTRACT_ACTIVE_FILTER:
       return {
         ...state,
         contractActiveFilter: action.payload,

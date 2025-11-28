@@ -1,16 +1,19 @@
 'use client';
-import React, { useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { PDFDocument } from 'pdf-lib';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { PageDimension } from '../../types';
+import { RootState } from '../../store/reducer/pdfEditor.reducer';
+// import MediaButton from "@trenchaant/common-component/dist/commonComponent/mediaButton";
+import MediaButton from "components/commonComponentCode/mediaButton";
 
 const EditorHeader = () => {
   const dispatch = useDispatch();
-  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const file = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.media);
 
   const createNewPdf = async () => {
     try {
@@ -31,13 +34,30 @@ const EditorHeader = () => {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = async (fileToUpload?: any) => {
+    if (!fileToUpload) return;
 
     try {
-      dispatch({ type: 'SET_IS_LOADING', payload: true })
-      const arrayBuffer = await file.arrayBuffer();
+      dispatch({ type: 'SET_IS_LOADING', payload: true });
+      
+      let arrayBuffer: ArrayBuffer;
+      
+      // Handle MediaButton media object (has original_url or url)
+      if (fileToUpload.original_url || fileToUpload.url) {
+        const fileUrl = fileToUpload.original_url || fileToUpload.url;
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error('Failed to fetch PDF from URL');
+        }
+        arrayBuffer = await response.arrayBuffer();
+      } 
+      // Handle direct File object from input
+      else if (fileToUpload instanceof File) {
+        arrayBuffer = await fileToUpload.arrayBuffer();
+      } 
+      else {
+        throw new Error('Invalid file format');
+      }
 
       const header = new Uint8Array(arrayBuffer, 0, 5);
       const headerStr = String.fromCharCode(...header);
@@ -76,18 +96,20 @@ const EditorHeader = () => {
         <Button className={styles.toolbarItem} onClick={createNewPdf}>
           <Typography className={styles.label} >New Document</Typography>
         </Button>
-        <input
-          type="file"
-          id="pdf-file-upload"
-          accept="application/pdf"
-          ref={uploadInputRef}
-          onChange={handleFileUpload}
-          className={styles.toolbarItem}
-          style={{ display: 'none' }}
+        <MediaButton
+          classes={{mediaButton: styles.toolbarItem}}
+          noBtnIcon
+          title="Upload PDF"
+          setSelectedMedia={(selectedMedia:any) => {
+            dispatch({ type: 'SET_PDF_MEDIA', payload: selectedMedia });
+            if (selectedMedia && selectedMedia.length > 0) {
+              handleFileUpload(selectedMedia[0]);
+            }
+          }}
+          allow={true}
+          allowFromLocal={true}
+          supportedDocTypes="pdf"
         />
-        <Button className={styles.toolbarItem} onClick={() => uploadInputRef.current?.click()}>
-          <Typography className={styles.label} >Upload PDF</Typography>
-        </Button>
       </div>
       <Button
         variant={"contained"}

@@ -9,6 +9,7 @@ export interface PdfEditorState {
   canvasElements: CanvasElement[];
   pageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } };
   activeTool: null | 'text' | 'image' | 'signature';
+  media: any;
   selectedTextElement: TextElement | null;
   isSignaturePadOpen: boolean;
   signatureForElement: string | null;
@@ -35,6 +36,7 @@ const initialState: PdfEditorState = {
   canvasElements: [],
   pageDimensions: {},
   activeTool: null,
+  media: null,
   selectedTextElement: null,
   isSignaturePadOpen: false,
   signatureForElement: null,
@@ -73,6 +75,12 @@ export const pdfEditorReducer = (
       return {
         ...state,
         propertiesDrawerState: action.payload
+      };
+
+    case PDF_EDITOR_ACTION_TYPES.SET_PDF_MEDIA:
+      return {
+        ...state,
+        media: action.payload
       };
 
     case PDF_EDITOR_ACTION_TYPES.SET_DRAWER_COMPONENT_CATEGORY:
