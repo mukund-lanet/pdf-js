@@ -11,16 +11,18 @@ import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 // import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
 // import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
 import { contractManagementReducer, RootState } from './store';
-import { setActiveTab, setPdfBuilderDrawerOpen } from './store/action/contractManagement.actions';
+import { setActiveTab, setIdentityVerificationDialogOpen, setPdfBuilderDrawerOpen } from './store/action/contractManagement.actions';
 // import { CONTRACT_MANAGEMENT_TAB } from './types';
 import DocumentsViewer from './components/DocumentsViewer';
 // import ContractsViewer from './components/ContractsViewer';
 import { displayCardList } from './types';
 import CreateDocumentDrawer from './components/drawers/CreateDocumentDrawer';
+import IdentityVerification from './components/dialogues/identityVarification';
 
 const ContractManagement = () => {
   const dispatch = useDispatch();
   // const activeTab = useSelector((state: RootState) => state?.contractManagement?.activeTab);
+  const identityVerification = useSelector((state: RootState) => state?.contractManagement?.identityVerification);
 
   useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
@@ -43,7 +45,11 @@ const ContractManagement = () => {
             <CustomIcon iconName="shield" width={16} height={16} /> 
             <Typography>Branding</Typography>
           </Button>
-          <Button variant="outlined" color="secondary">
+          <Button 
+            variant="outlined"
+            color="secondary"
+            onClick={() => dispatch(setIdentityVerificationDialogOpen(true))}
+          >
             <CustomIcon iconName="shield" width={16} height={16} /> 
             <Typography>Identity Verification</Typography>
           </Button>
@@ -56,6 +62,7 @@ const ContractManagement = () => {
             <Typography>New Document</Typography>
           </Button>
           <CreateDocumentDrawer />
+          <IdentityVerification />
         </div>
       </div>
       <div className={styles.contractManagementStatsGrid} >

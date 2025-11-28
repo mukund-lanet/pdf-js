@@ -8,6 +8,8 @@ export const SET_CONTRACT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_CONTRACT_ACTI
 export const TOGGLE_FOLDER = 'CONTRACT_MANAGEMENT_TOGGLE_FOLDER';
 export const SET_PDF_BUILDER_DRAWER_OPEN = "SET_PDF_BUILDER_DRAWER_OPEN";
 export const SET_DOCUMENT_DRAWER_OPEN = "SET_DOCUMENT_DRAWER_OPEN";
+export const SET_IDENTITY_VERIFICATION = "SET_IDENTITY_VERIFICATION";
+export const SET_IDENTITY_VERIFICATION_DIALOG_OPEN = "SET_IDENTITY_VERIFICATION_DIALOG_OPEN";
 
 // Action Interfaces
 export interface SetActiveTabAction {
@@ -34,13 +36,25 @@ export interface SetDocumentDrawerOpen {
   payload: boolean;
 }
 
+export interface SetIdentityVerification {
+  type: typeof SET_IDENTITY_VERIFICATION;
+  payload: boolean;
+}
+
+export interface SetIdentityVerificationDialogOpen {
+  type: typeof SET_IDENTITY_VERIFICATION_DIALOG_OPEN;
+  payload: boolean;
+}
+
 // Union type for all Contract Management actions
 export type ContractManagementAction =
   | SetActiveTabAction
   | SetDocumentActiveFilterAction
   | SetContractActiveFilterAction
   | SetPdfBuilderDrawerOpen
-  | SetDocumentDrawerOpen;
+  | SetDocumentDrawerOpen
+  | SetIdentityVerification
+  | SetIdentityVerificationDialogOpen;
 
 // Action Creators
 export const setActiveTab = (tab: CONTRACT_MANAGEMENT_TAB): AppDispatch => {
@@ -83,6 +97,24 @@ export const setDocumentDrawerOpen = (open: boolean): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
       type: SET_DOCUMENT_DRAWER_OPEN,
+      payload: open,
+    });
+  };
+};
+
+export const setIdentityVerification = (open: boolean): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_IDENTITY_VERIFICATION,
+      payload: open,
+    });
+  };
+};
+
+export const setIdentityVerificationDialogOpen = (open: boolean): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_IDENTITY_VERIFICATION_DIALOG_OPEN,
       payload: open,
     });
   };

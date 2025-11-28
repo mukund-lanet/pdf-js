@@ -11,6 +11,8 @@ export interface ContractManagementState {
   documentActiveFilter: string;
   contractActiveFilter: string;
   documentDrawerOpen: boolean;
+  identityVerification: boolean;
+  identityVerificationDialogOpen: boolean;
   contractDrawer: {
     createContractDrawerOpen: boolean;
     contractName: string;
@@ -57,6 +59,8 @@ const initialState: ContractManagementState = {
   documentActiveFilter: 'all',
   contractActiveFilter: 'all',
   documentDrawerOpen: false,
+  identityVerification: false,
+  identityVerificationDialogOpen: false,
   contractDrawer: {
     createContractDrawerOpen: false,
     contractName: "",
@@ -119,6 +123,16 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         contractActiveFilter: action.payload,
+      };
+    case Actions.SET_IDENTITY_VERIFICATION:
+      return {
+        ...state,
+        identityVerification: action.payload,
+      };
+    case Actions.SET_IDENTITY_VERIFICATION_DIALOG_OPEN:
+      return {
+        ...state,
+        identityVerificationDialogOpen: action.payload,
       };
     default:
       return state;

@@ -330,3 +330,24 @@
     }
   }
 }
+
+.identityVarificationDialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: space-between;
+  height: 100%;
+
+  .identityVarifyInitial {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+
+    .identityVarifyInitialText {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+}
