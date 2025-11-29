@@ -28,7 +28,6 @@ const CreateDocumentDrawer = () => {
   const dispatch = useDispatch();
   const documentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.documentDrawerOpen);
   const pdfBuilderDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.pdfBuilderDrawerOpen);
-  const [progress, setProgress] = useState<number>(0);
 
   // Formik setup with Yup validation
   const formik = useFormik({
@@ -40,8 +39,10 @@ const CreateDocumentDrawer = () => {
       currentSignerName: '',
       currentSignerEmail: '',
       currentSignerType: 'signer' as 'signer' | 'approver' | 'cc',
+      progress: 0,
     },
     validationSchema: Yup.object({
+      progress: Yup.number(),
       documentName: Yup.string()
         .required('Document name is required')
         .min(3, 'Document name must be at least 3 characters'),
@@ -49,6 +50,7 @@ const CreateDocumentDrawer = () => {
         .nullable()
         .test('fileRequired', 'Please upload a PDF file', function(value) {
           // Only validate file on step 0
+          const { progress } = this.parent as any;
           if (progress === 0) {
             return value !== null;
           }
@@ -57,6 +59,7 @@ const CreateDocumentDrawer = () => {
       currentSignerName: Yup.string()
         .test('signerNameRequired', 'Signer name is required', function(value) {
           // Only validate on step 1 when adding a signer
+          const { progress } = this.parent as any;
           if (progress === 1) {
             return value ? value.length >= 2 : true;
           }
@@ -66,6 +69,7 @@ const CreateDocumentDrawer = () => {
         .email('Invalid email address')
         .test('signerEmailRequired', 'Signer email is required', function(value) {
           // Only validate on step 1 when adding a signer
+          const { progress } = this.parent as any;
           if (progress === 1) {
             return value ? Yup.string().email().isValidSync(value) : true;
           }
@@ -75,6 +79,7 @@ const CreateDocumentDrawer = () => {
         .min(1, 'At least one signer is required')
         .test('signersRequired', 'Please add at least one signer', function(value) {
           // Only validate signers array on step 1 when submitting
+          const { progress } = this.parent as any;
           if (progress === 1) {
             return value && value.length > 0;
           }
@@ -83,13 +88,13 @@ const CreateDocumentDrawer = () => {
     }),
     onSubmit: async (values, { setFieldValue, setValues }) => {
       // Handle form submission based on current step
-      if (progress === 0) {
+      if (values.progress === 0) {
         // Validate step 0 before moving to step 1
         const step0Errors = await formik.validateForm();
         if (!step0Errors.documentName && !step0Errors.file) {
-          setProgress(1);
+          setFieldValue("progress", 1);
         }
-      } else if (progress === 1) {
+      } else if (values.progress === 1) {
         // Final submission
         console.log('Submitting document:', values);
         // TODO: Add your submission logic here
@@ -97,7 +102,7 @@ const CreateDocumentDrawer = () => {
         handleDocumentDrawerClose();
         // Reset form
         formik.resetForm();
-        setProgress(0);
+        setFieldValue("progress", 0);
       }
     },
   });
@@ -116,7 +121,7 @@ const CreateDocumentDrawer = () => {
   const handleDocumentDrawerClose = () => {
     dispatch(setDocumentDrawerOpen(false));
     formik.resetForm();
-    setProgress(0);
+    setFieldValue("progress", 0);
   }
 
   const handlePdfBuilderDrawerClose = () => {
@@ -129,26 +134,28 @@ const CreateDocumentDrawer = () => {
   ]
 
   const onPrevCancelClick = () => {
-    if (progress === 0) {
+    console.log("values.progress", values.progress);
+    if (values.progress === 0) {
       handleDocumentDrawerClose();
     } else {
-      setProgress(progress - 1);
+      setFieldValue("progress", values.progress - 1);
     }
   }
-
+  
   const onNextSubmitClick = async () => {
-    if (progress === 0) {
+    console.log("values.progress", values.progress);
+    if (values.progress === 0) {
       // Validate step 0 fields
       const step0Errors = await formik.validateForm();
       if (!step0Errors.documentName && !step0Errors.file) {
-        setProgress(1);
+        setFieldValue("progress", 1);
       } else {
         formik.setTouched({
           documentName: true,
           file: true,
         });
       }
-    } else if (progress === 1) {
+    } else if (values.progress === 1) {
       // Validate signers array before submission
       const step1Errors = await formik.validateForm();
       if (!step1Errors.signers) {
@@ -190,8 +197,6 @@ const CreateDocumentDrawer = () => {
     const updatedSigners = values.signers.filter((_, i) => i !== index);
     setFieldValue('signers', updatedSigners);
   }
-
-  console.log({errors})
   
   return (
     <Drawer
@@ -203,11 +208,11 @@ const CreateDocumentDrawer = () => {
       size="medium"
       cancelBtn={ documentDrawerOpen && { 
         onClick: onPrevCancelClick, 
-        label: progress === 0 ? "Cancel" : "Previous" 
+        label: values.progress === 0 ? "Cancel" : "Previous" 
       }}
       submitBtn={ documentDrawerOpen && { 
         onClick: onNextSubmitClick, 
-        label: progress === 0 ? "Next" : "Submit" 
+        label: values.progress === 0 ? "Next" : "Submit" 
       }}
       onClose={() => { documentDrawerOpen ? handleDocumentDrawerClose() : handlePdfBuilderDrawerClose() }}
       className={styles.createDocumentDrawer}
@@ -273,12 +278,12 @@ const CreateDocumentDrawer = () => {
         </div>)
         : (<Stepper
             steps={steps}
-            activeStep={progress}
+            activeStep={values.progress}
             labelPlacement="start"
             hidefooter
             classes={{ mainRoot: styles.stepperRoot }}
           >
-            { progress === 0 && <div className={styles.docsNameFileWrapper} >
+            { values.progress === 0 && <div className={styles.docsNameFileWrapper} >
               <TextField
                 fullWidth
                 variant="outlined"
@@ -323,7 +328,7 @@ const CreateDocumentDrawer = () => {
                 )}
               </div>
             </div>}
-            { progress === 1 && <div className={styles.signersNameEmailSelectWrapper}>
+            { values.progress === 1 && <div className={styles.signersNameEmailSelectWrapper}>
               <TextField
                 fullWidth
                 variant="outlined"

@@ -93,3 +93,43 @@ export const contractValueOptions = [
   {key: "eur", value: "EUR"},
   {key: "gbp", value: "GBP"},
 ]
+
+export const radioGroupList = [
+  {
+    value: "sms_verification",
+    title: "SMS Verification",
+    description: "Send a one-time code via text message to the signer's mobile phone",
+    icon: "smartphone",
+    chip: "Recommended",
+    subDescription: "Requires mobile phone number"
+  },
+  {
+    value: "phone_call_verification",
+    title: "Phone Call Verification",
+    description: "Call the signer and provide a verification code",
+    icon: "phone",
+    subDescription: "Works with landline or mobile"
+  },
+  {
+    value: "kba_verification",
+    title: "Knowledge-Based Authentication (KBA)",
+    description: "Ask the signer questions based on public records and credit history",
+    icon: "shield",
+    chip: "High Security",
+    subDescription: "5-10 personal questions • USA only"
+  },
+  {
+    value: "id_verification",
+    title: "ID Verification",
+    description: "Upload and verify government-issued photo ID",
+    icon: "id-card",
+    chip: "Premium",
+    subDescription: "Driver's license, passport, or national ID"
+  },
+  {
+    value: "no_verification",
+    title: "No Verification",
+    description: "Standard email-only authentication",
+    icon: "mail"
+  }
+];
