@@ -1,22 +1,19 @@
 import { AppDispatch, RootState } from '..';
-import { CONTRACT_MANAGEMENT_TAB } from '../../types';
+import { CONTRACT_MANAGEMENT_TAB, DIALOG_DRAWER_NAMES } from '../../types';
 
 // Action Types
-export const SET_ACTIVE_TAB = 'CONTRACT_MANAGEMENT_SET_ACTIVE_TAB';
 export const SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_DOCUMENT_ACTIVE_FILTER';
 export const SET_CONTRACT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_CONTRACT_ACTIVE_FILTER';
 export const TOGGLE_FOLDER = 'CONTRACT_MANAGEMENT_TOGGLE_FOLDER';
-export const SET_PDF_BUILDER_DRAWER_OPEN = "SET_PDF_BUILDER_DRAWER_OPEN";
-export const SET_DOCUMENT_DRAWER_OPEN = "SET_DOCUMENT_DRAWER_OPEN";
-export const SET_IDENTITY_VERIFICATION = "SET_IDENTITY_VERIFICATION";
-export const SET_IDENTITY_VERIFICATION_DIALOG_OPEN = "SET_IDENTITY_VERIFICATION_DIALOG_OPEN";
+export const SET_DIALOG_STATE = "SET_DIALOG_STATE";
+export const SET_IDENTITY_VERIFICATION_SETTINGS = "SET_IDENTITY_VERIFICATION_SETTINGS";
+export const SET_GLOBAL_DOCUMENT_SETTINGS = "SET_GLOBAL_DOCUMENT_SETTINGS";
+export const SET_BRANDING_CUSTOMIZATION_SETTINGS = "SET_BRANDING_CUSTOMIZATION_SETTINGS";
+
+// Dialog/Drawer Names Type
+export type DialogName = DIALOG_DRAWER_NAMES;
 
 // Action Interfaces
-export interface SetActiveTabAction {
-  type: typeof SET_ACTIVE_TAB;
-  payload: CONTRACT_MANAGEMENT_TAB;
-}
-
 export interface SetDocumentActiveFilterAction {
   type: typeof SET_DOCUMENT_ACTIVE_FILTER;
   payload: string;
@@ -27,45 +24,66 @@ export interface SetContractActiveFilterAction {
   payload: string;
 }
 
-export interface SetPdfBuilderDrawerOpen {
-  type: typeof SET_PDF_BUILDER_DRAWER_OPEN;
-  payload: boolean;
-}
-export interface SetDocumentDrawerOpen {
-  type: typeof SET_DOCUMENT_DRAWER_OPEN;
-  payload: boolean;
-}
-
-export interface SetIdentityVerification {
-  type: typeof SET_IDENTITY_VERIFICATION;
-  payload: boolean;
+export interface SetDialogStateAction {
+  type: typeof SET_DIALOG_STATE;
+  payload: {
+    dialogName: DialogName;
+    isOpen: boolean;
+  };
 }
 
-export interface SetIdentityVerificationDialogOpen {
-  type: typeof SET_IDENTITY_VERIFICATION_DIALOG_OPEN;
-  payload: boolean;
+export interface SetIdentityVerificationSettings {
+  type: typeof SET_IDENTITY_VERIFICATION_SETTINGS;
+  payload: {
+    isVarifyOn: boolean;
+    verificationMethod: string;
+    isRequireAllSigners: boolean;
+    isRequirePhone: boolean;
+  };
+}
+
+export interface SetBrandingCustomizationSettings {
+  type: typeof SET_BRANDING_CUSTOMIZATION_SETTINGS;
+  payload: {
+    senderName: string;
+    senderEmail: string;
+    emailSubjectLine: string;
+    emailMessage: string;
+    ctaButtonText: string;
+    footerText: string;
+    companyName: string;
+    primaryColor: string;
+    secondaryColor: string;
+    accentColor: string;
+    logo: any;
+  };
+}
+
+export interface SetGlobalDocumentSettings {
+  type: typeof SET_GLOBAL_DOCUMENT_SETTINGS;
+  payload: {
+    senderName: string;
+    senderEmail: string;
+    emailSubject: string;
+    emailTemplate: string;
+    redirectDateNotification: boolean;
+    dueDateNotification: boolean;
+    completionNotification: boolean;
+    reminderNotification: boolean;
+    daysBeforeDueDate: number;
+  };
 }
 
 // Union type for all Contract Management actions
 export type ContractManagementAction =
-  | SetActiveTabAction
   | SetDocumentActiveFilterAction
   | SetContractActiveFilterAction
-  | SetPdfBuilderDrawerOpen
-  | SetDocumentDrawerOpen
-  | SetIdentityVerification
-  | SetIdentityVerificationDialogOpen;
+  | SetDialogStateAction
+  | SetIdentityVerificationSettings
+  | SetGlobalDocumentSettings
+  | SetBrandingCustomizationSettings;
 
 // Action Creators
-export const setActiveTab = (tab: CONTRACT_MANAGEMENT_TAB): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    dispatch({
-      type: SET_ACTIVE_TAB,
-      payload: tab,
-    });
-  };
-};
-
 export const setDocumentActiveFilter = (filter: string): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
@@ -84,38 +102,40 @@ export const setContractActiveFilter = (filter: string): AppDispatch => {
   };
 };
 
-export const setPdfBuilderDrawerOpen = (open: boolean): AppDispatch => {
+export const setDialogDrawerState = (dialogName: DialogName, isOpen: boolean): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
-      type: SET_PDF_BUILDER_DRAWER_OPEN,
+      type: SET_DIALOG_STATE,
+      payload: { dialogName, isOpen },
+    });
+  };
+};
+
+export const setIdentityVerificationSettings = (open: { isVarifyOn: boolean; verificationMethod: string; isRequireAllSigners: boolean; isRequirePhone: boolean }): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_IDENTITY_VERIFICATION_SETTINGS,
       payload: open,
     });
   };
 };
 
-export const setDocumentDrawerOpen = (open: boolean): AppDispatch => {
+export const setGlobalDocumentSettings = (globalDocumentSettings: { senderName: string; senderEmail: string; emailSubject: string; emailTemplate: string; redirectDateNotification: boolean; dueDateNotification: boolean; completionNotification: boolean; reminderNotification: boolean; daysBeforeDueDate: number }): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
-      type: SET_DOCUMENT_DRAWER_OPEN,
-      payload: open,
+      type: SET_GLOBAL_DOCUMENT_SETTINGS,
+      payload: globalDocumentSettings,
     });
   };
 };
 
-export const setIdentityVerification = (open: boolean): AppDispatch => {
+export const setBrandingCustomizationSettings = (brandingCustomizationSettings: { senderName: string; senderEmail: string; emailSubjectLine: string; emailMessage: string; ctaButtonText: string; footerText: string; companyName: string; primaryColor: string; secondaryColor: string; accentColor: string; logo: any }): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
-      type: SET_IDENTITY_VERIFICATION,
-      payload: open,
+      type: SET_BRANDING_CUSTOMIZATION_SETTINGS,
+      payload: brandingCustomizationSettings,
     });
   };
 };
 
-export const setIdentityVerificationDialogOpen = (open: boolean): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    dispatch({
-      type: SET_IDENTITY_VERIFICATION_DIALOG_OPEN,
-      payload: open,
-    });
-  };
-};
+

@@ -12,10 +12,11 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
 import Chip from "@trenchaant/pkg-ui-component-library/build/Components/Chip";
-import SingleFileDropZone from "@trenchaant/common-component/dist/commonComponent/singleFileDropZone";
+import SingleFileDropZone from "components/commonComponentCode/singleFileDropZone";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
-import { setDocumentDrawerOpen, setPdfBuilderDrawerOpen } from "../../store/action/contractManagement.actions";
+import { setDialogDrawerState } from "../../store/action/contractManagement.actions";
+import { DIALOG_DRAWER_NAMES } from "../../types";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 
 interface Signer {
@@ -26,10 +27,11 @@ interface Signer {
 
 const CreateDocumentDrawer = () => {
   const dispatch = useDispatch();
-  const documentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.documentDrawerOpen);
+  const uploadPdfDocumentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.uploadPdfDocumentDrawerOpen);
   const pdfBuilderDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.pdfBuilderDrawerOpen);
+  const newDocumentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.newDocumentDrawerOpen);
 
-  // Formik setup with Yup validation
+  // Formik setup for Upload PDF Drawer
   const formik = useFormik({
     enableReinitialize: false,
     initialValues: {
@@ -49,7 +51,6 @@ const CreateDocumentDrawer = () => {
       file: Yup.mixed()
         .nullable()
         .test('fileRequired', 'Please upload a PDF file', function(value) {
-          // Only validate file on step 0
           const { progress } = this.parent as any;
           if (progress === 0) {
             return value !== null;
@@ -58,7 +59,6 @@ const CreateDocumentDrawer = () => {
         }),
       currentSignerName: Yup.string()
         .test('signerNameRequired', 'Signer name is required', function(value) {
-          // Only validate on step 1 when adding a signer
           const { progress } = this.parent as any;
           if (progress === 1) {
             return value ? value.length >= 2 : true;
@@ -68,7 +68,6 @@ const CreateDocumentDrawer = () => {
       currentSignerEmail: Yup.string()
         .email('Invalid email address')
         .test('signerEmailRequired', 'Signer email is required', function(value) {
-          // Only validate on step 1 when adding a signer
           const { progress } = this.parent as any;
           if (progress === 1) {
             return value ? Yup.string().email().isValidSync(value) : true;
@@ -78,7 +77,6 @@ const CreateDocumentDrawer = () => {
       signers: Yup.array()
         .min(1, 'At least one signer is required')
         .test('signersRequired', 'Please add at least one signer', function(value) {
-          // Only validate signers array on step 1 when submitting
           const { progress } = this.parent as any;
           if (progress === 1) {
             return value && value.length > 0;
@@ -86,26 +84,19 @@ const CreateDocumentDrawer = () => {
           return true;
         }),
     }),
-    onSubmit: async (values, { setFieldValue, setValues }) => {
-      // Handle form submission based on current step
-      if (values.progress === 0) {
-        // Validate step 0 before moving to step 1
-        const step0Errors = await formik.validateForm();
-        if (!step0Errors.documentName && !step0Errors.file) {
-          setFieldValue("progress", 1);
-        }
-      } else if (values.progress === 1) {
-        // Final submission
+    onSubmit: async (values, { setFieldValue }) => {
+      if (values.progress === 1) {
         console.log('Submitting document:', values);
         // TODO: Add your submission logic here
-        // dispatch(createDocument(values));
-        handleDocumentDrawerClose();
-        // Reset form
+        handleUploadPdfDrawerClose();
         formik.resetForm();
         setFieldValue("progress", 0);
       }
     },
   });
+
+  // State for New Document Drawer
+  const [newDocumentName, setNewDocumentName] = useState('');
 
   const {
     values,
@@ -115,37 +106,50 @@ const CreateDocumentDrawer = () => {
     handleSubmit,
     errors,
     setFieldValue,
-    setValues,
   } = formik;
 
-  const handleDocumentDrawerClose = () => {
-    dispatch(setDocumentDrawerOpen(false));
+  // Close handlers
+  const handlePdfBuilderDrawerClose = () => {
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, false));
+  };
+
+  const handleUploadPdfDrawerClose = () => {
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.UPLOAD_PDF_DOCUMENT_DRAWER, false));
     formik.resetForm();
     setFieldValue("progress", 0);
-  }
+  };
 
-  const handlePdfBuilderDrawerClose = () => {
-    dispatch(setPdfBuilderDrawerOpen(false));
-  }
+  const handleNewDocumentDrawerClose = () => {
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.NEW_DOCUMENT_DRAWER, false));
+    setNewDocumentName('');
+  };
+
+  // Card click handlers
+  const handleNewDocumentClick = () => {
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.NEW_DOCUMENT_DRAWER, true));
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, false));
+  };
+
+  const handleUploadPdfClick = () => {
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.UPLOAD_PDF_DOCUMENT_DRAWER, true));
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, false));
+  };
 
   const steps = [
     { label: "Upload Files", description: "Add documents & media" },
     { label: "Add Signers", description: "Assign recipients" },
-  ]
+  ];
 
   const onPrevCancelClick = () => {
-    console.log("values.progress", values.progress);
     if (values.progress === 0) {
-      handleDocumentDrawerClose();
+      handleUploadPdfDrawerClose();
     } else {
       setFieldValue("progress", values.progress - 1);
     }
-  }
+  };
   
   const onNextSubmitClick = async () => {
-    console.log("values.progress", values.progress);
     if (values.progress === 0) {
-      // Validate step 0 fields
       const step0Errors = await formik.validateForm();
       if (!step0Errors.documentName && !step0Errors.file) {
         setFieldValue("progress", 1);
@@ -156,7 +160,6 @@ const CreateDocumentDrawer = () => {
         });
       }
     } else if (values.progress === 1) {
-      // Validate signers array before submission
       const step1Errors = await formik.validateForm();
       if (!step1Errors.signers) {
         handleSubmit();
@@ -166,10 +169,9 @@ const CreateDocumentDrawer = () => {
         });
       }
     }
-  }
+  };
 
   const handleAddSigner = async () => {
-    // Validate current signer fields
     const errors = await formik.validateForm();
     
     if (!errors.currentSignerName && !errors.currentSignerEmail && 
@@ -181,7 +183,6 @@ const CreateDocumentDrawer = () => {
       };
       
       setFieldValue('signers', [...values.signers, newSigner]);
-      // Reset current signer fields
       setFieldValue('currentSignerName', '');
       setFieldValue('currentSignerEmail', '');
       setFieldValue('currentSignerType', 'signer');
@@ -191,34 +192,35 @@ const CreateDocumentDrawer = () => {
         currentSignerEmail: true,
       });
     }
-  }
+  };
 
   const handleRemoveSigner = (index: number) => {
     const updatedSigners = values.signers.filter((_, i) => i !== index);
     setFieldValue('signers', updatedSigners);
-  }
+  };
+
+  const handleCreateNewDocument = () => {
+    if (newDocumentName.trim()) {
+      console.log('Creating new document:', newDocumentName);
+      // TODO: Navigate to PDF builder or create document logic
+      handleNewDocumentDrawerClose();
+    }
+  };
   
   return (
-    <Drawer
-      anchor={"right"}
-      open={documentDrawerOpen || pdfBuilderDrawerOpen}
-      label={ documentDrawerOpen? "Create New Document" : "New Document"}
-      description={ documentDrawerOpen? "Upload documents and files for e-signature" : null}
-      closeIcon={true}
-      size="medium"
-      cancelBtn={ documentDrawerOpen && { 
-        onClick: onPrevCancelClick, 
-        label: values.progress === 0 ? "Cancel" : "Previous" 
-      }}
-      submitBtn={ documentDrawerOpen && { 
-        onClick: onNextSubmitClick, 
-        label: values.progress === 0 ? "Next" : "Submit" 
-      }}
-      onClose={() => { documentDrawerOpen ? handleDocumentDrawerClose() : handlePdfBuilderDrawerClose() }}
-      className={styles.createDocumentDrawer}
-    >
-      {pdfBuilderDrawerOpen 
-        ? (<div className={styles.createNewDocumentOptionsWrapper}>
+    <>
+      {/* PDF Builder Drawer - Just shows cards */}
+      <Drawer
+        anchor={"right"}
+        open={pdfBuilderDrawerOpen}
+        label="Create New Document"
+        description="Choose how you want to create your document"
+        closeIcon={true}
+        size="medium"
+        onClose={handlePdfBuilderDrawerClose}
+        className={styles.createDocumentDrawer}
+      >
+        <div className={styles.createNewDocumentOptionsWrapper}>
           <Card
             commonselection
             iconName={"sparkles"}
@@ -242,7 +244,7 @@ const CreateDocumentDrawer = () => {
             label={"New Document"}
             description={"Create a proposal, estimate or contract from scratch"}
             className={styles.documentScratchTextField}
-            onCardClick={() => {}}
+            onCardClick={handleNewDocumentClick}
             classes={{
               iconBox: styles.newDocumentCard,
             }}
@@ -256,7 +258,7 @@ const CreateDocumentDrawer = () => {
             label={"Upload existing PDF's"}
             description={"Only PDF files are supported for upload"}
             className={styles.documentScratchTextField}
-            onCardClick={() => {}}
+            onCardClick={handleUploadPdfClick}
             classes={{
               iconBox: styles.uploadPdfCard,
             }}
@@ -275,142 +277,196 @@ const CreateDocumentDrawer = () => {
               iconBox: styles.importTemplateCard,
             }}
           />
-        </div>)
-        : (<Stepper
-            steps={steps}
-            activeStep={values.progress}
-            labelPlacement="start"
-            hidefooter
-            classes={{ mainRoot: styles.stepperRoot }}
-          >
-            { values.progress === 0 && <div className={styles.docsNameFileWrapper} >
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder={"Enter document name"}
-                label="Document Name"
-                hideBorder={true}
-                name="documentName"
-                value={values.documentName}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.documentName && Boolean(errors.documentName)}
-                helperText={touched.documentName && errors.documentName}
-                inputProps={{ className: 'py-10 text-13' }}
-                required
-              />
-              <div>
-                <SingleFileDropZone
-                  file={values.file ? [values.file] : []}
-                  setFiles={(updaterOrValue: any) => {
-                    // SingleFileDropZone uses a functional state update: setFiles(prev => ({...prev, file: files}))
-                    // We need to handle this function to get the actual file data
-                    let result;
-                    if (typeof updaterOrValue === 'function') {
-                      result = updaterOrValue({});
-                    } else {
-                      result = updaterOrValue;
-                    }
+        </div>
+      </Drawer>
 
-                    if (result?.file && Array.isArray(result.file) && result.file.length > 0) {
-                      setFieldValue('file', result.file[0]);
-                    }
-                  }}
-                  containerHeightClass="h-128"
-                  handleDelete={() => setFieldValue('file', null)}
-                  handlePreview={() => { }}
-                  validation={"application/pdf"}
-                />
-                {touched.file && errors.file && (
-                  <Typography className={styles.errorText} >
-                    {errors.file}
-                  </Typography>
-                )}
-              </div>
-            </div>}
-            { values.progress === 1 && <div className={styles.signersNameEmailSelectWrapper}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder={"Signer name"}
-                label="Add Signers"
-                hideBorder={true}
-                name="currentSignerName"
-                value={values.currentSignerName}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.currentSignerName && Boolean(errors.currentSignerName)}
-                helperText={touched.currentSignerName && errors.currentSignerName}
-                inputProps={{ className: 'py-10 text-13' }}
-              />
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder={"Signer email"}
-                hideBorder={true}
-                name="currentSignerEmail"
-                value={values.currentSignerEmail}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.currentSignerEmail && Boolean(errors.currentSignerEmail)}
-                helperText={touched.currentSignerEmail && errors.currentSignerEmail}
-                inputProps={{ className: 'py-10 text-13' }}
-              />
-              <Select
-                fullWidth
-                name="currentSignerType"
-                value={values.currentSignerType}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFieldValue('currentSignerType', e.target.value)}
-                size="small"
-              >
-                <MenuItem value={"signer"}>Signer</MenuItem>
-                <MenuItem value={"approver"}>Approver</MenuItem>
-                <MenuItem value={"cc"}>CC</MenuItem>
-              </Select>
-              <div className={styles.addSignerBtnWrapper} >
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  className={styles.addCustomFieldsBtn}
-                  onClick={handleAddSigner}
-                >
-                  <Typography> Add Signer </Typography>
-                </Button>
-                {touched.signers && errors.signers && (
-                  <Typography className={styles.errorText} >
-                    {errors.signers}
-                  </Typography>
-                )}
-              </div>
+      {/* New Document Drawer - Simple text field */}
+      <Drawer
+        anchor={"right"}
+        open={newDocumentDrawerOpen}
+        label="Create New Document"
+        description="Enter a name for your new document"
+        closeIcon={true}
+        size="medium"
+        cancelBtn={{ 
+          onClick: handleNewDocumentDrawerClose, 
+          label: "Cancel" 
+        }}
+        submitBtn={{ 
+          onClick: handleCreateNewDocument, 
+          label: "Create Document" 
+        }}
+        onClose={handleNewDocumentDrawerClose}
+        className={styles.createDocumentDrawer}
+      >
+        <div className={styles.docsNameFileWrapper}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder={"Enter document name"}
+            label="Document Name"
+            hideBorder={true}
+            name="newDocumentName"
+            value={newDocumentName}
+            onChange={(e) => setNewDocumentName(e.target.value)}
+            inputProps={{ className: 'py-10 text-13' }}
+            required
+          />
+        </div>
+      </Drawer>
 
-              {/* Display added signers */}
-              {values.signers.length > 0 && (
-                <div className={styles.displaySignersWrapper} >
-                  <Typography fontWeight="600" >Added Signers:</Typography>
-                  {values.signers.map((signer, index) => (
-                    <div key={index} className={styles.displaySignerItem}>
-                      <div>
-                        <Typography fontWeight="500">{signer.name}</Typography>
-                        <Typography className={styles.signerEmail}>{signer.email}</Typography>
-                        <Typography className={styles.signerType}>
-                          <Chip className={styles.signerChip} label={signer.type} />
-                        </Typography>
-                      </div>
-                      <IconButton
-                        variant="text"
-                        color="error"
-                        onClick={() => handleRemoveSigner(index)}
-                      >
-                        <CustomIcon iconName="trash-2" height={16} width={16} customColor="#FF0000" />
-                      </IconButton>
-                    </div>
-                  ))}
-                </div>
+      {/* Upload PDF Drawer - Full stepper */}
+      <Drawer
+        anchor={"right"}
+        open={uploadPdfDocumentDrawerOpen}
+        label="Upload PDF Document"
+        description="Upload documents and files for e-signature"
+        closeIcon={true}
+        size="medium"
+        cancelBtn={{ 
+          onClick: onPrevCancelClick, 
+          label: values.progress === 0 ? "Cancel" : "Previous" 
+        }}
+        submitBtn={{ 
+          onClick: onNextSubmitClick, 
+          label: values.progress === 0 ? "Next" : "Submit" 
+        }}
+        onClose={handleUploadPdfDrawerClose}
+        className={styles.createDocumentDrawer}
+      >
+        <Stepper
+          steps={steps}
+          activeStep={values.progress}
+          labelPlacement="start"
+          hidefooter
+          classes={{ mainRoot: styles.stepperRoot }}
+        >
+          {values.progress === 0 && <div className={styles.docsNameFileWrapper}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder={"Enter document name"}
+              label="Document Name"
+              hideBorder={true}
+              name="documentName"
+              value={values.documentName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={touched.documentName && Boolean(errors.documentName)}
+              helperText={touched.documentName && errors.documentName}
+              inputProps={{ className: 'py-10 text-13' }}
+              required
+            />
+            <div>
+              <SingleFileDropZone
+                file={values.file ? [values.file] : []}
+                setFiles={(updaterOrValue: any) => {
+                  let result;
+                  if (typeof updaterOrValue === 'function') {
+                    result = updaterOrValue({});
+                  } else {
+                    result = updaterOrValue;
+                  }
+
+                  if (result?.file && Array.isArray(result.file) && result.file.length > 0) {
+                    setFieldValue('file', result.file[0]);
+                  }
+                }}
+                containerHeightClass="h-128"
+                handleDelete={() => setFieldValue('file', null)}
+                handlePreview={() => {}}
+                validation={"application/pdf"}
+              />
+              {touched.file && errors.file && (
+                <Typography className={styles.errorText}>
+                  {errors.file}
+                </Typography>
               )}
-            </div>}
-          </Stepper>)
-      }
-    </Drawer>
+            </div>
+          </div>}
+          {values.progress === 1 && <div className={styles.signersNameEmailSelectWrapper}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder={"Signer name"}
+              label="Add Signers"
+              hideBorder={true}
+              name="currentSignerName"
+              value={values.currentSignerName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={touched.currentSignerName && Boolean(errors.currentSignerName)}
+              helperText={touched.currentSignerName && errors.currentSignerName}
+              inputProps={{ className: 'py-10 text-13' }}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder={"Signer email"}
+              hideBorder={true}
+              name="currentSignerEmail"
+              value={values.currentSignerEmail}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={touched.currentSignerEmail && Boolean(errors.currentSignerEmail)}
+              helperText={touched.currentSignerEmail && errors.currentSignerEmail}
+              inputProps={{ className: 'py-10 text-13' }}
+            />
+            <Select
+              fullWidth
+              name="currentSignerType"
+              value={values.currentSignerType}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFieldValue('currentSignerType', e.target.value)}
+              size="small"
+            >
+              <MenuItem value={"signer"}>Signer</MenuItem>
+              <MenuItem value={"approver"}>Approver</MenuItem>
+              <MenuItem value={"cc"}>CC</MenuItem>
+            </Select>
+            <div className={styles.addSignerBtnWrapper}>
+              <Button
+                fullWidth
+                variant="outlined"
+                className={styles.addCustomFieldsBtn}
+                onClick={handleAddSigner}
+              >
+                <Typography>Add Signer</Typography>
+              </Button>
+              {touched.signers && errors.signers && (
+                <Typography className={styles.errorText}>
+                  {errors.signers}
+                </Typography>
+              )}
+            </div>
+
+            {/* Display added signers */}
+            {values.signers.length > 0 && (
+              <div className={styles.displaySignersWrapper}>
+                <Typography fontWeight="600">Added Signers:</Typography>
+                {values.signers.map((signer, index) => (
+                  <div key={index} className={styles.displaySignerItem}>
+                    <div>
+                      <Typography fontWeight="500">{signer.name}</Typography>
+                      <Typography className={styles.signerEmail}>{signer.email}</Typography>
+                      <Typography className={styles.signerType}>
+                        <Chip className={styles.signerChip} label={signer.type} />
+                      </Typography>
+                    </div>
+                    <IconButton
+                      variant="text"
+                      color="error"
+                      onClick={() => handleRemoveSigner(index)}
+                    >
+                      <CustomIcon iconName="trash-2" height={16} width={16} customColor="#FF0000" />
+                    </IconButton>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>}
+        </Stepper>
+      </Drawer>
+    </>
   );
 };
 

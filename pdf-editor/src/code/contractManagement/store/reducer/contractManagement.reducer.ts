@@ -7,12 +7,43 @@ import {
 
 export interface ContractManagementState {
   pdfBuilderDrawerOpen: boolean;
-  activeTab: CONTRACT_MANAGEMENT_TAB;
+  newDocumentDrawerOpen: boolean;
   documentActiveFilter: string;
   contractActiveFilter: string;
-  documentDrawerOpen: boolean;
-  identityVerification: boolean;
   identityVerificationDialogOpen: boolean;
+  globalDocumentSettingsDialogOpen: boolean;
+  brandingCustomizationDialogOpen: boolean;
+  uploadPdfDocumentDrawerOpen: boolean;
+  identityVerificationSettings: {
+    isVarifyOn: boolean;
+    verificationMethod: string;
+    isRequireAllSigners: boolean;
+    isRequirePhone: boolean;
+  };
+  globalDocumentSettings: {
+    senderName: string;
+    senderEmail: string;
+    emailSubject: string;
+    emailTemplate: string;
+    redirectDateNotification: boolean;
+    dueDateNotification: boolean;
+    completionNotification: boolean;
+    reminderNotification: boolean;
+    daysBeforeDueDate: number;
+  };
+  brandingCustomizationSettings: {
+    senderName: string;
+    senderEmail: string;
+    emailSubjectLine: string;
+    emailMessage: string;
+    ctaButtonText: string;
+    footerText: string;
+    companyName: string;
+    primaryColor: string;
+    secondaryColor: string;
+    accentColor: string;
+    logo: any;
+  },
   contractDrawer: {
     createContractDrawerOpen: boolean;
     contractName: string;
@@ -55,12 +86,43 @@ export interface RootState {
 
 const initialState: ContractManagementState = {
   pdfBuilderDrawerOpen: false,
-  activeTab: CONTRACT_MANAGEMENT_TAB.DOCUMENTS,
+  newDocumentDrawerOpen: false,
   documentActiveFilter: 'all',
   contractActiveFilter: 'all',
-  documentDrawerOpen: false,
-  identityVerification: false,
   identityVerificationDialogOpen: false,
+  globalDocumentSettingsDialogOpen: false,
+  brandingCustomizationDialogOpen: false,
+  uploadPdfDocumentDrawerOpen: false,
+  identityVerificationSettings: {
+    isVarifyOn: false,
+    verificationMethod: "",
+    isRequireAllSigners: false,
+    isRequirePhone: false
+  },
+  globalDocumentSettings: {
+    senderName: "",
+    senderEmail: "",
+    emailSubject: "",
+    emailTemplate: "default",
+    redirectDateNotification: false,
+    dueDateNotification: false,
+    completionNotification: false,
+    reminderNotification: false,
+    daysBeforeDueDate: 3,
+  },
+  brandingCustomizationSettings: {
+    senderName: "",
+    senderEmail: "",
+    emailSubjectLine: "",
+    emailMessage: "",
+    ctaButtonText: "",
+    footerText: "",
+    companyName: "",
+    primaryColor: "",
+    secondaryColor: "",
+    accentColor: "",
+    logo: null,
+  },
   contractDrawer: {
     createContractDrawerOpen: false,
     contractName: "",
@@ -99,20 +161,10 @@ const initialState: ContractManagementState = {
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
   switch (action.type) {
-    case Actions.SET_PDF_BUILDER_DRAWER_OPEN:
+    case Actions.SET_DIALOG_STATE:
       return {
         ...state,
-        pdfBuilderDrawerOpen: action.payload,
-      };
-    case Actions.SET_DOCUMENT_DRAWER_OPEN:
-      return {
-        ...state,
-        documentDrawerOpen: action.payload,
-      };
-    case Actions.SET_ACTIVE_TAB:
-      return {
-        ...state,
-        activeTab: action.payload,
+        [action.payload.dialogName]: action.payload.isOpen,
       };
     case Actions.SET_DOCUMENT_ACTIVE_FILTER:
       return {
@@ -124,15 +176,20 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         contractActiveFilter: action.payload,
       };
-    case Actions.SET_IDENTITY_VERIFICATION:
+    case Actions.SET_IDENTITY_VERIFICATION_SETTINGS:
       return {
         ...state,
-        identityVerification: action.payload,
+        identityVerificationSettings: action.payload,
       };
-    case Actions.SET_IDENTITY_VERIFICATION_DIALOG_OPEN:
+    case Actions.SET_GLOBAL_DOCUMENT_SETTINGS:
       return {
         ...state,
-        identityVerificationDialogOpen: action.payload,
+        globalDocumentSettings: action.payload,
+      };
+    case Actions.SET_BRANDING_CUSTOMIZATION_SETTINGS:
+      return {
+        ...state,
+        brandingCustomizationSettings: action.payload,
       };
     default:
       return state;

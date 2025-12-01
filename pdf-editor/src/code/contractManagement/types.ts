@@ -18,6 +18,15 @@ export enum CONTRACT_MANAGEMENT_TAB {
   CONTRACTS = 'contracts'
 }
 
+export enum DIALOG_DRAWER_NAMES {
+  PDF_BUILDER_DRAWER = 'pdfBuilderDrawerOpen',
+  NEW_DOCUMENT_DRAWER = 'newDocumentDrawerOpen',
+  IDENTITY_VERIFICATION_DIALOG = 'identityVerificationDialogOpen',
+  GLOBAL_DOCUMENT_SETTINGS_DIALOG = 'globalDocumentSettingsDialogOpen',
+  BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen',
+  UPLOAD_PDF_DOCUMENT_DRAWER = 'uploadPdfDocumentDrawerOpen'
+}
+
 export const displayCardList = [
   {
     title: 'Total Documents',
@@ -133,3 +142,29 @@ export const radioGroupList = [
     icon: "mail"
   }
 ];
+
+export const  defaultEmailTemplate = [
+  {key: "default", value: "Default Template"},
+  {key: "professional", value: "Professional"},
+  {key: "friendly", value: "Friendly"},
+  {key: "formal", value: "Formal"},
+  {key: "minimal", value: "Minimal"},
+]
+
+export const brandingTabItems = [
+  {
+    name: "visual",
+    icon: "palette",
+    title: "Visual",
+  },
+  {
+    name: "email",
+    icon: "mail",
+    title: "Email",
+  },
+  {
+    name: "preview",
+    icon: "eye",
+    title: "Preview",
+  },
+]

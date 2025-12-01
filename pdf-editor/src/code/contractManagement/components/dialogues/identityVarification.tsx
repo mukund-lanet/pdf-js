@@ -10,9 +10,9 @@ import RadioGroup from '@trenchaant/pkg-ui-component-library/build/Components/Ra
 import Card from '@trenchaant/pkg-ui-component-library/build/Components/Card';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { setIdentityVerificationDialogOpen } from '../../store/action/contractManagement.actions';
+import { setDialogDrawerState, setIdentityVerificationSettings } from '../../store/action/contractManagement.actions';
 import styles from "app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
-import { radioGroupList } from '../../types';
+import { radioGroupList, DIALOG_DRAWER_NAMES } from '../../types';
 
 const IdentityVerification = () => {
   const dispatch = useDispatch();
@@ -25,10 +25,13 @@ const IdentityVerification = () => {
   });
 
   const handleEmbededClose = () => {
-    dispatch(setIdentityVerificationDialogOpen(false));
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.IDENTITY_VERIFICATION_DIALOG, false));
   };
 
-  const handleSaveSettings = () => {  };
+  const handleSaveSettings = () => { 
+    dispatch(setIdentityVerificationSettings(identityState));
+    handleEmbededClose();
+  };
 
   return (
     <Dialog
@@ -60,13 +63,13 @@ const IdentityVerification = () => {
         { identityState.isVarifyOn && 
           <>
             <div className={styles.verificationMethodWrapper} >
-              <Divider />
+              <Divider orientation="horizontal" className={styles.divider} />
               <Typography className={styles.verificationMethodTitle} > Verification Method </Typography>
               <RadioGroup row aria-label="Gender" name="Gender"
-                // required={field.is_required}
-                // {...controllerField}
-                // value={controllerField?.value}
+                value={identityState.verificationMethod}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIdentityState({...identityState, verificationMethod: e.target.value})}
               >
+                <div className={styles.radioGroupWrapper} >
                   {radioGroupList.map(item => (
                     <Radio
                       key={item.value}
@@ -76,7 +79,7 @@ const IdentityVerification = () => {
                       label={
                         <div className={styles.smsVerifyHeadSubtitileWrapper}>
                           <div className={styles.smsVerificationChipWrapper}>
-                            <Typography>{item.title}</Typography>
+                            <Typography fontWeight="500" >{item.title}</Typography>
 
                             {item.chip && (
                               <Chip
@@ -107,8 +110,10 @@ const IdentityVerification = () => {
                       }
                     />
                   ))}
+                </div>
               </RadioGroup>
             </div>
+            <Divider orientation="horizontal" className={styles.divider} />
             <div className={styles.identityVarifyDownWrapper} >
               <div className={styles.identityVarifyInitial}>
                 <div className={styles.identityVarifyInitialText} >
@@ -134,6 +139,13 @@ const IdentityVerification = () => {
                   color="primary"
                 />
               </div>
+              <Card className={styles.enhancedSecurityWrapper} >
+                <CustomIcon iconName="circle-check-big" height={20} width={20} customColor="#1d4ed8" />
+                <div className={styles.enhancedSecurityTextWrapper} >
+                  <Typography className={styles.titleText} > Enhanced Security </Typography>
+                  <Typography className={styles.subtitleText} > Identity verification adds an extra layer of security and helps meet compliance requirements. Verification events are included in the certificate of completion. </Typography>
+                </div>
+              </Card>
             </div>
           </>
         }

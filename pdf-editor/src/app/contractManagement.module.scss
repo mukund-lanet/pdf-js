@@ -371,17 +371,23 @@
       font-weight: 500;
       font-size: 16px;
     }
-    
-    .smsVerificationRadio {
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      width: 100%;
-      display: flex;
-      gap: 16px;
-      align-items: start;
-    }
 
+    .radioGroupWrapper{
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .smsVerificationRadio {
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        width: 100%;
+        display: flex;
+        gap: 16px;
+        align-items: start;
+      }
+    }
+    
     .smsVerifyHeadSubtitileWrapper {
       display: flex;
       flex-direction: column;
@@ -405,4 +411,338 @@
       }
     }
   }
+
+  .enhancedSecurityWrapper {
+    display: flex;
+    gap: 16px;
+    height: 100%;
+    background: #eff6ff;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+    padding: 16px;
+    margin-bottom: 24px;
+
+    .enhancedSecurityTextWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .titleText {
+        color: #1e3a8a;
+        font-weight: 500;
+      }
+
+      .subtitleText {
+        color: #1d4ed8;
+      }
+    }
+  }
+}
+
+.scrollBarWrapper {
+  height: 100%;
+  max-height: 640px;
+
+  .globalDocumentSettingsDialog {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: space-between;
+    height: 100%;
+  
+    .defaultEmailConfigCardWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+  
+      .defaultEmailHeader {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+  
+        .headerTextEmail {
+          font-weight: 600;
+          font-size: 18px;
+        }
+      }
+      
+      .defaultEmailConfigTextField {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+  
+        .textFieldSubDescription {
+          font-size: 12px;
+        }
+  
+        .emailSubjectButtonsWrapper {
+          display: flex;
+          gap: 8px;
+        }
+      }
+      
+    }
+  
+    .redirectDateNotificationWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+  
+      .innerCardWrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+  
+        .innerCardHeader {
+          display: flex;
+          gap: 16px;
+        }
+  
+        .innerCardContent {
+          display: flex;
+          justify-content: space-between;
+  
+          .innerCardContentText {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+  
+            .headerText {
+              font-weight: 500;
+              font-size: 16px;
+              color: #344256;
+            }
+          }
+        }
+      }
+    }
+
+    .outerHeaderText {
+      font-weight: 600;
+      font-size: 18px;
+    }
+  }
+}
+
+.brandingCustomizationDialogContentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .visualSegmentContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .logoPreviewWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+  
+      .logoHeader {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        
+        .headerText {
+          font-weight: 500;
+          font-size: 14px;
+          color: #344256;
+        }
+      }
+  
+      .logoPreviewContainer {
+        background: #eff6ff;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        border: 1px solid #dbeafe;
+        min-height: 80px;
+  
+        .logoImage {
+          max-height: 60px;
+          max-width: 200px;
+          object-fit: contain;
+        }
+      }
+  
+      .uploadSection {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+  
+        .helperText {
+          font-size: 14px;
+          color: #64748b;
+        }
+      }
+    }
+  
+    .colorPickerContainer {
+      display: flex;
+      gap: 8px;
+  
+      .labelTColorTextFieldWrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+  
+        .labelText {
+          font-weight: 500;
+          font-size: 14px;
+          color: #344256;
+        }
+  
+        .colorPickerTextField {
+          display: flex;
+          gap: 8px;
+          width: 100%;
+  
+          .textFieldInputColor {
+            width: 100%;
+          }
+        
+          .colorPickerIcon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            width: auto;
+            border-radius: 8px;
+            height: auto;
+        
+            &:hover {
+              box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            }
+  
+            .colorViewer {
+              height: 16px;
+              width: 44px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .emailSegmentContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .emailTextFieldHelperWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .emailTextFieldHelper {
+        font-size: 12px;
+        color: #64748b;
+      }
+    }
+  }
+
+  .previewSegmentContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px;
+
+    .previewCard {
+      padding: 0 !important;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+      .previewHeaderBar {
+        height: 8px;
+        width: 100%;
+      }
+
+      .previewContent {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .previewLogoWrapper {
+          .previewLogo {
+            max-height: 60px;
+            max-width: 200px;
+            object-fit: contain;
+          }
+        }
+
+        .previewSubject {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .previewBody {
+          font-size: 14px;
+          color: #475569;
+          white-space: pre-wrap;
+          line-height: 1.6;
+        }
+
+        .previewButtonWrapper {
+          .previewCtaButton {
+            padding: 12px 24px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+        }
+
+        .previewDivider {
+          margin: 8px 0;
+          border-color: #f1f5f9;
+        }
+
+        .previewFooter {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+
+          .footerText {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .copyrightText {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+        }
+      }
+    }
+  }
+}
+
+.uploadlogoBtn {
+  border: 1px solid #e5e7eb;
+  padding: 8px !important;
+  border-radius: 8px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: auto !important;
+}
+
+.divider {
+  border: 1px solid #e5e7eb;
 }

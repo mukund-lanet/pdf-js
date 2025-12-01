@@ -11,18 +11,22 @@ import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 // import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
 // import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
 import { contractManagementReducer, RootState } from './store';
-import { setActiveTab, setIdentityVerificationDialogOpen, setPdfBuilderDrawerOpen } from './store/action/contractManagement.actions';
+import { setDialogDrawerState } from './store/action/contractManagement.actions';
+import { DIALOG_DRAWER_NAMES } from './types';
 // import { CONTRACT_MANAGEMENT_TAB } from './types';
 import DocumentsViewer from './components/DocumentsViewer';
 // import ContractsViewer from './components/ContractsViewer';
 import { displayCardList } from './types';
-import CreateDocumentDrawer from './components/drawers/CreateDocumentDrawer';
+import PdfBuilderDrawer from './components/drawers/PdfBuilderDrawer';
+import NewDocumentDrawer from './components/drawers/NewDocumentDrawer';
+import UploadPdfDrawer from './components/drawers/UploadPdfDrawer';
 import IdentityVerification from './components/dialogues/identityVarification';
+import GlobalDocumentSettings from './components/dialogues/globalDocumentSettings';
+import BrandingCustomization from './components/dialogues/brandingCustomization';
 
 const ContractManagement = () => {
   const dispatch = useDispatch();
   // const activeTab = useSelector((state: RootState) => state?.contractManagement?.activeTab);
-  const identityVerification = useSelector((state: RootState) => state?.contractManagement?.identityVerification);
 
   useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
@@ -37,18 +41,26 @@ const ContractManagement = () => {
           icon={"file-text"}
         />
         <div className={styles.actionsBlock}>
-          <Button variant="outlined" color="secondary">
+          <Button 
+            variant="outlined" 
+            color="secondary"
+            onClick={() => dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.GLOBAL_DOCUMENT_SETTINGS_DIALOG, true))}
+          >
             <CustomIcon iconName="settings" width={16} height={16} /> 
             <Typography>Global Settings</Typography>
           </Button>
-          <Button variant="outlined" color="secondary">
+          <Button 
+            variant="outlined" 
+            color="secondary"
+            onClick={() => dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.BRANDING_CUSTOMIZATION_DIALOG, true))}
+          >
             <CustomIcon iconName="shield" width={16} height={16} /> 
             <Typography>Branding</Typography>
           </Button>
           <Button 
             variant="outlined"
             color="secondary"
-            onClick={() => dispatch(setIdentityVerificationDialogOpen(true))}
+            onClick={() => dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.IDENTITY_VERIFICATION_DIALOG, true))}
           >
             <CustomIcon iconName="shield" width={16} height={16} /> 
             <Typography>Identity Verification</Typography>
@@ -56,13 +68,17 @@ const ContractManagement = () => {
           <Button 
             variant="contained"
             color="primary"
-            onClick={() => dispatch(setPdfBuilderDrawerOpen(true))}
+            onClick={() => dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, true))}
           >
             <CustomIcon iconName="plus" width={16} height={16} variant="white" /> 
             <Typography>New Document</Typography>
           </Button>
-          <CreateDocumentDrawer />
+          <PdfBuilderDrawer />
+          <NewDocumentDrawer />
+          <UploadPdfDrawer />
           <IdentityVerification />
+          <GlobalDocumentSettings />
+          <BrandingCustomization />
         </div>
       </div>
       <div className={styles.contractManagementStatsGrid} >
