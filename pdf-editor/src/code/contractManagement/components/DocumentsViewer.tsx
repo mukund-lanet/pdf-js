@@ -23,14 +23,31 @@ const DocumentsViewer = () => {
   const activeFilter = useSelector((state: RootState) => state.contractManagement?.documentActiveFilter);
   const documents = useSelector((state: RootState) => state.contractManagement?.documents);
 
-  const filters = [
-    { id: 'all', label: 'All', count: 0 },
-    { id: 'draft', label: 'Draft', count: 0 },
-    { id: 'waiting', label: 'Waiting for others', count: 0 },
-    { id: 'completed', label: 'Completed', count: 0 },
-    { id: 'payments', label: 'Payments', count: 0 },
-    { id: 'archived', label: 'Archived', count: 0 },
-  ];
+  const filteredDocuments = React.useMemo(() => {
+    if (!documents) return [];
+    if (activeFilter === 'all') return documents;
+    return documents.filter(doc => doc.status === activeFilter);
+  }, [documents, activeFilter]);
+
+  const filters = React.useMemo(() => {
+    const counts = {
+      all: documents?.length || 0,
+      draft: documents?.filter(d => d.status === 'draft').length || 0,
+      waiting: documents?.filter(d => d.status === 'waiting').length || 0,
+      completed: documents?.filter(d => d.status === 'completed').length || 0,
+      payments: 0, // Assuming no payment status in DocumentItem yet
+      archived: documents?.filter(d => d.status === 'archived').length || 0,
+    };
+
+    return [
+      { id: 'all', label: 'All', count: counts.all },
+      { id: 'draft', label: 'Draft', count: counts.draft },
+      { id: 'waiting', label: 'Waiting for others', count: counts.waiting },
+      { id: 'completed', label: 'Completed', count: counts.completed },
+      { id: 'payments', label: 'Payments', count: counts.payments },
+      { id: 'archived', label: 'Archived', count: counts.archived },
+    ];
+  }, [documents]);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedDocId, setSelectedDocId] = React.useState<string | null>(null);
@@ -67,16 +84,16 @@ const DocumentsViewer = () => {
         </Tabs>
       </div>
 
-      {documents && documents.length > 0 ? (
+      {filteredDocuments && filteredDocuments.length > 0 ? (
         <div className={styles.documentsTableWrapper}>
           <Table 
             className={styles.documentsTable}
-            totalRecords={documents.length}
+            totalRecords={filteredDocuments.length}
             headerList={documentTableHeaders}
             totalLabel="Documents"
           >
             <TableBody>
-              {documents.map((doc) => (
+              {filteredDocuments.map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell className={styles.tableCellDocs} >
                     <div className={styles.docNameWrapper}>
