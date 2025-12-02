@@ -1,8 +1,20 @@
+export interface Signer {
+  name: string;
+  email: string;
+  type: 'signer' | 'approver' | 'cc';
+  order?: number;
+}
+
 export interface DocumentItem {
   id: string;
   name: string;
   status: 'draft' | 'waiting' | 'completed' | 'archived';
   date: string;
+  signers: Signer[];
+  progress: number;
+  dueDate?: string;
+  createdBy?: string;
+  signingOrder?: boolean;
 }
 
 export interface ContractItem {
@@ -20,11 +32,10 @@ export enum CONTRACT_MANAGEMENT_TAB {
 
 export enum DIALOG_DRAWER_NAMES {
   PDF_BUILDER_DRAWER = 'pdfBuilderDrawerOpen',
-  NEW_DOCUMENT_DRAWER = 'newDocumentDrawerOpen',
+  DOCUMENT_DRAWER = 'documentDrawerOpen',
   IDENTITY_VERIFICATION_DIALOG = 'identityVerificationDialogOpen',
   GLOBAL_DOCUMENT_SETTINGS_DIALOG = 'globalDocumentSettingsDialogOpen',
-  BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen',
-  UPLOAD_PDF_DOCUMENT_DRAWER = 'uploadPdfDocumentDrawerOpen'
+  BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen'
 }
 
 export const displayCardList = [
@@ -168,3 +179,79 @@ export const brandingTabItems = [
     title: "Preview",
   },
 ]
+
+export const documentTableHeaders = [
+  {
+    id: "document_name",
+    numeric: false,
+    disablePadding: false,
+    value: "Document Name",
+    key: "document_name",
+    hasPermission: true,
+    customColumnWidth: "200px",
+  },
+  {
+    id: "status",
+    numeric: false,
+    disablePadding: false,
+    value: "Status",
+    key: "status",
+    hasPermission: true,
+    customColumnWidth: "120px",
+  },
+  {
+    id: "signers",
+    numeric: false,
+    disablePadding: false,
+    value: "Signers",
+    key: "signers",
+    hasPermission: true,
+    customColumnWidth: "120px",
+  },
+  {
+    id: "progress",
+    numeric: false,
+    disablePadding: false,
+    value: "Progress",
+    key: "progress",
+    hasPermission: true,
+    customColumnWidth: "120px",
+  },
+  {
+    id: "created",
+    numeric: false,
+    disablePadding: false,
+    value: "Created",
+    key: "created",
+    hasPermission: true,
+    customColumnWidth: "120px",
+  },
+  {
+    id: "due_date",
+    numeric: false,
+    disablePadding: false,
+    value: "Due Date",
+    key: "due_date",
+    hasPermission: true,
+    customColumnWidth: "140px",
+  },
+  {
+    id: "actions",
+    numeric: false,
+    disablePadding: false,
+    value: "Actions",
+    key: "actions",
+    hasPermission: true,
+    customColumnWidth: "80px",
+  }
+];
+
+export const actionsMenuItems = [
+  { icon: "eye", label: "View Document" },
+  { icon: "file-check-2", label: "Certificate of Completion" },
+  { icon: "edit-2", label: "Edit Document" },
+  { icon: "send", label: "Send for Signature" },
+  { icon: "download", label: "Download" },
+  { icon: "user", label: "Manage Signers" },
+  { icon: "trash-2", label: "Delete" },
+];

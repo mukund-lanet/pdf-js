@@ -3,7 +3,7 @@ import Drawer from "@trenchaant/pkg-ui-component-library/build/Components/Drawer
 import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
-import { setDialogDrawerState } from "../../store/action/contractManagement.actions";
+import { setDialogDrawerState, setDocumentDrawerMode } from "../../store/action/contractManagement.actions";
 import { DIALOG_DRAWER_NAMES } from "../../types";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 
@@ -16,12 +16,14 @@ const PdfBuilderDrawer = () => {
   };
 
   const handleNewDocumentClick = () => {
-    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.NEW_DOCUMENT_DRAWER, true));
+    dispatch(setDocumentDrawerMode('create'));
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.DOCUMENT_DRAWER, true));
     dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, false));
   };
 
   const handleUploadPdfClick = () => {
-    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.UPLOAD_PDF_DOCUMENT_DRAWER, true));
+    dispatch(setDocumentDrawerMode('upload'));
+    dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.DOCUMENT_DRAWER, true));
     dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, false));
   };
   

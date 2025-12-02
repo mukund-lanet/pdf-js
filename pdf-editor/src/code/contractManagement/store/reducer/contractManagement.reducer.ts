@@ -1,4 +1,5 @@
 import * as Actions from '../action/contractManagement.actions';
+import { v4 as uuidv4 } from 'uuid';
 import { 
   CONTRACT_MANAGEMENT_TAB,
   DocumentItem,
@@ -7,13 +8,13 @@ import {
 
 export interface ContractManagementState {
   pdfBuilderDrawerOpen: boolean;
-  newDocumentDrawerOpen: boolean;
+  documentDrawerOpen: boolean;
+  documentDrawerMode: 'create' | 'upload' | 'edit' | null;
   documentActiveFilter: string;
   contractActiveFilter: string;
   identityVerificationDialogOpen: boolean;
   globalDocumentSettingsDialogOpen: boolean;
   brandingCustomizationDialogOpen: boolean;
-  uploadPdfDocumentDrawerOpen: boolean;
   identityVerificationSettings: {
     isVarifyOn: boolean;
     verificationMethod: string;
@@ -78,6 +79,7 @@ export interface ContractManagementState {
   };
   documents: DocumentItem[];
   contracts: ContractItem[];
+  activeDocument: DocumentItem | null;
 }
 
 export interface RootState {
@@ -86,13 +88,13 @@ export interface RootState {
 
 const initialState: ContractManagementState = {
   pdfBuilderDrawerOpen: false,
-  newDocumentDrawerOpen: false,
+  documentDrawerOpen: false,
+  documentDrawerMode: null,
   documentActiveFilter: 'all',
   contractActiveFilter: 'all',
   identityVerificationDialogOpen: false,
   globalDocumentSettingsDialogOpen: false,
   brandingCustomizationDialogOpen: false,
-  uploadPdfDocumentDrawerOpen: false,
   identityVerificationSettings: {
     isVarifyOn: false,
     verificationMethod: "",
@@ -157,6 +159,7 @@ const initialState: ContractManagementState = {
   },
   documents: [],
   contracts: [],
+  activeDocument: null,
 };
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
@@ -191,6 +194,89 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         brandingCustomizationSettings: action.payload,
       };
+    case Actions.CREATE_NEW_DOCUMENT: {
+      const newDoc: DocumentItem = {
+        id: uuidv4(),
+        name: action.payload.documentName,
+        status: 'draft',
+        date: new Date().toISOString(),
+        signers: action.payload.signers,
+        progress: 0, // Start at 0% for new documents
+        dueDate: 'No due date', // Default or calculate based on settings
+        createdBy: 'Current User', // Replace with actual user info if available
+        signingOrder: action.payload.signingOrder || false,
+      };
+      
+      return {
+        ...state,
+        documents: [newDoc, ...state.documents],
+        stats: {
+          ...state.stats,
+          totalDocuments: state.stats.totalDocuments + 1,
+        },
+        documentsFilters: {
+          ...state.documentsFilters,
+          all: state.documentsFilters.all + 1,
+          draft: state.documentsFilters.draft + 1,
+        }
+      };
+    }
+    case Actions.UPLOAD_DOCUMENT_PDF: {
+      const newDoc: DocumentItem = {
+        id: uuidv4(),
+        name: action.payload.documentName,
+        status: 'draft',
+        date: new Date().toISOString(),
+        signers: action.payload.signers,
+        progress: 0,
+        dueDate: 'No due date',
+        createdBy: 'Current User',
+      };
+
+      return {
+        ...state,
+        documents: [newDoc, ...state.documents],
+        stats: {
+          ...state.stats,
+          totalDocuments: state.stats.totalDocuments + 1,
+        },
+        documentsFilters: {
+          ...state.documentsFilters,
+          all: state.documentsFilters.all + 1,
+          draft: state.documentsFilters.draft + 1,
+        }
+      };
+    }
+    
+    case Actions.SET_ACTIVE_DOCUMENT: {
+      return {
+        ...state,
+        activeDocument: action.payload,
+      };
+    }
+    
+    case Actions.UPDATE_DOCUMENT: {
+      const { documentId, documentName, signers, signingOrder } = action.payload;
+      const updatedDocuments = state.documents.map(doc => 
+        doc.id === documentId 
+          ? { ...doc, name: documentName, signers, signingOrder }
+          : doc
+      );
+      
+      return {
+        ...state,
+        documents: updatedDocuments,
+        activeDocument: null, // Clear active document after update
+      };
+    }
+    
+    case Actions.SET_DOCUMENT_DRAWER_MODE: {
+      return {
+        ...state,
+        documentDrawerMode: action.payload,
+      };
+    }
+    
     default:
       return state;
   }

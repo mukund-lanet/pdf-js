@@ -18,8 +18,7 @@ import DocumentsViewer from './components/DocumentsViewer';
 // import ContractsViewer from './components/ContractsViewer';
 import { displayCardList } from './types';
 import PdfBuilderDrawer from './components/drawers/PdfBuilderDrawer';
-import NewDocumentDrawer from './components/drawers/NewDocumentDrawer';
-import UploadPdfDrawer from './components/drawers/UploadPdfDrawer';
+import DocumentDrawer from './components/drawers/DocumentDrawer';
 import IdentityVerification from './components/dialogues/identityVarification';
 import GlobalDocumentSettings from './components/dialogues/globalDocumentSettings';
 import BrandingCustomization from './components/dialogues/brandingCustomization';
@@ -74,8 +73,7 @@ const ContractManagement = () => {
             <Typography>New Document</Typography>
           </Button>
           <PdfBuilderDrawer />
-          <NewDocumentDrawer />
-          <UploadPdfDrawer />
+          <DocumentDrawer />
           <IdentityVerification />
           <GlobalDocumentSettings />
           <BrandingCustomization />
