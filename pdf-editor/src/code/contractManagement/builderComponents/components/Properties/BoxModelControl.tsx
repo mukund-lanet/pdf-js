@@ -2,8 +2,8 @@ import React from 'react';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import { PDF_EDITOR_ACTION_TYPES } from '../../store/action/pdfEditor.action';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
+import { SET_PROPERTIES_DRAWER_STATE } from '../../../store/action/contractManagement.actions';
 
 interface BoxSpacing {
   top: number;
@@ -27,7 +27,7 @@ const BoxModelControl = ({
 }: BoxModelControlProps) => {
 
   const dispatch = useDispatch();
-  const propertiesDrawerState = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.propertiesDrawerState);
+  const propertiesDrawerState = useSelector((state: RootState) => state?.contractManagement?.propertiesDrawerState);
 
   const renderValue = (type: 'margin' | 'padding', side: 'top' | 'right' | 'bottom' | 'left', value: number) => {
     const isActive = activeSide?.type === type && activeSide?.side === side;
@@ -39,7 +39,7 @@ const BoxModelControl = ({
         onClick={(e: React.MouseEvent<HTMLDivElement>) => {
           e.stopPropagation();
           onSelectSide(type, side);
-          dispatch({ type: PDF_EDITOR_ACTION_TYPES.SET_PROPERTIES_DRAWER_STATE, payload: { anchorEl: e.currentTarget, isOpen: true } });
+          dispatch({ type: SET_PROPERTIES_DRAWER_STATE, payload: { anchorEl: e.currentTarget, isOpen: true } });
         }}
       >
         {value} px

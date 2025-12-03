@@ -1,6 +1,7 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useRouter, usePathname } from 'next/navigation';
 import Drawer from "@trenchaant/pkg-ui-component-library/build/Components/Drawer";
 import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
 import Select from "@trenchaant/pkg-ui-component-library/build/Components/Select/SimpleSelect";
@@ -9,18 +10,19 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
-import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 import Chip from "@trenchaant/pkg-ui-component-library/build/Components/Chip";
 import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch";
 import SingleFileDropZone from "components/commonComponentCode/singleFileDropZone";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
-import { setDialogDrawerState, createNewDocument, updateDocument, setActiveDocument, uploadDocumentPdf, setDocumentDrawerMode } from "../../store/action/contractManagement.actions";
-import { DIALOG_DRAWER_NAMES, Signer } from "../../types";
+import { setDialogDrawerState, createNewDocument, updateDocument, setActiveDocument, uploadDocumentPdf, setDocumentDrawerMode, setUploadPdfUrl } from "../../store/action/contractManagement.actions";
+import { DIALOG_DRAWER_NAMES, Signer } from "../../utils/interface";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 
 const DocumentDrawer = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
   const documentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.documentDrawerOpen);
   const documentDrawerMode = useSelector((state: RootState) => state?.contractManagement?.documentDrawerMode);
   const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
@@ -28,6 +30,9 @@ const DocumentDrawer = () => {
   const isEditMode = documentDrawerMode === 'edit';
   const isUploadMode = documentDrawerMode === 'upload';
   const isCreateMode = documentDrawerMode === 'create';
+  
+  // Extract business name from pathname (e.g., /new-mukund/contract-management -> new-mukund)
+  const businessName = pathname?.split('/')[1] || '';
   
   const [signingOrderEnabled, setSigningOrderEnabled] = React.useState(activeDocument?.signingOrder || false);
   
@@ -74,24 +79,81 @@ const DocumentDrawer = () => {
           signers: values.signers,
           signingOrder: signingOrderEnabled
         }));
+        handleClose();
+        resetForm();
       } else if (isUploadMode && values.file) {
-        // Upload PDF document
-        dispatch(uploadDocumentPdf({
-          documentName: values.documentName,
-          file: values.file,
-          signers: values.signers
-        }));
+        // Upload PDF document and navigate to editor
+        const fileReader = new FileReader();
+        fileReader.onload = async (e) => {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          const pdfBytes = new Uint8Array(arrayBuffer);
+          
+          const newDoc = {
+            id: 'temp-id', // In a real app, this would come from the backend
+            name: values.documentName,
+            status: 'draft',
+            date: new Date().toISOString(),
+            signers: values.signers,
+            progress: 0,
+            dueDate: 'No due date',
+            createdBy: 'Current User',
+          };
+
+          dispatch(uploadDocumentPdf({
+            documentName: values.documentName,
+            file: values.file as File,
+            signers: values.signers,
+            pdfBytes
+          }));
+          
+          dispatch(setActiveDocument(newDoc));
+
+          // Create blob URL for the file
+          const blobUrl = URL.createObjectURL(values.file as File);
+          dispatch(setUploadPdfUrl(blobUrl));
+          
+          // Set document type for PDF editor
+          dispatch({ type: 'SET_DOCUMENT_TYPE', payload: 'upload-existing' });
+          
+          handleClose();
+          resetForm();
+          
+          // Navigate to PDF editor (preserve business name in URL)
+          router.push(`/${businessName}/pdf-editor`);
+        };
+        fileReader.readAsArrayBuffer(values.file);
       } else if (isCreateMode) {
-        // Create new document
+        // Create new document and navigate to editor
+        const newDoc = {
+          id: 'temp-id', // In a real app, this would come from the backend
+          name: values.documentName,
+          status: 'draft',
+          date: new Date().toISOString(),
+          signers: values.signers,
+          progress: 0,
+          dueDate: 'No due date',
+          createdBy: 'Current User',
+          signingOrder: signingOrderEnabled,
+        };
+
+        // Create new document and navigate to editor
         dispatch(createNewDocument({
           documentName: values.documentName,
           signers: values.signers,
           signingOrder: signingOrderEnabled
         }));
-      }
 
-      handleClose();
-      resetForm();
+        dispatch(setActiveDocument(newDoc));
+        
+        // Set document type for PDF editor
+        dispatch({ type: 'SET_DOCUMENT_TYPE', payload: 'new_document' });
+        
+        handleClose();
+        resetForm();
+        
+        // Navigate to PDF editor (preserve business name in URL)
+        router.push(`/${businessName}/pdf-editor`);
+      }
     },
   });
 
@@ -184,6 +246,7 @@ const DocumentDrawer = () => {
       label={getDrawerTitle()}
       description={getDrawerDescription()}
       closeIcon={true}
+      icon="file-text"
       size="60%"
       cancelBtn={{ 
         onClick: handleClose, 

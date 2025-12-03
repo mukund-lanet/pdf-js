@@ -5,7 +5,7 @@ import { useDrag } from 'react-dnd';
 import { Resizable } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { useDispatch } from 'react-redux';
-import { FillableFieldElement } from '../../types';
+import { FillableFieldElement } from '../../../utils/interface';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
@@ -14,6 +14,7 @@ import IconButton from '@trenchaant/pkg-ui-component-library/build/Components/Ic
 import Popover from "@trenchaant/pkg-ui-component-library/build/Components/Popover";
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, FILLABLE_ELEMENT, ADD_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
 
 interface DraggableElementProps {
   element: FillableFieldElement;
@@ -42,7 +43,7 @@ const DraggableElement = React.memo(({
   const position = { x: element.x, y: element.y };
 
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'FILLABLE_ELEMENT',
+    type: FILLABLE_ELEMENT,
     item: { id: element.id, type: element.type, x: element.x, y: element.y },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -59,7 +60,7 @@ const DraggableElement = React.memo(({
     setShowToolbar(true);
 
     dispatch({
-      type: 'SET_ACTIVE_ELEMENT_ID',
+      type: SET_ACTIVE_ELEMENT_ID,
       payload: element.id
     });
   };
@@ -67,7 +68,7 @@ const DraggableElement = React.memo(({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch({ type: 'DELETE_CANVAS_ELEMENT', payload: element.id });
+    dispatch({ type: DELETE_CANVAS_ELEMENT, payload: element.id });
   };
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -80,7 +81,7 @@ const DraggableElement = React.memo(({
       x: element.x + 20,
       y: element.y + 20
     };
-    dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedElement });
+    dispatch({ type: ADD_CANVAS_ELEMENT, payload: copiedElement });
   };
 
   const handleChecked = (e: React.MouseEvent) => {
@@ -90,13 +91,13 @@ const DraggableElement = React.memo(({
     onSelect(element.id, false);
     setShowToolbar(true);
     dispatch({
-      type: 'SET_ACTIVE_ELEMENT_ID',
+      type: SET_ACTIVE_ELEMENT_ID,
       payload: element.id
     });
 
     if (element.type === 'checkbox') {
       dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
+        type: UPDATE_CANVAS_ELEMENT,
         payload: { ...element, checked: !element.checked },
       });
     }
@@ -106,15 +107,19 @@ const DraggableElement = React.memo(({
     e.preventDefault();
     e.stopPropagation();
 
-    if (element.type === 'date' && dateElementRef.current) {
-      setDatePickerAnchor(dateElementRef.current);
-
+    if (element.type === 'date') {
       onSelect(element.id, false);
       setShowToolbar(true);
       dispatch({
-        type: 'SET_ACTIVE_ELEMENT_ID',
+        type: SET_ACTIVE_ELEMENT_ID,
         payload: element.id
       });
+
+      setTimeout(() => {
+        if (dateElementRef.current) {
+          setDatePickerAnchor(dateElementRef.current);
+        }
+      }, 0);
     }
   };
 
@@ -127,7 +132,7 @@ const DraggableElement = React.memo(({
       });
 
       dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
+        type: UPDATE_CANVAS_ELEMENT,
         payload: { ...element, value: formattedDate },
       });
     }
@@ -193,10 +198,7 @@ const DraggableElement = React.memo(({
 
       case 'date':
         return (
-          <div
-            // ref={dateElementRef}
-            className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}
-          >
+          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `} >
             <div className={`${styles.contentDiv} ${styles.isDatePicker} `} onClick={handleDateClick} ref={dateElementRef}>
               <CustomIcon iconName="calendar" width={20} height={20} customColor="#00acc1" />
               <Typography fontWeight="400" className={styles.contentLabel}>
@@ -262,7 +264,7 @@ const DraggableElement = React.memo(({
           }}
           onResizeStop={(e: any, data: any) => {
             dispatch({
-              type: 'UPDATE_CANVAS_ELEMENT',
+              type: UPDATE_CANVAS_ELEMENT,
               payload: {
                 ...element,
                 width: data.size.width,
@@ -271,6 +273,15 @@ const DraggableElement = React.memo(({
             });
           }}
           draggableOpts={{ enableUserSelectHack: false }}
+          handle={(h: any, ref: any) => (
+            <span
+              className={`react-resizable-handle react-resizable-handle-${h}`}
+              ref={ref}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+            />
+          )}
         >
           <div
             ref={targetRef}

@@ -6,7 +6,8 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Tooltip from '@trenchaant/pkg-ui-component-library/build/Components/Tooltip';
-import { BlockElement as BlockElementType } from '../../types';
+import { BlockElement as BlockElementType } from '../../../utils/interface';
+import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
 
 interface BlockElementProps {
   element: BlockElementType;
@@ -37,7 +38,7 @@ const BlockElement = ({
   const handleContentChange = (newContent: string) => {
     if (element.type === 'heading') {
       dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
+        type: UPDATE_CANVAS_ELEMENT,
         payload: { ...element, content: newContent }
       });
     }
@@ -66,7 +67,7 @@ const BlockElement = ({
     reader.onload = (event) => {
       const imageData = event.target?.result as string;
       dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
+        type: UPDATE_CANVAS_ELEMENT,
         payload: { ...element, imageData }
       });
     };
@@ -76,7 +77,7 @@ const BlockElement = ({
   const handleVideoUrlChange = (url: string) => {
     if (element.type === 'video') {
       dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
+        type: UPDATE_CANVAS_ELEMENT,
         payload: { ...element, videoUrl: url }
       });
     }
@@ -86,7 +87,7 @@ const BlockElement = ({
     e.stopPropagation();
     setIsClicked(true);
     dispatch({
-      type: 'SET_ACTIVE_ELEMENT_ID',
+      type: SET_ACTIVE_ELEMENT_ID,
       payload: element.id
     });
   };
@@ -94,7 +95,7 @@ const BlockElement = ({
   const handleSubtitleChange = (subtitle: string) => {
     if (element.type === 'heading') {
       dispatch({
-        type: 'UPDATE_CANVAS_ELEMENT',
+        type: UPDATE_CANVAS_ELEMENT,
         payload: { ...element, subtitle }
       });
     }
@@ -205,7 +206,8 @@ const BlockElement = ({
                 marginBottom: element.margin?.bottom,
                 marginLeft: element.margin?.left,
               }),
-              backgroundColor: element.backgroundColor
+              backgroundColor: element.backgroundColor,
+              minHeight: "120px"
             }}
           >
             <div
@@ -265,6 +267,7 @@ const BlockElement = ({
               backgroundColor: element.backgroundColor,
               display: 'flex',
               justifyContent: 'center',
+              minHeight: "120px"
             }}
           >
             {imageSource ? (
@@ -305,6 +308,7 @@ const BlockElement = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              minHeight: "120px"
             }}
           >
             {embedUrl ? (
@@ -349,7 +353,8 @@ const BlockElement = ({
                 marginBottom: element.margin?.bottom,
                 marginLeft: element.margin?.left,
               }),
-              backgroundColor: element.backgroundColor
+              backgroundColor: element.backgroundColor,
+              minHeight: "120px"
             }}
           >
             <table className={styles.blockTable}>
@@ -420,7 +425,7 @@ const BlockElement = ({
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   dispatch({
-                    type: 'DELETE_CANVAS_ELEMENT',
+                    type: DELETE_CANVAS_ELEMENT,
                     payload: element.id
                   });
                 }}

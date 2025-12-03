@@ -4,7 +4,7 @@ import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
 import { setDialogDrawerState, setDocumentDrawerMode } from "../../store/action/contractManagement.actions";
-import { DIALOG_DRAWER_NAMES } from "../../types";
+import { DIALOG_DRAWER_NAMES } from "../../utils/interface";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 
 const PdfBuilderDrawer = () => {

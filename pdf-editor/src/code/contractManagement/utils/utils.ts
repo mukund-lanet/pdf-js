@@ -1,42 +1,4 @@
-export interface Signer {
-  name: string;
-  email: string;
-  type: 'signer' | 'approver' | 'cc';
-  order?: number;
-}
-
-export interface DocumentItem {
-  id: string;
-  name: string;
-  status: 'draft' | 'waiting' | 'completed' | 'archived';
-  date: string;
-  signers: Signer[];
-  progress: number;
-  dueDate?: string;
-  createdBy?: string;
-  signingOrder?: boolean;
-}
-
-export interface ContractItem {
-  id: string;
-  name: string;
-  status: 'active' | 'draft' | 'expired';
-  value: number;
-  date: string;
-}
-
-export enum CONTRACT_MANAGEMENT_TAB {
-  DOCUMENTS = 'documents',
-  CONTRACTS = 'contracts'
-}
-
-export enum DIALOG_DRAWER_NAMES {
-  PDF_BUILDER_DRAWER = 'pdfBuilderDrawerOpen',
-  DOCUMENT_DRAWER = 'documentDrawerOpen',
-  IDENTITY_VERIFICATION_DIALOG = 'identityVerificationDialogOpen',
-  GLOBAL_DOCUMENT_SETTINGS_DIALOG = 'globalDocumentSettingsDialogOpen',
-  BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen'
-}
+import { DRAWER_COMPONENT_CATEGORY } from "./interface";
 
 export const displayCardList = [
   {
@@ -255,3 +217,97 @@ export const actionsMenuItems = [
   { icon: "user", label: "Manage Signers" },
   { icon: "trash-2", label: "Delete" },
 ];
+
+
+// pdf-editor
+export const noPdfDocument = {
+  message: "No documents found",
+  description: "There are no documents to display.",
+  tips: [
+    "Create new document",
+    "Upload pdf and start editing",
+    "Add docusign in integration"
+  ],
+  iconName: "pen-line",
+  tipsTitle: "Quick tips",
+  button: undefined
+}
+
+export const blocks = [
+  { type: 'heading', label: 'Heading', icon: 'type' },
+  { type: 'image', label: 'Image', icon: 'image' },
+  { type: 'video', label: 'Video', icon: 'video' },
+  { type: 'table', label: 'Table', icon: 'table' },
+  { type: 'product-list', label: 'Product list', icon: 'file-text' },
+  { type: 'page-break', label: 'Page break', icon: 'scissors' },
+];
+
+export const fillableFields = [
+  { type: 'signature', label: 'Signature', icon: 'pencil-line' },
+  { type: 'text-field', label: 'Text Field', icon: 'type' },
+  { type: 'date', label: 'Date', icon: 'calendar' },
+  { type: 'initials', label: 'Initials', icon: 'type' },
+  { type: 'checkbox', label: 'Checkbox', icon: 'check-square' },
+];
+
+export const fontSizeList = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
+
+export const fontFamilyList = [
+  { name: 'Open Sans', value: 'Open Sans, sans-serif' },
+  { name: 'Roboto', value: 'Roboto, sans-serif' },
+  { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
+  { name: 'Poppins', value: 'Poppins, sans-serif' },
+  { name: 'Roboto Condensed', value: '"Roboto Condensed", sans-serif' },
+  { name: 'Inter', value: 'Inter, sans-serif' },
+];
+
+export const headingLevels = [
+  { label: 'Heading 1', value: 'h1' },
+  { label: 'Heading 2', value: 'h2' },
+  { label: 'Heading 3', value: 'h3' },
+  { label: 'Heading 4', value: 'h4' },
+  { label: 'Heading 5', value: 'h5' },
+  { label: 'Paragraph', value: 'p' },
+];
+
+export const dateFormats = [
+  'YYYY-MM-DD',
+  'MM/DD/YYYY',
+  'DD/MM/YYYY',
+  'DD-MMM-YYYY',
+  'MMM DD, YYYY'
+];
+
+export const availableDates = [
+  "Any Date",
+  "Past Date",
+  "Future Date",
+  "Today's Date",
+];
+
+export const tabItems = {
+  [DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS]: {
+    name: "Elements",
+    icon: "square",
+    title: "Add elements",
+    description: "Drag components into your document",
+  },
+  [DRAWER_COMPONENT_CATEGORY.PAGES]: {
+    name: "Pages",
+    icon: "layers",
+    title: "Page Manager",
+    description: "Organize and manage document pages",
+  },
+  [DRAWER_COMPONENT_CATEGORY.DOCUMENT_VARIABLES]: {
+    name: "Variables",
+    icon: "braces",
+    title: "Document Variables",
+    description: "Create and manage dynamic variables",
+  },
+  [DRAWER_COMPONENT_CATEGORY.SETTINGS]: {
+    name: "Settings",
+    icon: "settings",
+    title: "Document Settings",
+    description: "Configure document preferences",
+  },
+};

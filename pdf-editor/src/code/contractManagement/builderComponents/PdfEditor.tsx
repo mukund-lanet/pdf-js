@@ -1,25 +1,27 @@
 'use client';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
-import { injectReducer } from 'components/store';
-import reducer from './store/index'
 import EditorHeader from './components/Layout/EditorHeader';
-import EditorLeftSidebar from './components/Layout/EditorLeftSidebar';
 import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
 import EditorMainArea from './components/Layout/EditorMainArea';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
 import TextFormattingToolbar from './components/Toolbar/TextFormattingToolbar';
-import { RootState } from './store/reducer/pdfEditor.reducer';
+import { RootState } from '../store/reducer/contractManagement.reducer';
+import { SET_DRAWER_COMPONENT_CATEGORY, UPDATE_MULTIPLE_ELEMENTS } from '../store/action/contractManagement.actions';
+import { DRAWER_COMPONENT_CATEGORY } from '../utils/interface';
+import Tabs from "@trenchaant/pkg-ui-component-library/build/Components/Tabs";
+import Tab from "@trenchaant/pkg-ui-component-library/build/Components/Tab";
+import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+import { tabItems } from '../utils/utils';
 
-const PdfEditor = () => {
+const PdfEditor: React.FC = () => {
   const dispatch = useDispatch();
-  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
-
-  useEffect(() => { injectReducer("pdfEditor", reducer) }, []);
+  const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
+  const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -48,7 +50,7 @@ const PdfEditor = () => {
         order: index
       }));
 
-      dispatch({ type: 'UPDATE_MULTIPLE_ELEMENTS', payload: updatedBlocks });
+      dispatch({ type: UPDATE_MULTIPLE_ELEMENTS, payload: updatedBlocks });
     }
   };
 
@@ -59,7 +61,24 @@ const PdfEditor = () => {
           <EditorHeader />
 
           <div className={styles.textToolbarEditorLeftSidebarWrapper} >
-            <EditorLeftSidebar />
+            <Tabs
+              indicatorColor="primary"
+              textColor="primary"
+              value={drawerComponentType}
+              className={styles.leftSideTabs}
+              onChange={(event: React.SyntheticEvent, newValue: string) => dispatch({ type: SET_DRAWER_COMPONENT_CATEGORY, payload: newValue as DRAWER_COMPONENT_CATEGORY })}
+            > 
+              {Object.entries(tabItems).map(([value, item]) => (
+                <Tab
+                  key={value}
+                  className={styles.leftSideTab}
+                  classes={{ root: styles.leftSideTabRoot }}
+                  icon={<CustomIcon iconName={item.icon} height={16} width={16} variant='gray' />}
+                  label={item.name}
+                  value={value}
+                />
+              ))}
+            </Tabs>
             <TextFormattingToolbar />
           </div>
 

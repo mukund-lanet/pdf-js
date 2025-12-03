@@ -8,17 +8,18 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import ThumbnailPage from './ThumbnailPage';
-import { noDocument } from '../../types';
+import { noPdfDocument } from '../../../utils/utils';
+import { SET_PDF_BYTES, REORDER_PAGE_ELEMENTS } from '../../../store/action/contractManagement.actions';
 
-const ThumbnailSidebar = () => {
+const ThumbnailSidebar: React.FC = () => {
   const dispatch = useDispatch();
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
-  const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
+  const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
+  const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -69,9 +70,9 @@ const ThumbnailSidebar = () => {
 
       const newPdfBytes = await pdfDoc.save();
 
-      dispatch({ type: 'SET_PDF_BYTES', payload: newPdfBytes });
+      dispatch({ type: SET_PDF_BYTES, payload: newPdfBytes });
       dispatch({
-        type: 'REORDER_PAGE_ELEMENTS',
+        type: REORDER_PAGE_ELEMENTS,
         payload: { sourceIndex, destinationIndex }
       });
 
@@ -131,7 +132,7 @@ const ThumbnailSidebar = () => {
           </DragDropContext>
         ) : (
           <div className={styles.noPdfLoaded} >
-            <EmptyMessageComponent className={styles.noPdfLoadedEmptyMessage} {...noDocument} />
+            <EmptyMessageComponent className={styles.noPdfLoadedEmptyMessage} {...noPdfDocument} />
           </div>
         )}
       </div>

@@ -4,8 +4,9 @@ import { useDrop, useDragLayer } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import DraggableElement from './DraggableElement';
-import { FillableFieldElement, CanvasElement, isFillableElement } from '../../types';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { FillableFieldElement, CanvasElement, isFillableElement } from '../../../utils/interface';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
+import { UPDATE_CANVAS_ELEMENT, ADD_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
 
 interface FillableContainerProps {
   pageNumber: number;
@@ -18,7 +19,7 @@ const FillableContainer = ({
 }: FillableContainerProps) => {
   const dispatch = useDispatch();
   const allElements = useSelector((state: RootState) =>
-    state.pdfEditor.pdfEditorReducer.canvasElements.filter(el => el.page === pageNumber)
+    state?.contractManagement.canvasElements.filter(el => el.page === pageNumber)
   );
   const fillableElements = allElements.filter(el => isFillableElement(el)) as FillableFieldElement[];
 
@@ -45,7 +46,7 @@ const FillableContainer = ({
         const newY = Math.round(item.y + delta.y);
 
         dispatch({
-          type: 'UPDATE_CANVAS_ELEMENT',
+          type: UPDATE_CANVAS_ELEMENT,
           payload: {
             ...element,
             x: newX,
@@ -85,7 +86,7 @@ const FillableContainer = ({
         switch (elementType) {
           case 'heading':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'heading',
                 id: generateId(),
@@ -101,7 +102,7 @@ const FillableContainer = ({
 
           case 'text-field':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'text-field',
                 id: generateId(),
@@ -123,7 +124,7 @@ const FillableContainer = ({
 
           case 'image':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'image',
                 id: generateId(),
@@ -137,7 +138,7 @@ const FillableContainer = ({
 
           case 'video':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'video',
                 id: generateId(),
@@ -151,7 +152,7 @@ const FillableContainer = ({
 
           case 'table':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'table',
                 id: generateId(),
@@ -166,7 +167,7 @@ const FillableContainer = ({
 
           case 'signature':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'signature',
                 id: generateId(),
@@ -182,7 +183,7 @@ const FillableContainer = ({
 
           case 'date':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'date',
                 id: generateId(),
@@ -198,7 +199,7 @@ const FillableContainer = ({
 
           case 'initials':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'initials',
                 id: generateId(),
@@ -214,7 +215,7 @@ const FillableContainer = ({
 
           case 'checkbox':
             dispatch({
-              type: 'ADD_CANVAS_ELEMENT',
+              type: ADD_CANVAS_ELEMENT,
               payload: {
                 type: 'checkbox',
                 id: generateId(),
@@ -253,6 +254,7 @@ const FillableContainer = ({
       ref={drop}
       className={styles.fillableContainer}
       onClick={handleContainerClick}
+      style={{ pointerEvents: isDragging ? 'auto' : 'none' }}
     >
       {fillableElements.map(element => (
         <div key={element.id} className={styles.fillableElementWrapper}>

@@ -6,14 +6,16 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import Select from "@trenchaant/pkg-ui-component-library/build/Components/Select/SimpleSelect";
 import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/MenuItem";
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import { HeadingElement, TableElement } from '../../types';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
+import { HeadingElement, TableElement } from '../../../utils/interface';
 import ColorInput from '../Properties/ColorInput';
+import { fontSizeList, fontFamilyList, headingLevels } from '../../../utils/utils';
+import { UPDATE_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
 
-const TextFormattingToolbar = () => {
+const TextFormattingToolbar: React.FC = () => {
   const dispatch = useDispatch();
-  const activeElementId = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.activeElementId);
-  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements);
+  const activeElementId = useSelector((state: RootState) => state?.contractManagement?.activeElementId);
+  const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
 
   const activeElement = canvasElements?.find(el => el.id === activeElementId);
 
@@ -25,7 +27,7 @@ const TextFormattingToolbar = () => {
 
   const updateElement = (updates: Partial<HeadingElement | TableElement>) => {
     dispatch({
-      type: 'UPDATE_CANVAS_ELEMENT',
+      type: UPDATE_CANVAS_ELEMENT,
       payload: { ...element, ...updates }
     });
   };
@@ -75,26 +77,6 @@ const TextFormattingToolbar = () => {
 
     updateElement(updates);
   };
-
-  const fontSizeList = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
-
-  const fontFamilyList = [
-    { name: 'Open Sans', value: 'Open Sans, sans-serif' },
-    { name: 'Roboto', value: 'Roboto, sans-serif' },
-    { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
-    { name: 'Poppins', value: 'Poppins, sans-serif' },
-    { name: 'Roboto Condensed', value: '"Roboto Condensed", sans-serif' },
-    { name: 'Inter', value: 'Inter, sans-serif' },
-  ];
-
-  const headingLevels = [
-    { label: 'Heading 1', value: 'h1' },
-    { label: 'Heading 2', value: 'h2' },
-    { label: 'Heading 3', value: 'h3' },
-    { label: 'Heading 4', value: 'h4' },
-    { label: 'Heading 5', value: 'h5' },
-    { label: 'Paragraph', value: 'p' },
-  ];
 
   return (
     <div className={styles.textFormattingToolbarWrapper}>

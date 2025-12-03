@@ -4,8 +4,9 @@ import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import BlockElement from './BlockElement';
-import { BlockElement as BlockElementType, isBlockElement } from '../../types';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { BlockElement as BlockElementType, isBlockElement } from '../../../utils/interface';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
+import { ADD_CANVAS_ELEMENT, UPDATE_MULTIPLE_ELEMENTS } from '../../../store/action/contractManagement.actions';
 
 interface BlockContainerProps {
   pageNumber: number;
@@ -15,7 +16,7 @@ interface BlockContainerProps {
 const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
   const dispatch = useDispatch();
   const blocks = useSelector((state: RootState) =>
-    state.pdfEditor.pdfEditorReducer.canvasElements.filter(el => el.page === pageNumber && isBlockElement(el))
+    state?.contractManagement.canvasElements.filter(el => el.page === pageNumber && isBlockElement(el))
   ) as BlockElementType[];
 
   // sorting the blocks by the order
@@ -28,7 +29,7 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
       id: `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
       order: maxOrder + 1
     };
-    dispatch({ type: 'ADD_CANVAS_ELEMENT', payload: copiedBlock });
+    dispatch({ type: ADD_CANVAS_ELEMENT, payload: copiedBlock });
   };
 
   const handleMoveUp = (currentOrder: number) => {
@@ -40,7 +41,7 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
 
     // swappinf the orders
     dispatch({
-      type: 'UPDATE_MULTIPLE_ELEMENTS',
+      type: UPDATE_MULTIPLE_ELEMENTS,
       payload: [
         { ...currentBlock, order: prevBlock.order },
         { ...prevBlock, order: currentBlock.order }
@@ -57,7 +58,7 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
     
     // swapping the orders
     dispatch({
-      type: 'UPDATE_MULTIPLE_ELEMENTS',
+      type: UPDATE_MULTIPLE_ELEMENTS,
       payload: [
         { ...currentBlock, order: nextBlock.order },
         { ...nextBlock, order: currentBlock.order }

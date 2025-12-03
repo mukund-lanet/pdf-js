@@ -5,16 +5,16 @@ import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import PDFCanvasViewer from '../Canvas/PDFCanvasViewer';
-import { noDocument } from '../../types';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { noPdfDocument } from '../../../utils/utils';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
 
 const EditorMainArea = () => {
   const editorPanelRef = useRef<HTMLDivElement>(null);
 
-  const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
-  const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
-  const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
-  const isLoading = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.isLoading);
+  const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+  const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
+  const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
+  const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
   useEffect(() => {
     if (editorPanelRef.current) {
@@ -34,7 +34,7 @@ const EditorMainArea = () => {
           ) : isLoading ? <div className={styles.simpleLoadingWrapper} > <SimpleLoading /> </div>
             : (
               <div className={styles.noPdfLoaded} >
-                <EmptyMessageComponent {...noDocument} />
+                <EmptyMessageComponent {...noPdfDocument} />
               </div>
             )}
         </div>
