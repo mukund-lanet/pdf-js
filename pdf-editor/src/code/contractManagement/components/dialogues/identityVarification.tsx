@@ -12,7 +12,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { setDialogDrawerState, setIdentityVerificationSettings } from '../../store/action/contractManagement.actions';
 import styles from "app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
-import { radioGroupList, DIALOG_DRAWER_NAMES } from '../../types';
+import { radioGroupList } from '../../utils/utils';
+import { DIALOG_DRAWER_NAMES } from '../../utils/interface';
 
 const IdentityVerification = () => {
   const dispatch = useDispatch();

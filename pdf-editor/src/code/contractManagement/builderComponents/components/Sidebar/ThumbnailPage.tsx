@@ -2,10 +2,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import { CanvasElement, isBlockElement, isFillableElement } from '../../types';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
+import { CanvasElement, isBlockElement, isFillableElement } from '../../../utils/interface';
 import Typography from '@trenchaant/pkg-ui-component-library/build/Components/Typography';
-
+import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actions';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
@@ -20,10 +20,10 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
-  const canvasElements = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.canvasElements || []);
-  const pageDimensions = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pageDimensions || {});
+  const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements || []);
+  const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions || {});
   const dispatch = useDispatch();
-  const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
+  const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
 
   // cleanup function
   const cleanup = () => {
@@ -298,7 +298,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         <div
           key={`thumbnail_page_${pageNumber}`}
           className={`${styles.thumbnailItem} ${pageNumber === currentPage ? styles.activeThumbnail : ''}`}
-          onClick={() => dispatch({ type: 'SET_CURRENT_PAGE', payload: pageNumber })}
+          onClick={() => dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber })}
         >
           <div className={styles.thumbnailContent}>
             {isLoading && (

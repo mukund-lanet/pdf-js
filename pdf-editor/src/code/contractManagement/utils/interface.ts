@@ -1,5 +1,45 @@
-import React from 'react';
+export interface Signer {
+  name: string;
+  email: string;
+  type: 'signer' | 'approver' | 'cc';
+  order?: number;
+}
 
+export interface DocumentItem {
+  id: string;
+  name: string;
+  status: 'draft' | 'waiting' | 'completed' | 'archived';
+  date: string;
+  signers: Signer[];
+  progress: number;
+  dueDate?: string;
+  createdBy?: string;
+  signingOrder?: boolean;
+}
+
+export interface ContractItem {
+  id: string;
+  name: string;
+  status: 'active' | 'draft' | 'expired';
+  value: number;
+  date: string;
+}
+
+export enum CONTRACT_MANAGEMENT_TAB {
+  DOCUMENTS = 'documents',
+  CONTRACTS = 'contracts'
+}
+
+export enum DIALOG_DRAWER_NAMES {
+  PDF_BUILDER_DRAWER = 'pdfBuilderDrawerOpen',
+  DOCUMENT_DRAWER = 'documentDrawerOpen',
+  IDENTITY_VERIFICATION_DIALOG = 'identityVerificationDialogOpen',
+  GLOBAL_DOCUMENT_SETTINGS_DIALOG = 'globalDocumentSettingsDialogOpen',
+  BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen'
+}
+
+
+// pdf-editor
 export enum DRAWER_COMPONENT_CATEGORY {
   ADD_ELEMENTS = "add_elements",
   PAGES = "Pages",
@@ -185,15 +225,14 @@ export function isFillableElement(element: CanvasElement): element is FillableFi
   return ['text-field', 'signature', 'date', 'initials', 'checkbox'].includes(element.type);
 }
 
-export const noDocument = {
-  message: "No documents found",
-  description: "There are no documents to display.",
-  tips: [
-    "Create new document",
-    "Upload pdf and start editing",
-    "Add docusign in integration"
-  ],
-  iconName: "pen-line",
-  tipsTitle: "Quick tips",
-  button: undefined
+export interface DraggableBlockItemProps {
+  item: { type: string; label: string; icon: string };
+  activeTool: string | null;
+  dispatch: any;
+}
+
+export interface DraggableToolbarItemProps {
+  item: { type: string; label: string; icon: string };
+  activeTool: string | null;
+  dispatch: any;
 }

@@ -14,7 +14,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import styles from "app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 import { setDialogDrawerState, setBrandingCustomizationSettings } from '../../store/action/contractManagement.actions';
-import { brandingTabItems, DIALOG_DRAWER_NAMES } from '../../types';
+import { DIALOG_DRAWER_NAMES } from '../../utils/interface';
+import { brandingTabItems } from '../../utils/utils';
 
 const brandingCustomization = () => {
   const dispatch = useDispatch();

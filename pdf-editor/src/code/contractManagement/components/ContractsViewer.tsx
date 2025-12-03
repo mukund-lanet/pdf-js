@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
-import { setContractActiveFilter, setCreateContractDrawerOpen } from '../store/action/contractManagement.actions';
-import { noContracts } from '../types';
+// import { setContractActiveFilter, setCreateContractDrawerOpen } from '../store/action/contractManagement.actions';
+import { noContracts } from '../utils/utils';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import { RootState } from "../store/reducer/contractManagement.reducer";
@@ -29,7 +29,7 @@ const ContractsViewer = () => {
             <div 
               key={filter.id}
               className={`${styles.filterTab} ${activeFilter === filter.id ? styles.active : ''}`}
-              onClick={() => dispatch(setContractActiveFilter(filter.id) as any)}
+              // onClick={() => dispatch(setContractActiveFilter(filter.id) as any)}
             >
               <Typography>{filter.label}</Typography>
               <span className={styles.count}>{filter.count}</span>
@@ -52,7 +52,7 @@ const ContractsViewer = () => {
                 label: "Create First Contract",
                 variant: "contained",
                 color: "primary",
-                onClick: () => {dispatch(setCreateContractDrawerOpen(true))}
+                // onClick: () => {dispatch(setCreateContractDrawerOpen(true))}
               }} 
             />
         </div>

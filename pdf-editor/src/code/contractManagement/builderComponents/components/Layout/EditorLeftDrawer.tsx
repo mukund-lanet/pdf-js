@@ -6,11 +6,11 @@ import ThumbnailSidebar from '../Sidebar/ThumbnailSidebar';
 import VariablesSidebar from '../Sidebar/VariablesSidebar';
 import SettingsSidebar from '../Sidebar/SettingsSidebar';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
-import { DRAWER_COMPONENT_CATEGORY } from '../../types';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { DRAWER_COMPONENT_CATEGORY } from '../../../utils/interface';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
 
-const EditorLeftDrawer = () => {
-  const drawerComponentType = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.drawerComponentCategory);
+const EditorLeftDrawer: React.FC = () => {
+  const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
 
   return (
     <div className={`${styles.leftSideDrawerWrapper} ${drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS ? styles.leftSideDrawerElement : ''}`}>

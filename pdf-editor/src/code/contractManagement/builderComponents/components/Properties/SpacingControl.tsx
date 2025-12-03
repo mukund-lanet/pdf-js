@@ -4,8 +4,8 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Popper from '@trenchaant/pkg-ui-component-library/build/Components/Popper';
 import { useDispatch, useSelector } from 'react-redux';
-import { PDF_EDITOR_ACTION_TYPES } from '../../store/action/pdfEditor.action';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { SET_PROPERTIES_DRAWER_STATE } from '../../../store/action/contractManagement.actions';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
 
 interface SpacingControlProps {
   value: number;
@@ -14,10 +14,10 @@ interface SpacingControlProps {
   label?: string;
 }
 
-const SpacingControl = ({ value, onChange, onReset, label }: SpacingControlProps) => {
+const SpacingControl: React.FC<SpacingControlProps> = ({ value, onChange, onReset, label }) => {
   const presets = [0, 10, 20, 40, 60, 80];
   const dispatch = useDispatch();
-  const propertiesDrawerState = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.propertiesDrawerState);
+  const propertiesDrawerState = useSelector((state: RootState) => state?.contractManagement?.propertiesDrawerState);
 
   return (
     <>
@@ -27,7 +27,7 @@ const SpacingControl = ({ value, onChange, onReset, label }: SpacingControlProps
         closeIcon
         anchor={'right'}
         className={styles.announcementPopperWrp}
-        onClose={() => dispatch({ type: PDF_EDITOR_ACTION_TYPES.SET_PROPERTIES_DRAWER_STATE, payload: { anchorEl: null, isOpen: false } })}
+        onClose={() => dispatch({ type: SET_PROPERTIES_DRAWER_STATE, payload: { anchorEl: null, isOpen: false } })}
       >
         <div className={styles.spacingControlContainer}>
           {label && <div className={styles.spacingControlLabel}>{label}</div>}

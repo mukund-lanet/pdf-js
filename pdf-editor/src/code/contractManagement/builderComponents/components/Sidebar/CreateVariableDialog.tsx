@@ -4,6 +4,7 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import { useDispatch } from 'react-redux';
+import { ADD_DOCUMENT_VARIABLE } from '../../../store/action/contractManagement.actions';
 
 interface CreateVariableDialogProps {
   setIsDialogOpen: (value: boolean) => void;
@@ -18,7 +19,7 @@ const CreateVariableDialog = ({ setIsDialogOpen }: CreateVariableDialogProps) =>
     const finalName = name.startsWith('document.') ? name : `document.${name}`;
 
     dispatch({
-      type: 'ADD_DOCUMENT_VARIABLE',
+      type: ADD_DOCUMENT_VARIABLE,
       payload: { name: finalName, value, isSystem: false }
     });
   };

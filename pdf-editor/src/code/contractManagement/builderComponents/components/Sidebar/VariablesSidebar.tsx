@@ -1,16 +1,17 @@
 'use client';
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CreateVariableDialog from './CreateVariableDialog';
+import { DELETE_DOCUMENT_VARIABLE } from '../../../store/action/contractManagement.actions';
 
-const VariablesSidebar = () => {
+const VariablesSidebar: React.FC = () => {
   const dispatch = useDispatch();
-  const variables = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.documentVariables);
+  const variables = useSelector((state: RootState) => state?.contractManagement?.documentVariables);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -25,7 +26,7 @@ const VariablesSidebar = () => {
 
   const handleDelete = (name: string) => {
     dispatch({
-      type: 'DELETE_DOCUMENT_VARIABLE',
+      type: DELETE_DOCUMENT_VARIABLE,
       payload: name
     });
   };

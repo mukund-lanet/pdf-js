@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
 // import { setCreateContractDrawerOpen } from "../../store/action/contractManagement.actions";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
-import { contractTypeOptions, contractValueOptions } from '../../types';
+import { contractTypeOptions, contractValueOptions } from '../../utils/utils';
 
 const steps = [
   {
@@ -26,7 +26,7 @@ const CreateContractDrawer = () => {
   const dispatch = useDispatch();
   const {
     createContractDrawerOpen,
-    contractDrawerProgress,
+    // contractDrawerProgress,
     contractName,
     startDate,
     endDate,
@@ -71,7 +71,7 @@ const CreateContractDrawer = () => {
       className={styles.createNewContractDrawer}
     >
       <Stepper
-        activeStep={contractDrawerProgress}
+        // activeStep={contractDrawerProgress}
         steps={steps}
         labelPlacement="start"
         hidefooter

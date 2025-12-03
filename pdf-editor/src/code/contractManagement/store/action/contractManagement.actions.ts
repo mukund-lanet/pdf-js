@@ -1,5 +1,5 @@
-import { AppDispatch, RootState } from '..';
-import { CONTRACT_MANAGEMENT_TAB, DIALOG_DRAWER_NAMES } from '../../types';
+import { AppDispatch } from '..';
+import { DIALOG_DRAWER_NAMES } from '../../utils/interface';
 
 // Action Types
 export const SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_DOCUMENT_ACTIVE_FILTER';
@@ -14,6 +14,38 @@ export const UPLOAD_DOCUMENT_PDF = "UPLOAD_DOCUMENT_PDF";
 export const SET_ACTIVE_DOCUMENT = "SET_ACTIVE_DOCUMENT";
 export const UPDATE_DOCUMENT = "UPDATE_DOCUMENT";
 export const SET_DOCUMENT_DRAWER_MODE = "SET_DOCUMENT_DRAWER_MODE";
+
+// PDF Editor Action Types
+export const SET_PDF_BYTES = 'SET_PDF_BYTES';
+export const SET_TOTAL_PAGES = 'SET_TOTAL_PAGES';
+export const SET_CURRENT_PAGE = 'SET_CURRENT_PAGE';
+export const SET_PAGE_DIMENSIONS = 'SET_PAGE_DIMENSIONS';
+export const SET_CANVAS_ELEMENTS = 'SET_CANVAS_ELEMENTS';
+export const ADD_CANVAS_ELEMENT = 'ADD_CANVAS_ELEMENT';
+export const UPDATE_CANVAS_ELEMENT = 'UPDATE_CANVAS_ELEMENT';
+export const DELETE_CANVAS_ELEMENT = 'DELETE_CANVAS_ELEMENT';
+export const ADD_BLOCK_ELEMENT = 'ADD_BLOCK_ELEMENT';
+export const REORDER_BLOCK_ELEMENTS = 'REORDER_BLOCK_ELEMENTS';
+export const UPDATE_BLOCK_ORDER = 'UPDATE_BLOCK_ORDER';
+export const SET_ACTIVE_TOOL = 'SET_ACTIVE_TOOL';
+export const SET_SELECTED_TEXT_ELEMENT = 'SET_SELECTED_TEXT_ELEMENT';
+export const SET_SIGNATURE_PAD_OPEN = 'SET_SIGNATURE_PAD_OPEN';
+export const SET_SIGNATURE_FOR_ELEMENT = 'SET_SIGNATURE_FOR_ELEMENT';
+export const UPDATE_MULTIPLE_ELEMENTS = 'UPDATE_MULTIPLE_ELEMENTS';
+export const RESET_EDITOR = 'RESET_EDITOR';
+export const REORDER_PAGE_ELEMENTS = 'REORDER_PAGE_ELEMENTS';
+export const SET_IS_LOADING = 'SET_IS_LOADING';
+export const SET_DRAWER_COMPONENT_CATEGORY = 'SET_DRAWER_COMPONENT_CATEGORY';
+export const SET_ACTIVE_ELEMENT_ID = 'SET_ACTIVE_ELEMENT_ID';
+export const ADD_DOCUMENT_VARIABLE = 'ADD_DOCUMENT_VARIABLE';
+export const DELETE_DOCUMENT_VARIABLE = 'DELETE_DOCUMENT_VARIABLE';
+export const UPDATE_DOCUMENT_VARIABLE = 'UPDATE_DOCUMENT_VARIABLE';
+export const SET_PROPERTIES_DRAWER_STATE = 'SET_PROPERTIES_DRAWER_STATE';
+export const SET_PDF_MEDIA = 'SET_PDF_MEDIA';
+export const FILLABLE_ELEMENT = 'FILLABLE_ELEMENT';
+export const TOOLBAR_ITEM = 'TOOLBAR_ITEM';
+export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
+export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
 
 // Dialog/Drawer Names Type
 export type DialogName = DIALOG_DRAWER_NAMES;
@@ -117,6 +149,164 @@ export interface SetDocumentDrawerModeAction {
   payload: 'create' | 'upload' | 'edit' | null;
 }
 
+// PDF Editor Action Interfaces
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
+
+interface SetPdfBytesAction {
+  type: typeof SET_PDF_BYTES;
+  payload: Uint8Array | null;
+}
+
+interface SetPropertiesDrawerStateAction {
+  type: typeof SET_PROPERTIES_DRAWER_STATE;
+  payload: {
+    anchorEl: null | HTMLElement;
+    isOpen: boolean;
+  };
+}
+
+interface SetPdfMediaAction {
+  type: typeof SET_PDF_MEDIA;
+  payload: any;
+}
+
+interface SetDocumentTypeAction {
+  type: typeof SET_DOCUMENT_TYPE;
+  payload: 'upload-existing' | 'new_document' | null;
+}
+
+interface SetUploadPdfUrlAction {
+  type: typeof SET_UPLOAD_PDF_URL;
+  payload: string | null;
+}
+
+interface SetDrawerComponentCategoryAction {
+  type: typeof SET_DRAWER_COMPONENT_CATEGORY;
+  payload: DRAWER_COMPONENT_CATEGORY;
+}
+
+interface SetActiveElementIdAction {
+  type: typeof SET_ACTIVE_ELEMENT_ID;
+  payload: string | null;
+}
+
+interface AddDocumentVariableAction {
+  type: typeof ADD_DOCUMENT_VARIABLE;
+  payload: DocumentVariable;
+}
+
+interface DeleteDocumentVariableAction {
+  type: typeof DELETE_DOCUMENT_VARIABLE;
+  payload: string; // name
+}
+
+interface UpdateDocumentVariableAction {
+  type: typeof UPDATE_DOCUMENT_VARIABLE;
+  payload: DocumentVariable;
+}
+
+interface SetIsLoadingAction {
+  type: typeof SET_IS_LOADING;
+  payload: boolean;
+}
+
+interface SetTotalPagesAction {
+  type: typeof SET_TOTAL_PAGES;
+  payload: number;
+}
+
+interface SetCurrentPageAction {
+  type: typeof SET_CURRENT_PAGE;
+  payload: number;
+}
+
+interface SetPageDimensionsAction {
+  type: typeof SET_PAGE_DIMENSIONS;
+  payload: { [key: number]: { pageWidth: number; pageHeight: number } };
+}
+
+interface SetCanvasElementsAction {
+  type: typeof SET_CANVAS_ELEMENTS;
+  payload: CanvasElement[];
+}
+
+interface AddCanvasElementAction {
+  type: typeof ADD_CANVAS_ELEMENT;
+  payload: CanvasElement;
+}
+
+interface UpdateCanvasElementAction {
+  type: typeof UPDATE_CANVAS_ELEMENT;
+  payload: CanvasElement;
+}
+
+interface DeleteCanvasElementAction {
+  type: typeof DELETE_CANVAS_ELEMENT;
+  payload: string;
+}
+
+interface AddBlockElementAction {
+  type: typeof ADD_BLOCK_ELEMENT;
+  payload: {
+    element: CanvasElement;
+    pageNumber: number;
+  };
+}
+
+interface ReorderBlockElementsAction {
+  type: typeof REORDER_BLOCK_ELEMENTS;
+  payload: {
+    pageNumber: number;
+    sourceIndex: number;
+    destinationIndex: number;
+  };
+}
+
+interface UpdateBlockOrderAction {
+  type: typeof UPDATE_BLOCK_ORDER;
+  payload: {
+    pageNumber: number;
+    blockOrders: { id: string; order: number }[];
+  };
+}
+
+interface SetActiveToolAction {
+  type: typeof SET_ACTIVE_TOOL;
+  payload: null | 'text' | 'image' | 'signature';
+}
+
+interface SetSelectedTextElementAction {
+  type: typeof SET_SELECTED_TEXT_ELEMENT;
+  payload: TextElement | null;
+}
+
+interface SetSignaturePadOpenAction {
+  type: typeof SET_SIGNATURE_PAD_OPEN;
+  payload: boolean;
+}
+
+interface SetSignatureForElementAction {
+  type: typeof SET_SIGNATURE_FOR_ELEMENT;
+  payload: string | null;
+}
+
+interface UpdateMultipleElementsAction {
+  type: typeof UPDATE_MULTIPLE_ELEMENTS;
+  payload: CanvasElement[];
+}
+
+interface ResetEditorAction {
+  type: typeof RESET_EDITOR;
+}
+
+interface ReorderPageElementsAction {
+  type: typeof REORDER_PAGE_ELEMENTS;
+  payload: {
+    sourceIndex: number; 
+    destinationIndex: number; 
+  };
+}
+
 // Union type for all Contract Management actions
 export type ContractManagementAction =
   | SetDocumentActiveFilterAction
@@ -130,7 +320,35 @@ export type ContractManagementAction =
   | UploadDocumentPdfAction
   | SetActiveDocumentAction
   | UpdateDocumentAction
-  | SetDocumentDrawerModeAction;
+  | SetDocumentDrawerModeAction
+  | SetPdfBytesAction
+  | SetTotalPagesAction
+  | SetCurrentPageAction
+  | SetPageDimensionsAction
+  | SetCanvasElementsAction
+  | AddCanvasElementAction
+  | UpdateCanvasElementAction
+  | DeleteCanvasElementAction
+  | AddBlockElementAction
+  | ReorderBlockElementsAction
+  | UpdateBlockOrderAction
+  | SetActiveToolAction
+  | SetSelectedTextElementAction
+  | SetSignaturePadOpenAction
+  | SetSignatureForElementAction
+  | UpdateMultipleElementsAction
+  | ResetEditorAction
+  | SetIsLoadingAction
+  | SetDrawerComponentCategoryAction
+  | SetActiveElementIdAction
+  | AddDocumentVariableAction
+  | DeleteDocumentVariableAction
+  | UpdateDocumentVariableAction
+  | SetPropertiesDrawerStateAction
+  | SetPdfMediaAction
+  | SetDocumentTypeAction
+  | SetUploadPdfUrlAction
+  | ReorderPageElementsAction;
 
 // Action Creators
 export const setDocumentActiveFilter = (filter: string): AppDispatch => {
@@ -199,7 +417,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
   };
 };
 
-export const uploadDocumentPdf = (data: { documentName: string; file: File; signers: any[] }): AppDispatch => {
+export const uploadDocumentPdf = (data: { documentName: string; file: File; signers: any[]; pdfBytes?: Uint8Array }): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     // TODO: API call to upload document
     console.log("Dispatching UPLOAD_DOCUMENT_PDF", data);
@@ -207,6 +425,14 @@ export const uploadDocumentPdf = (data: { documentName: string; file: File; sign
       type: UPLOAD_DOCUMENT_PDF,
       payload: data,
     });
+    
+    // If pdfBytes are provided, set them in the store
+    if (data.pdfBytes) {
+      dispatch({
+        type: SET_PDF_BYTES,
+        payload: data.pdfBytes,
+      });
+    }
   };
 };
 
@@ -235,6 +461,15 @@ export const setDocumentDrawerMode = (mode: 'create' | 'upload' | 'edit' | null)
     dispatch({
       type: SET_DOCUMENT_DRAWER_MODE,
       payload: mode,
+    });
+  };
+};
+
+export const setUploadPdfUrl = (url: string | null): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_UPLOAD_PDF_URL,
+      payload: url,
     });
   };
 };

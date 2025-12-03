@@ -14,7 +14,8 @@ import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/Menu
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { setDialogDrawerState } from '../../store/action/contractManagement.actions';
-import { defaultEmailTemplate, DIALOG_DRAWER_NAMES } from '../../types';
+import { DIALOG_DRAWER_NAMES } from '../../utils/interface';
+import { defaultEmailTemplate } from '../../utils/utils';
 
 const GlobalDocumentSettings = () => {
   const dispatch = useDispatch();

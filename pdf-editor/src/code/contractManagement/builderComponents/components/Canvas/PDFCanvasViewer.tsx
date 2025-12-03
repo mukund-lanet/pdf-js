@@ -7,14 +7,15 @@ import CustomScrollbar from "@trenchaant/pkg-ui-component-library/build/Componen
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
 import PDFPage from './PDFPage';
-import { RootState } from '../../store/reducer/pdfEditor.reducer';
-import { noDocument } from '../../types';
+import { RootState } from '../../../store/reducer/contractManagement.reducer';
+import { noPdfDocument } from '../../../utils/utils';
+import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actions';
 
 const PDFCanvasViewer = () => {
-  const pdfBytes = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.pdfBytes);
-  const totalPages = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.totalPages);
+  const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+  const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const dispatch = useDispatch();
-  const currentPage = useSelector((state: RootState) => state?.pdfEditor?.pdfEditorReducer?.currentPage);
+  const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
 
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
@@ -58,7 +59,7 @@ const PDFCanvasViewer = () => {
   }, [pdfBytes, pdfjsLib]);
 
   const handleScrollToTop = () => {
-    dispatch({ type: 'SET_CURRENT_PAGE', payload: 1 });
+    dispatch({ type: SET_CURRENT_PAGE, payload: 1 });
     
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
@@ -84,7 +85,7 @@ const PDFCanvasViewer = () => {
         </CustomScrollbar>)
         : (
           <div className={styles.emptyMsgComponentWrapper} >
-            <EmptyMessageComponent {...noDocument} />
+            <EmptyMessageComponent {...noPdfDocument} />
           </div>
         )
       }
