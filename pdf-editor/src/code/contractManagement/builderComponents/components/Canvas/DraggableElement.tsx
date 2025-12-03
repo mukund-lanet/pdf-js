@@ -273,6 +273,15 @@ const DraggableElement = React.memo(({
             });
           }}
           draggableOpts={{ enableUserSelectHack: false }}
+          handle={(h: any, ref: any) => (
+            <span
+              className={`react-resizable-handle react-resizable-handle-${h}`}
+              ref={ref}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+            />
+          )}
         >
           <div
             ref={targetRef}

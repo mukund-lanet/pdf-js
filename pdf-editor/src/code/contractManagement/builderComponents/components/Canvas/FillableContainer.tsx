@@ -254,6 +254,7 @@ const FillableContainer = ({
       ref={drop}
       className={styles.fillableContainer}
       onClick={handleContainerClick}
+      style={{ pointerEvents: isDragging ? 'auto' : 'none' }}
     >
       {fillableElements.map(element => (
         <div key={element.id} className={styles.fillableElementWrapper}>
