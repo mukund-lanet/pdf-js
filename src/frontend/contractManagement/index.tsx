@@ -11,11 +11,10 @@ import Card from "@trenchaant/pkg-ui-component-library/build/Components/Card";
 // import Segmented from "@trenchaant/pkg-ui-component-library/build/Components/Segmented";
 // import Segment from "@trenchaant/pkg-ui-component-library/build/Components/Segment";
 import { contractManagementReducer, RootState } from './store';
-import { setDialogDrawerState } from './store/action/contractManagement.actions';
+import { getDocuments, setDialogDrawerState } from './store/action/contractManagement.actions';
 import { DIALOG_DRAWER_NAMES } from './utils/interface';
 import DocumentsViewer from './components/DocumentsViewer';
 // import ContractsViewer from './components/ContractsViewer';
-import { displayCardList } from './utils/utils';
 import PdfBuilderDrawer from './components/drawers/PdfBuilderDrawer';
 import DocumentDrawer from './components/drawers/DocumentDrawer';
 import IdentityVerification from './components/dialogues/identityVarification';
@@ -24,11 +23,51 @@ import BrandingCustomization from './components/dialogues/brandingCustomization'
 
 const ContractManagement = () => {
   const dispatch = useDispatch();
-  // const activeTab = useSelector((state: RootState) => state?.contractManagement?.activeTab);
+  const documents = useSelector((state: RootState) => state?.contractManagement?.documents);
+
+  const callApi = () => {
+    dispatch(getDocuments());
+  }
 
   useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
+    callApi();
   }, []);
+
+  const displayCardList = [
+    {
+      title: 'Total Documents',
+      value: documents?.length,
+      description: 'All documents',
+      iconName: 'file-text',
+      iconColor: '#1d4ed8',
+      iconBgColor: '#bfdbfe',
+    },
+    // {
+    //   title: 'Active Contracts',
+    //   value: 4,
+    //   description: 'Contracts currently active',
+    //   iconName: 'file-check',
+    //   iconColor: '#15803d',
+    //   iconBgColor: '#dcfce7',
+    // },
+    {
+      title: 'Pending Signatures',
+      value: documents?.filter((document) => document.status === 'waiting').length,
+      description: 'Awaiting signature',
+      iconName: 'clock',
+      iconColor: '#ea580c',
+      iconBgColor: '#ffedd5',
+    },
+    // {
+    //   title: 'Contract Value',
+    //   value: `$${10000}`,
+    //   description: 'Total contract value',
+    //   iconName: 'dollar-sign',
+    //   iconColor: '#444444',
+    //   iconBgColor: '#f3f4f6',
+    // }
+  ];
 
   return (
     <div className={styles.contractManagementContainer}>

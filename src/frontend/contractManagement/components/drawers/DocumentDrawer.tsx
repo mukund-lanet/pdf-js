@@ -25,7 +25,6 @@ const DocumentDrawer = () => {
   const documentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.documentDrawerOpen);
   const documentDrawerMode = useSelector((state: RootState) => state?.contractManagement?.documentDrawerMode);
   const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
-  const businessName = useSelector((state: any) => state?.auth?.busines?.url_key);
   
   const isEditMode = documentDrawerMode === 'edit';
   const isUploadMode = documentDrawerMode === 'upload';
@@ -116,7 +115,7 @@ const DocumentDrawer = () => {
           resetForm();
           
           // Navigate to PDF editor (preserve business name in URL)
-          router.push(`/${businessName}/pdf-editor`);
+          router.push(`/relience-fresh/pdf-editor`);
         };
         fileReader.readAsArrayBuffer(values.file);
       } else if (isCreateMode) {
@@ -149,7 +148,7 @@ const DocumentDrawer = () => {
         resetForm();
         
         // Navigate to PDF editor (preserve business name in URL)
-        router.push(`/${businessName}/pdf-editor`);
+        router.push(`/relience-fresh/pdf-editor`);
       }
     },
   });

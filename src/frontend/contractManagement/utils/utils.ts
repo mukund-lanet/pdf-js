@@ -1,40 +1,5 @@
 import { DRAWER_COMPONENT_CATEGORY } from "./interface";
 
-export const displayCardList = [
-  {
-    title: 'Total Documents',
-    value: 2,
-    description: 'All documents',
-    iconName: 'file-text',
-    iconColor: '#1d4ed8',
-    iconBgColor: '#bfdbfe',
-  },
-  // {
-  //   title: 'Active Contracts',
-  //   value: 4,
-  //   description: 'Contracts currently active',
-  //   iconName: 'file-check',
-  //   iconColor: '#15803d',
-  //   iconBgColor: '#dcfce7',
-  // },
-  {
-    title: 'Pending Signatures',
-    value: 5,
-    description: 'Awaiting signature',
-    iconName: 'clock',
-    iconColor: '#ea580c',
-    iconBgColor: '#ffedd5',
-  },
-  // {
-  //   title: 'Contract Value',
-  //   value: `$${10000}`,
-  //   description: 'Total contract value',
-  //   iconName: 'dollar-sign',
-  //   iconColor: '#444444',
-  //   iconBgColor: '#f3f4f6',
-  // }
-];
-
 export const noDocument = {
   message: "No documents found",
   description: "There are no documents to display.",
