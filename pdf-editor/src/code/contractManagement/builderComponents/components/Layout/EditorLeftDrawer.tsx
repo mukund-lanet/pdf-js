@@ -5,6 +5,7 @@ import ElementsSidebar from '../Sidebar/ElementsSidebar';
 import ThumbnailSidebar from '../Sidebar/ThumbnailSidebar';
 import VariablesSidebar from '../Sidebar/VariablesSidebar';
 import SettingsSidebar from '../Sidebar/SettingsSidebar';
+import RecipientsSidebar from '../Sidebar/RecipientsSidebar';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { DRAWER_COMPONENT_CATEGORY } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
@@ -25,6 +26,9 @@ const EditorLeftDrawer: React.FC = () => {
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.SETTINGS && (
         <SettingsSidebar />
+      )}
+      {drawerComponentType === DRAWER_COMPONENT_CATEGORY.RECIPIENTS && (
+        <RecipientsSidebar />
       )}
     </div>
   );

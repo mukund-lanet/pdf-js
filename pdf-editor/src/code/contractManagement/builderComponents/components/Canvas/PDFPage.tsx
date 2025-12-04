@@ -8,6 +8,7 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
+import SimpleLoading from '@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading';
 // import MediaButton from "@trenchaant/common-component/dist/commonComponent/mediaButton";
 import MediaButton from "components/commonComponentCode/mediaButton";
 import BlockContainer from './BlockContainer';
@@ -335,7 +336,7 @@ const PDFPage = React.memo((({
             </div>
           </div>
 
-          {imageSrc && (
+          { !isLoading && imageSrc ? (
             <div
               ref={imageRef}
               className={styles.canvasWrapper}
@@ -349,6 +350,10 @@ const PDFPage = React.memo((({
                 backgroundPosition: 'center',
               }}
             />
+          ) : (
+            <div className={styles.loadingPageWrapper}>
+              <SimpleLoading />
+            </div>
           )}
 
           <div className={styles.blockLayerWrapper}>

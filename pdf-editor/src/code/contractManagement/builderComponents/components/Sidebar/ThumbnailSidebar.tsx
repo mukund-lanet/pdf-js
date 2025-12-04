@@ -20,6 +20,23 @@ const ThumbnailSidebar: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+  const [pageIds, setPageIds] = useState<string[]>([]);
+
+  // StrictModeDroppable component
+  const StrictModeDroppable = ({ children, ...props }: any) => {
+    const [enabled, setEnabled] = useState(false);
+    useEffect(() => {
+      const animation = requestAnimationFrame(() => setEnabled(true));
+      return () => {
+        cancelAnimationFrame(animation);
+        setEnabled(false);
+      };
+    }, []);
+    if (!enabled) {
+      return null;
+    }
+    return <Droppable {...props}>{children}</Droppable>;
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,6 +58,13 @@ const ThumbnailSidebar: React.FC = () => {
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
         const pdf = await loadingTask.promise;
         setPdfDoc(pdf);
+        
+        // Initialize page IDs if not already set or if count mismatches
+        // We use a simple index-based ID initially, but we need them to be stable across reorders if possible.
+        // However, since we re-render the whole list on drop, we can just use a local state that we reorder.
+        if (pageIds.length !== pdf.numPages) {
+           setPageIds(Array.from({ length: pdf.numPages }, (_, i) => `page-${i + 1}-${Date.now()}`));
+        }
       } catch (error) {
         console.error('Error loading PDF for thumbnails:', error);
       }
@@ -56,6 +80,12 @@ const ThumbnailSidebar: React.FC = () => {
     const destinationIndex = result.destination.index;
 
     if (sourceIndex === destinationIndex) return;
+
+    // Reorder local state immediately for UI responsiveness
+    const newPageIds = Array.from(pageIds);
+    const [movedPageId] = newPageIds.splice(sourceIndex, 1);
+    newPageIds.splice(destinationIndex, 0, movedPageId);
+    setPageIds(newPageIds);
 
     try {
       setIsLoading(true);
@@ -78,6 +108,8 @@ const ThumbnailSidebar: React.FC = () => {
 
     } catch (error) {
       console.error('Error reordering pages:', error);
+      // Revert local state on error
+      setPageIds(pageIds);
     } finally {
       setIsLoading(false);
     }
@@ -90,21 +122,17 @@ const ThumbnailSidebar: React.FC = () => {
       </div>
 
       <div className={styles.thumbnailContainer}>
-        {isLoading ? (
-          <div className={styles.loadingWrapper}>
-            <SimpleLoading />
-          </div>
-        ) : pdfDoc && totalPages > 0 ? (
+        {pdfDoc && totalPages > 0 ? (
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="thumbnail-pages">
-              {(provided) => (
+            <StrictModeDroppable droppableId="thumbnail-pages">
+              {(provided: any) => (
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                   style={{ height: '100%' }}
                 >
-                  {Array.from(new Array(totalPages), (el, index) => (
-                    <Draggable key={`page-${index + 1}`} draggableId={`page-${index + 1}`} index={index}>
+                  {pageIds.map((pageId, index) => (
+                    <Draggable key={pageId} draggableId={pageId} index={index}>
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
@@ -115,7 +143,7 @@ const ThumbnailSidebar: React.FC = () => {
                           }}
                         >
                           <ThumbnailPage
-                            key={`thumbnail_page_${index + 1}_${pdfDoc ? pdfDoc._pdfInfo.fingerprint : 'no_pdf'}`}
+                            key={`thumbnail_${pageId}`}
                             pdfDoc={pdfDoc}
                             pageNumber={index + 1}
                             isLoading={isLoading}
@@ -128,11 +156,15 @@ const ThumbnailSidebar: React.FC = () => {
                   {provided.placeholder}
                 </div>
               )}
-            </Droppable>
+            </StrictModeDroppable>
           </DragDropContext>
-        ) : (
+        ) : !isLoading && totalPages === 0 ? (
           <div className={styles.noPdfLoaded} >
             <EmptyMessageComponent className={styles.noPdfLoadedEmptyMessage} {...noPdfDocument} />
+          </div>
+        ) : (
+          <div className={styles.loadingWrapper}>
+            <SimpleLoading />
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { PDFDocument } from 'pdf-lib';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
@@ -15,6 +16,7 @@ import { SET_ACTIVE_DOCUMENT, SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOAD
 
 const EditorHeader = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const file = useSelector((state: RootState) => state?.contractManagement?.media);
   const documentType = useSelector((state: RootState) => state?.contractManagement?.documentType);
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
@@ -154,6 +156,7 @@ const EditorHeader = () => {
         variant={"outlined"}
         color={"secondary"}
         startIcon={<CustomIcon iconName='arrow-left' height={16} width={16} /> }
+        onClick={() => router.back()}
       >
         <Typography> Previous </Typography>
       </Button>

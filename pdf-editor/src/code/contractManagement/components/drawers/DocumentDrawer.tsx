@@ -68,7 +68,7 @@ const DocumentDrawer = () => {
             return true;
         }),
       signers: Yup.array()
-        .min(1, 'At least one signer is required')
+        // .min(1, 'At least one signer is required')
     }),
     onSubmit: async (values, { resetForm }) => {
       if (isEditMode && activeDocument) {
@@ -254,7 +254,8 @@ const DocumentDrawer = () => {
       }}
       submitBtn={{ 
         onClick: () => handleSubmit(), 
-        label: getSubmitLabel()
+        label: getSubmitLabel(),
+        // loading: loading state here and the user will wait.
       }}
       onClose={handleClose}
       className={styles.createDocumentDrawer}

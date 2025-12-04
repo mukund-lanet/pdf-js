@@ -310,4 +310,10 @@ export const tabItems = {
     title: "Document Settings",
     description: "Configure document preferences",
   },
+  [DRAWER_COMPONENT_CATEGORY.RECIPIENTS]: {
+    name: "Recipients",
+    icon: "user",
+    title: "Manage Recipients",
+    description: "Add and manage document signers",
+  },
 };

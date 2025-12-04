@@ -6,6 +6,7 @@ import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Co
 import CustomScrollbar from "@trenchaant/pkg-ui-component-library/build/Components/ScrollBar";
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
+import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
 import PDFPage from './PDFPage';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { noPdfDocument } from '../../../utils/utils';
@@ -15,7 +16,7 @@ const PDFCanvasViewer = () => {
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const dispatch = useDispatch();
-  const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
+  const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
   const [pdfjsLib, setPdfjsLib] = useState<any>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
@@ -83,9 +84,13 @@ const PDFCanvasViewer = () => {
               })}
           </div>
         </CustomScrollbar>)
-        : (
+        : !isLoading && totalPages === 0 ? (
           <div className={styles.emptyMsgComponentWrapper} >
             <EmptyMessageComponent {...noPdfDocument} />
+          </div>
+        ) : (
+          <div className={styles.loadingWrapper}>
+            <SimpleLoading />
           </div>
         )
       }

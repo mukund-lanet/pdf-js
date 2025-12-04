@@ -219,6 +219,16 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
+
+            .loadingPageWrapper {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 1150px;
+              width: 817px;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+            }
   
             .outerSelectMovableWrapper {
               position: absolute;
@@ -310,12 +320,6 @@
             }
   
           }
-        }
-  
-        // Selecto selection area style
-        :global(.r-selecto) {
-          background: #72dee2;
-          border: 1px solid #72dee2;
         }
       }
     }
@@ -1276,7 +1280,6 @@
             transition: transform 0.2s ease;
           }
 
-          .thumbnailLoading,
           .thumbnailError {
             padding: 8px;
             text-align: center;
@@ -1551,9 +1554,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10;
+  z-index: 2;
   max-height: calc(100% - 64px);
-  pointer-events: none;
 }
 
 .fillableContainer {
@@ -2296,6 +2298,192 @@
     
     &:hover {
       background: #ffffff;
+    }
+  }
+}
+
+// Recipients Sidebar Styles
+.recipientsSidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+
+  .signingOrderSection {
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+
+    .signingOrderHeader {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .signingOrderLabel {
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .signingOrderDescription {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+      padding-left: 52px; // Align with text start (switch width + gap)
+    }
+  }
+
+  .recipientsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .recipientItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .recipientAvatar {
+      margin-top: 2px;
+    }
+
+    .recipientInfo {
+      flex: 1;
+      min-width: 0;
+
+      .recipientName {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 2px;
+      }
+
+      .recipientEmail {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .recipientBadges {
+        display: flex;
+        gap: 8px;
+
+        span {
+          font-size: 10px;
+          font-weight: 500;
+          padding: 2px 8px;
+          border-radius: 12px;
+          text-transform: uppercase;
+        }
+
+        .badgePrimary {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+
+        .badgeSigner {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+      }
+    }
+
+    .recipientActions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    &:hover .recipientActions {
+      opacity: 1;
+    }
+  }
+
+  .addRecipientSection {
+    margin-top: auto;
+  }
+
+  .addRecipientForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+
+    .addClientLink {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      span {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+      }
+    }
+
+    .clientList {
+      max-height: 200px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+
+      .clientItem {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #f3f4f6;
+        }
+
+        .clientAvatar {
+          width: 32px;
+          height: 32px;
+          font-size: 12px;
+        }
+
+        .clientInfo {
+          flex: 1;
+          min-width: 0;
+
+          .clientName {
+            font-size: 13px;
+            font-weight: 500;
+            color: #111827;
+          }
+
+          .clientEmail {
+            font-size: 11px;
+            color: #6b7280;
+          }
+        }
+      }
     }
   }
 }

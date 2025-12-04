@@ -45,7 +45,8 @@ export enum DRAWER_COMPONENT_CATEGORY {
   PAGES = "Pages",
   DOCUMENT_VARIABLES = "Document variables",
   CONTENT_LIBRARY = "Content Library",
-  SETTINGS = "Settings"
+  SETTINGS = "Settings",
+  RECIPIENTS = "Recipients"
 }
 
 export interface TextElement {

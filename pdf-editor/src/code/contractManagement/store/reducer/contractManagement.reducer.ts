@@ -221,7 +221,14 @@ const initialState: ContractManagementState = {
 };
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
+  // console.log('ContractManagement Reducer Action:', action.type);
   switch (action.type) {
+    case Actions.SET_ACTIVE_DOCUMENT:
+      console.log('SET_ACTIVE_DOCUMENT payload:', action.payload);
+      return {
+        ...state,
+        activeDocument: action.payload,
+      };
     case Actions.SET_DIALOG_STATE:
       return {
         ...state,
@@ -306,12 +313,12 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       };
     }
     
-    case Actions.SET_ACTIVE_DOCUMENT: {
-      return {
-        ...state,
-        activeDocument: action.payload,
-      };
-    }
+    // case Actions.SET_ACTIVE_DOCUMENT: {
+    //   return {
+    //     ...state,
+    //     activeDocument: action.payload,
+    //   };
+    // }
     
     case Actions.UPDATE_DOCUMENT: {
       const { documentId, documentName, signers, signingOrder } = action.payload;
@@ -324,7 +331,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         documents: updatedDocuments,
-        activeDocument: null, // Clear active document after update
+        // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
+        activeDocument: state.activeDocument && state.activeDocument.id === documentId 
+          ? { ...state.activeDocument, name: documentName, signers, signingOrder }
+          : state.activeDocument,
       };
     }
     

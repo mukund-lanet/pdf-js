@@ -10,7 +10,8 @@ import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
 import EditorMainArea from './components/Layout/EditorMainArea';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
 import TextFormattingToolbar from './components/Toolbar/TextFormattingToolbar';
-import { RootState } from '../store/reducer/contractManagement.reducer';
+import { RootState, contractManagementReducer } from '../store/reducer/contractManagement.reducer';
+import { injectReducer } from '@/components/store';
 import { SET_DRAWER_COMPONENT_CATEGORY, UPDATE_MULTIPLE_ELEMENTS } from '../store/action/contractManagement.actions';
 import { DRAWER_COMPONENT_CATEGORY } from '../utils/interface';
 import Tabs from "@trenchaant/pkg-ui-component-library/build/Components/Tabs";
@@ -20,6 +21,12 @@ import { tabItems } from '../utils/utils';
 
 const PdfEditor: React.FC = () => {
   const dispatch = useDispatch();
+  
+  // Inject reducer to ensure state is available even on direct load
+  React.useEffect(() => {
+    injectReducer('contractManagement', contractManagementReducer);
+  }, []);
+
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
 
