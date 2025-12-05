@@ -9,8 +9,6 @@ import settingsRoutes from './routes/settingsRoutes';
 
 import contractManagementRoutes from './routes/contractManagementRoutes';
 
-
-
 dotenv.config();
 
 connectDB();
@@ -18,8 +16,8 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: 'https://localhost:3000',   // explicit origin (must match frontend exactly)
-  credentials: true,                  // REQUIRED when frontend sends credentials
+  origin: 'https://localhost:3000',
+  credentials: true,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
