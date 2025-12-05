@@ -1,0 +1,673 @@
+{
+    "_id": "691302a75c82193e6280c81a",
+    "deleted": false,
+    "version": 2,
+    "tags": [
+        "created_by_user"
+    ],
+    "versionHistory": [
+        {
+            "id": "8b69b999-08ab-4c76-a576-dd14160abed0",
+            "path": "wZucumCZ2vPxqfQXk8ac/proposal-templates/691302a75c82193e6280c81a/cbdd1518-9ba3-4caf-9920-e28f0b95c8e5",
+            "downloadUrl": "https://storage.googleapis.com/leadgen-proposals-estimates-templates/wZucumCZ2vPxqfQXk8ac/proposal-templates/691302a75c82193e6280c81a/cbdd1518-9ba3-4caf-9920-e28f0b95c8e5?GoogleAccessId=default-leadgen-proposals%40highlevel-backend.iam.gserviceaccount.com&Expires=16447017600&Signature=ARtdHZR%2FyjP0V1w5xeyR5rfdCyo392WvPVe354FCV5PYGO7GVM3UBBUDWbPQt65FNb73e4Y%2BXQNMe%2Bs7llzzETl%2FugP4kIQ6FMgq7fqcvDnBpsDy5Fnro%2B97HreJdZOUrPvG73NrfrZTXPb5YpKBj10WVrPEJvYVBgTl%2BQlqxSXCU7KUMNFhksjsIbY2vR8LyiJ8SMt0OIYJmDT22heepY%2FsJmhMWPLZ0WS3CjaU3ejbL3%2BGJLWjrGSHKd5FeN7pIIcGIbrqwKBH%2FRtJTBrznjYWEwkExlXBh3MetZQsW4EqwrQvVyGEg94jECt7jgRpTAViPKdzWrXHcOnnjt8Oew%3D%3D",
+            "name": "New Version",
+            "updatedBy": "tZde24EsLlZcxOtojVP7",
+            "createdAt": "2025-11-11T09:32:23.284Z"
+        },
+        {
+            "id": "647cb781-70bf-4013-9960-9e13b0cf5bd0",
+            "path": "wZucumCZ2vPxqfQXk8ac/proposal-templates/691302a75c82193e6280c81a/e782d6a2-8d3e-45cb-ad97-8d3cb8e141df",
+            "downloadUrl": "https://storage.googleapis.com/leadgen-proposals-estimates-templates/wZucumCZ2vPxqfQXk8ac/proposal-templates/691302a75c82193e6280c81a/e782d6a2-8d3e-45cb-ad97-8d3cb8e141df?GoogleAccessId=default-leadgen-proposals%40highlevel-backend.iam.gserviceaccount.com&Expires=16447017600&Signature=B%2BK2N%2BBW2TGWYBwfp%2BDqcqyoXiEXYbu1J8g4VfdjJCI101yP6e8TP6fAunz9aEIujY7jur%2B6muv87EohkC4hU%2BoFGM17%2BwSMgaxJ4oyOXLT%2FfbV1Cp5FpfnINh3DseREQTB646MnvNt9BHaT5bd9gaX2o9yYn2QQU26eBRzUyhJEzsRVR4wqzx%2Fw0stm0v8u5Y8G6J1OQhkyVqI4qcDzoAjabvqPzgmyhaRiuvQ5ZmmcXGtk1%2F7nlhPN9cdadIJMoLxoDlybyEfFLArr%2Flesc5Rbs5OiB6BEOIHUruQ6PODZpcMGEmUSwrn3AFUpE8tpWMfP5nsWhdtj3NS%2FIKTgNw%3D%3D",
+            "name": "New Version",
+            "updatedBy": "tZde24EsLlZcxOtojVP7",
+            "createdAt": "2025-11-11T09:50:31.889Z"
+        }
+    ],
+    "variables": [
+        {
+            "fieldKey": "document.createdDate",
+            "value": "11/11/2025",
+            "type": "default"
+        },
+        {
+            "fieldKey": "document.refNumber",
+            "value": "P0010000",
+            "type": "default"
+        },
+        {
+            "fieldKey": "document.subAccountName",
+            "value": "Star Industries",
+            "type": "default"
+        }
+    ],
+    "recipients": [],
+    "fillableFields": [
+        {
+            "value": "",
+            "fieldId": "text_field_1",
+            "isRequired": true,
+            "recipient": "assignedContact",
+            "hasCompleted": false,
+            "entityType": "contacts",
+            "id": "1f29fdf0-7157-4b24-a253-296c31cd0de1",
+            "type": "TextField"
+        },
+        {
+            "value": "",
+            "fieldId": "date_field_2",
+            "isRequired": true,
+            "recipient": "assignedContact",
+            "hasCompleted": false,
+            "entityType": "contacts",
+            "id": "3b5a2863-a7c9-46ba-ab84-ab1ff1f858e3",
+            "type": "DateField"
+        },
+        {
+            "value": "",
+            "fieldId": "checkbox_field_1",
+            "isRequired": true,
+            "recipient": "assignedContact",
+            "hasCompleted": false,
+            "entityType": "contacts",
+            "id": "3cf7175d-b771-4f8a-a7ca-130e69e73d89",
+            "type": "Checkbox"
+        }
+    ],
+    "pricingTables": [
+        {
+            "version": 4,
+            "id": "bb43e824-bd89-4b31-b9d5-d32b3c3f063e",
+            "lineItems": []
+        }
+    ],
+    "groups": [],
+    "enableAutoSendInvoice": false,
+    "enableDirectPayment": false,
+    "paymentLiveMode": true,
+    "fontsToLoad": [
+        "Open Sans"
+    ],
+    "contentLibraryThumbnail": {
+        "_id": "691302a75c8219049280c819"
+    },
+    "name": "agreement - Template",
+    "locationId": "wZucumCZ2vPxqfQXk8ac",
+    "type": "proposal",
+    "updatedBy": "tZde24EsLlZcxOtojVP7",
+    "timezone": {
+        "zone": "Asia/Kolkata",
+        "abbreviation": "IST"
+    },
+    "grandTotal": {
+        "currency": "USD",
+        "amount": "0.00",
+        "discountPercentage": 0,
+        "discounts": []
+    },
+    "notificationSettings": {},
+    "redirectSettings": {
+        "enableDocumentRedirectUrl": false,
+        "documentRedirectUrl": "",
+        "documentRedirectType": "existingTab"
+    },
+    "emailAttachments": [],
+    "createdAt": "2025-11-11T09:32:23.025Z",
+    "updatedAt": "2025-11-11T09:50:31.903Z",
+    "__v": 2,
+    "customValueLinkage": {},
+    "meta": {},
+    "pages": [
+        {
+            "type": "Page",
+            "version": 2,
+            "children": [
+                {
+                    "type": "Text",
+                    "version": 1,
+                    "id": "54b22cfd-222a-40b3-84bd-9ed3d76cc72e",
+                    "children": [],
+                    "component": {
+                        "name": "Text Element",
+                        "options": {
+                            "text": "<h2 style=\"line-height: 1.5; text-align: left; font-family: Open Sans;\"><span style=\"font-family: Open Sans; font-size: 32px;\">Heading</span></h2><p style=\"line-height: 1.5\"></p><p style=\"line-height: 1.5\">Add text to your document.</p>"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "10px",
+                            "paddingBottom": "10px",
+                            "paddingLeft": "10px",
+                            "paddingRight": "10px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "backgroundColor": "",
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 33,
+                                "left": 289.5,
+                                "bottom": 927
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Image",
+                    "version": 1,
+                    "id": "22b57ca7-f9fc-4eef-8704-b48d4e45eba4",
+                    "children": [],
+                    "component": {
+                        "name": "Image Element",
+                        "options": {
+                            "src": "",
+                            "altText": "",
+                            "href": ""
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "align": "img-center",
+                            "paddingTop": "10px",
+                            "paddingBottom": "10px",
+                            "paddingLeft": "10px",
+                            "paddingRight": "10px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "backgroundColor": "",
+                            "height": "",
+                            "width": "",
+                            "imageEffect": "img-full-color",
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 131,
+                                "left": 189.5,
+                                "bottom": 829
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Video",
+                    "version": 1,
+                    "id": "d8a13ac8-dd92-4998-bd9b-b68322095896",
+                    "children": [],
+                    "component": {
+                        "name": "Video Element",
+                        "options": {
+                            "src": "",
+                            "html": ""
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "10px",
+                            "paddingBottom": "10px",
+                            "paddingLeft": "10px",
+                            "paddingRight": "10px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "backgroundColor": "",
+                            "height": "",
+                            "width": "",
+                            "align": "ml-auto",
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 223,
+                                "left": 109.5,
+                                "bottom": 737
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Table",
+                    "version": 1,
+                    "id": "e37ca404-f6a5-4d7b-9562-417117157478",
+                    "children": [],
+                    "component": {
+                        "name": "Table Element",
+                        "options": {
+                            "text": "<table>\n        <tbody>\n          <tr>\n            <th></th>\n            <th></th>\n          </tr>\n          <tr>\n            <td></td>\n            <td></td>\n          </tr>\n        </tbody>\n      </table>"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "10px",
+                            "paddingBottom": "10px",
+                            "paddingLeft": "10px",
+                            "paddingRight": "10px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 325,
+                                "left": 242.5,
+                                "bottom": 635
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "ProductList",
+                    "version": 4,
+                    "id": "bb43e824-bd89-4b31-b9d5-d32b3c3f063e",
+                    "children": [],
+                    "component": {
+                        "name": "Product List Element",
+                        "options": {
+                            "currencyCode": "USD",
+                            "lineItems": [],
+                            "discountValue": 0,
+                            "discountType": "percentage",
+                            "paymentSchedules": [],
+                            "paymentStatus": {
+                                "paymentMode": "cash",
+                                "paidOn": 1762854585744
+                            }
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "10px",
+                            "paddingBottom": "10px",
+                            "paddingLeft": "10px",
+                            "paddingRight": "10px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 448,
+                                "left": 314.5,
+                                "bottom": 512
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "PageBreak",
+                    "version": 1,
+                    "id": "894d9ce8-55e2-4c94-936a-bb8c636ad848",
+                    "children": [],
+                    "component": {
+                        "name": "Page Break Element",
+                        "options": {}
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 503,
+                                "left": 309.5,
+                                "bottom": 457
+                            }
+                        }
+                    }
+                }
+            ],
+            "id": "23b62dfe-1d96-46bc-be02-93cdeda35f8c",
+            "component": {
+                "name": "Page",
+                "options": {
+                    "src": "",
+                    "pageDimensions": {
+                        "dimensions": {
+                            "width": 816,
+                            "height": 1056
+                        },
+                        "margins": {
+                            "top": 48,
+                            "right": 48,
+                            "bottom": 48,
+                            "left": 48
+                        },
+                        "rotation": "portrait"
+                    }
+                }
+            },
+            "responsiveStyles": {
+                "large": {
+                    "backgroundColor": "#ffffff",
+                    "backgroundPosition": "top left",
+                    "backgroundSize": "cover",
+                    "backgroundRepeat": "repeat",
+                    "opacity": 100
+                }
+            }
+        },
+        {
+            "type": "Page",
+            "version": 2,
+            "children": [
+                {
+                    "type": "Signature",
+                    "version": 2,
+                    "id": "41ab8cc3-3842-42bf-93f8-d5eafb7ac064",
+                    "children": [],
+                    "component": {
+                        "isDraggable": true,
+                        "name": "Signature Element",
+                        "options": {
+                            "isGhost": true,
+                            "showName": true,
+                            "text": "Signature",
+                            "required": true,
+                            "fieldId": "signature1",
+                            "src": "",
+                            "recipient": "assignedContact",
+                            "timestamp": null,
+                            "entityName": "contacts"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "align": "signature-left",
+                            "paddingTop": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "paddingRight": "0px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "dimensions": {
+                                "width": 190,
+                                "height": 68
+                            },
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 61,
+                                "left": 79.5,
+                                "bottom": 927,
+                                "right": 546.5,
+                                "height": 68,
+                                "width": 190,
+                                "preferBottom": false,
+                                "preferRight": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "TextField",
+                    "version": 1,
+                    "id": "1f29fdf0-7157-4b24-a253-296c31cd0de1",
+                    "children": [],
+                    "component": {
+                        "isDraggable": true,
+                        "name": "Text Field Element",
+                        "options": {
+                            "isGhost": true,
+                            "text": "",
+                            "required": true,
+                            "fieldId": "text_field_1",
+                            "src": "",
+                            "recipient": "assignedContact",
+                            "timestamp": null,
+                            "entityName": "contacts",
+                            "placeholder": "Enter value"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "paddingRight": "0px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "dimensions": {
+                                "height": 26,
+                                "width": 165
+                            },
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 77,
+                                "left": 338.5,
+                                "bottom": 953,
+                                "right": 312.5,
+                                "height": 26,
+                                "width": 165,
+                                "preferBottom": false,
+                                "preferRight": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "DateField",
+                    "version": 1,
+                    "id": "3b5a2863-a7c9-46ba-ab84-ab1ff1f858e3",
+                    "children": [],
+                    "component": {
+                        "isDraggable": true,
+                        "name": "Text Field Element",
+                        "options": {
+                            "isGhost": true,
+                            "text": "",
+                            "required": true,
+                            "fieldId": "date_field_2",
+                            "src": "",
+                            "recipient": "assignedContact",
+                            "timestamp": null,
+                            "entityName": "contacts",
+                            "placeholder": "Select date",
+                            "availableDates": "any",
+                            "dateFormat": "yyyy-MM-dd"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "paddingRight": "0px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "dimensions": {
+                                "height": 26,
+                                "width": 131
+                            },
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 76,
+                                "left": 587.5,
+                                "bottom": 954,
+                                "right": 97.5,
+                                "height": 26,
+                                "width": 131,
+                                "preferBottom": false,
+                                "preferRight": true
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "InitialsField",
+                    "version": 1,
+                    "id": "22a707d8-a4a0-4ee9-aaf3-9e6281f6ef64",
+                    "children": [],
+                    "component": {
+                        "isDraggable": true,
+                        "name": "Initials Field Element",
+                        "options": {
+                            "isGhost": true,
+                            "text": "Initials",
+                            "required": true,
+                            "fieldId": "initials_field_3",
+                            "src": "",
+                            "recipient": "assignedContact",
+                            "timestamp": null,
+                            "entityName": "contacts"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "paddingRight": "0px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "dimensions": {
+                                "width": 130,
+                                "height": 50
+                            },
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 245,
+                                "left": 95.5,
+                                "bottom": 761,
+                                "right": 590.5,
+                                "height": 50,
+                                "width": 130,
+                                "preferBottom": false,
+                                "preferRight": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Checkbox",
+                    "version": 1,
+                    "id": "3cf7175d-b771-4f8a-a7ca-130e69e73d89",
+                    "children": [],
+                    "component": {
+                        "isDraggable": true,
+                        "name": "Checkbox Field Element",
+                        "options": {
+                            "isGhost": true,
+                            "text": "",
+                            "required": true,
+                            "preChecked": false,
+                            "isConditionalLogic": false,
+                            "fieldId": "checkbox_field_1",
+                            "src": "",
+                            "recipient": "assignedContact",
+                            "timestamp": null,
+                            "entityName": "contacts"
+                        }
+                    },
+                    "responsiveStyles": {
+                        "large": {
+                            "paddingTop": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "paddingRight": "0px",
+                            "marginTop": null,
+                            "marginBottom": null,
+                            "marginLeft": null,
+                            "marginRight": null,
+                            "dimensions": {
+                                "width": 25,
+                                "height": 25
+                            },
+                            "scale": {
+                                "scaleX": 1,
+                                "scaleY": 1
+                            },
+                            "position": {
+                                "top": 253,
+                                "left": 361.5,
+                                "bottom": 778,
+                                "right": 429.5,
+                                "height": 25,
+                                "width": 25,
+                                "preferBottom": false,
+                                "preferRight": true
+                            }
+                        }
+                    }
+                }
+            ],
+            "id": "9bdf8825-48ab-49ab-aa00-3f2793771c9e",
+            "component": {
+                "name": "Page",
+                "options": {
+                    "src": "",
+                    "pageDimensions": {
+                        "dimensions": {
+                            "width": 816,
+                            "height": 1056
+                        },
+                        "margins": {
+                            "top": 48,
+                            "right": 48,
+                            "bottom": 48,
+                            "left": 48
+                        },
+                        "rotation": "portrait"
+                    }
+                }
+            },
+            "responsiveStyles": {
+                "large": {
+                    "backgroundColor": "#ffffff",
+                    "backgroundPosition": "top left",
+                    "backgroundSize": "cover",
+                    "backgroundRepeat": "repeat",
+                    "opacity": 100
+                }
+            }
+        }
+    ],
+    "paymentInfo": {
+        "deleted": false,
+        "enableAutoPayment": false,
+        "_id": "691302a75b9889c7971277c0",
+        "templateId": "691302a75c82193e6280c81a",
+        "__v": 0,
+        "createdAt": "2025-11-11T09:32:23.031Z",
+        "generateInvoiceOnSigning": true,
+        "invoiceType": "one-time",
+        "locationId": "wZucumCZ2vPxqfQXk8ac",
+        "updatedAt": "2025-11-11T09:50:31.895Z",
+        "updatedBy": "tZde24EsLlZcxOtojVP7"
+    },
+    "docFormPublicLink": "",
+    "traceId": "3adca8b6-9974-4881-b4d7-2cb3d4c1dc53"
+}

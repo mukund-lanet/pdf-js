@@ -1,0 +1,950 @@
+.contractManagementContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc; 
+  font-family: 'Inter', sans-serif;
+  padding: 24px;
+  box-sizing: border-box;
+  gap: 24px;
+
+  .headerSection {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+
+    .actionsBlock {
+      display: flex;
+      gap: 12px;
+    }
+
+    .statsRow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+
+      .statCard {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .statInfo {
+          span {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 4px;
+          }
+          h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0;
+          }
+        }
+
+        .statIcon {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &.blue { background: #eff6ff; color: #3b82f6; }
+          &.green { background: #f0fdf4; color: #22c55e; }
+          &.orange { background: #fff7ed; color: #f97316; }
+          &.gray { background: #f8fafc; color: #64748b; }
+        }
+      }
+    }
+  }
+
+  .contractManagementStatsGrid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+
+    .cardContentWrapper {
+        position: relative;
+    }
+    
+    .cardContentWrapper .endIcon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1;
+    }
+  }
+
+  .mainContentSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .contentBody {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+
+      .viewerArea {
+        flex: 1;
+        background: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid #e2e8f0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .viewerHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+
+          .tabElementTitle {
+            font-size: 24px;
+            color: #0f172a;
+          }
+          
+          .filterTab {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+        }
+
+        .emptyMsgComponentWrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          text-align: center;
+        }
+      }
+
+      .documentsTableWrapper {
+        width: 100%;
+        overflow-x: auto;
+
+        .documentsTable {
+          width: 100%;
+          border-collapse: collapse;
+
+          .tableCellDocs {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #334155;
+            vertical-align: middle;
+            min-width: 120px !important;
+            width: auto !important;
+
+            &.widthApply {
+              width: 120px;
+              min-width: 120px;
+              max-width: 120px;
+            }
+
+            .docNameWrapper {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+
+              .docIcon {
+                color: #94a3b8;
+              }
+
+              .docInfo {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+
+                .docName {
+                  font-weight: 500;
+                  color: #0f172a;
+                }
+
+                .docMeta {
+                  font-size: 12px;
+                  color: #64748b;
+                }
+              }
+            }
+
+            .statusChip {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 4px 10px;
+              border-radius: 16px;
+              font-size: 12px;
+              font-weight: 500;
+
+              &.draft {
+                background: #f1f5f9;
+                color: #475569;
+                border: 1px solid #e2e8f0;
+              }
+              
+              &.waiting {
+                background: #fff7ed;
+                color: #c2410c;
+                border: 1px solid #ffedd5;
+              }
+
+              &.completed {
+                background: #f0fdf4;
+                color: #15803d;
+                border: 1px solid #dcfce7;
+              }
+            }
+
+            .signersWrapper {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: #64748b;
+              font-size: 13px;
+            }
+
+            .progressWrapper {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              width: 140px;
+
+              .progressBar {
+                flex: 1;
+                height: 6px;
+                background: #f1f5f9;
+                border-radius: 3px;
+                overflow: hidden;
+
+                .progressFill {
+                  height: 100%;
+                  background: #cbd5e1;
+                  border-radius: 3px;
+                }
+              }
+
+              .progressText {
+                font-size: 12px;
+                color: #64748b;
+                width: 32px;
+              }
+            }
+
+            .dateWrapper {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: #64748b;
+              font-size: 13px;
+            }
+          }
+
+          tr:last-child td {
+            border-bottom: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+.createDocumentDrawer {
+  .createNewDocumentOptionsWrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+
+    .documentScratchTextField {
+      width: 100%;
+    }
+    
+    .createWithAiCard {
+      background: #f3e8ff;
+
+      svg {
+        stroke: #9333ea;
+      }
+    }
+
+    .newDocumentCard {
+      background: #dbeafe;
+    }
+
+    .uploadPdfCard {
+      background: #dcfce7;
+
+      svg {
+        stroke: #16a34a;
+      }
+    }
+
+    .importTemplateCard {
+      background: #f1d9ba;
+
+      svg {
+        stroke: #EA580C;
+      }
+    }
+  }
+
+  .documentDrawerWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    
+    .docsNameFileWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: auto;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+  
+    .errorText {
+      margin-top: 2px;
+      color: #c40006d3;
+    }
+  
+    .signersNameEmailSelectWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: auto;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+  
+      .addSignerBtnWrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  
+    .displaySignersWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: auto;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+  
+      .displaySignerItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #f9fafb;
+  
+        .signerEmail {
+          font-size: 12px;
+          color: #6b7280; 
+        }
+  
+        .signerType {
+          font-size: 12px;
+          color: #6b7280;
+          text-transform: capitalize;
+        }
+  
+        .signerChip {
+          border: 1px solid #e5e7eb;
+          padding: 2px 10px;
+        }
+      }
+    }
+  }
+}
+
+.createNewContractDrawer {
+  height: 100%;
+
+  .stepperWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: space-between;
+    
+    .startEndDateWrapper {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+  
+      .starEndDate {
+        width: 100%;
+      }
+    }
+
+    .contractTypeValueWrapper {
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      width: 100%;
+      
+      .simpleSelectContractType {
+        width: 100%;
+      }
+      
+      .contractValueWrapper {
+        display: flex;
+        gap: 8px;
+        flex-direction: column;
+        
+        .contractValueLabel {
+          font-weight: 500;
+          font-size: 14px;
+          color: #344256;
+        }
+
+        .contractValueInputWrapper {
+          display: flex;
+          gap: 8px;
+        }
+        
+        .simpleSelectContractCurrency {
+          width: 100px;
+        }
+
+        .contractCurrencyTextField {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+.identityVarificationDialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: space-between;
+  height: 100%;
+  max-height: 620px;
+
+  .identityVarifyInitial {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #e5e7eb;
+    padding: 16px;
+    border-radius: 8px;
+
+    .identityVarifyInitialText {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  .identityVarifyDownWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  .verificationMethodWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .verificationMethodTitle {
+      font-weight: 500;
+      font-size: 16px;
+    }
+
+    .radioGroupWrapper{
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .smsVerificationRadio {
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        width: 100%;
+        display: flex;
+        gap: 16px;
+        align-items: start;
+      }
+    }
+    
+    .smsVerifyHeadSubtitileWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      
+      .smsVerificationChipWrapper {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        .chipBorder {
+          border: 1px solid #e5e7eb;
+          padding: 2px 10px;
+        }
+      }
+
+      .icnonSubtitileWrapper {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+    }
+  }
+
+  .enhancedSecurityWrapper {
+    display: flex;
+    gap: 16px;
+    height: 100%;
+    background: #eff6ff;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+    padding: 16px;
+    margin-bottom: 24px;
+
+    .enhancedSecurityTextWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .titleText {
+        color: #1e3a8a;
+        font-weight: 500;
+      }
+
+      .subtitleText {
+        color: #1d4ed8;
+      }
+    }
+  }
+}
+
+.scrollBarWrapper {
+  height: 100%;
+  max-height: 640px;
+
+  .globalDocumentSettingsDialog {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: space-between;
+    height: 100%;
+  
+    .defaultEmailConfigCardWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+  
+      .defaultEmailHeader {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+  
+        .headerTextEmail {
+          font-weight: 600;
+          font-size: 18px;
+        }
+      }
+      
+      .defaultEmailConfigTextField {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+  
+        .textFieldSubDescription {
+          font-size: 12px;
+        }
+  
+        .emailSubjectButtonsWrapper {
+          display: flex;
+          gap: 8px;
+        }
+      }
+      
+    }
+  
+    .redirectDateNotificationWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+  
+      .innerCardWrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+  
+        .innerCardHeader {
+          display: flex;
+          gap: 16px;
+        }
+  
+        .innerCardContent {
+          display: flex;
+          justify-content: space-between;
+  
+          .innerCardContentText {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+  
+            .headerText {
+              font-weight: 500;
+              font-size: 16px;
+              color: #344256;
+            }
+          }
+        }
+      }
+    }
+
+    .outerHeaderText {
+      font-weight: 600;
+      font-size: 18px;
+    }
+  }
+}
+
+.brandingCustomizationDialogContentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .visualSegmentContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .logoPreviewWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+  
+      .logoHeader {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        
+        .headerText {
+          font-weight: 500;
+          font-size: 14px;
+          color: #344256;
+        }
+      }
+  
+      .logoPreviewContainer {
+        background: #eff6ff;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        border: 1px solid #dbeafe;
+        min-height: 80px;
+  
+        .logoImage {
+          max-height: 60px;
+          max-width: 200px;
+          object-fit: contain;
+        }
+      }
+  
+      .uploadSection {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+  
+        .helperText {
+          font-size: 14px;
+          color: #64748b;
+        }
+      }
+    }
+  
+    .colorPickerContainer {
+      display: flex;
+      gap: 8px;
+  
+      .labelTColorTextFieldWrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+  
+        .labelText {
+          font-weight: 500;
+          font-size: 14px;
+          color: #344256;
+        }
+  
+        .colorPickerTextField {
+          display: flex;
+          gap: 8px;
+          width: 100%;
+  
+          .textFieldInputColor {
+            width: 100%;
+          }
+        
+          .colorPickerIcon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            width: auto;
+            border-radius: 8px;
+            height: auto;
+        
+            &:hover {
+              box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            }
+  
+            .colorViewer {
+              height: 16px;
+              width: 44px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .emailSegmentContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .emailTextFieldHelperWrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .emailTextFieldHelper {
+        font-size: 12px;
+        color: #64748b;
+      }
+    }
+  }
+
+  .previewSegmentContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px;
+
+    .previewCard {
+      padding: 0 !important;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+      .previewHeaderBar {
+        height: 8px;
+        width: 100%;
+      }
+
+      .previewContent {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .previewLogoWrapper {
+          .previewLogo {
+            max-height: 60px;
+            max-width: 200px;
+            object-fit: contain;
+          }
+        }
+
+        .previewSubject {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .previewBody {
+          font-size: 14px;
+          color: #475569;
+          white-space: pre-wrap;
+          line-height: 1.6;
+        }
+
+        .previewButtonWrapper {
+          .previewCtaButton {
+            padding: 12px 24px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+        }
+
+        .previewDivider {
+          margin: 8px 0;
+          border-color: #f1f5f9;
+        }
+
+        .previewFooter {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+
+          .footerText {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .copyrightText {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+        }
+      }
+    }
+  }
+}
+
+.uploadlogoBtn {
+  border: 1px solid #e5e7eb;
+  padding: 8px !important;
+  border-radius: 8px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: auto !important;
+}
+
+.divider {
+  border: 1px solid #e5e7eb;
+}
+
+.documentActionMenu {
+  .menuItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    min-width: 220px;
+    
+    p {
+      font-size: 14px;
+      color: #334155;
+    }
+
+    &:hover {
+      background-color: #f8fafc;
+    }
+  }
+}
+
+.signingOrderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .signingOrderToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    p {
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+}
+
+.signingOrderDescription {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-radius:4px;
+}
+
+.displaySignerItem {
+  &.withOrder {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+  }
+
+  .signerOrderControls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .orderNumber {
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .reorderButtons {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      button {
+        padding: 2px;
+      }
+    }
+  }
+
+  .signerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+}

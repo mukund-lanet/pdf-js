@@ -1,0 +1,37 @@
+{
+  "name": "pdf-editor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NEXT_DISABLE_TURBOPACK=1 next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@types/react-signature-canvas": "^1.0.7",
+    "next": "16.0.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^3.11.174",
+    "react": "19.2.0",
+    "react-color": "^2.19.3",
+    "react-dom": "19.2.0",
+    "react-movable": "^3.4.1",
+    "react-selecto": "^1.26.3",
+    "react-signature-canvas": "^1.0.7",
+    "sass": "^1.93.2"
+  },
+  "devDependencies": {
+    "@locator/babel-jsx": "^0.5.0-alpha.0",
+    "@locator/runtime": "^0.5.0-alpha.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-color": "^3.0.13",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.1",
+    "install": "^0.13.0",
+    "npm": "^11.6.2",
+    "typescript": "^5"
+  }
+}
