@@ -66,9 +66,24 @@ export const updateDocument = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'business_id is required' });
     }
     
+    const updateData: any = {};
+    
+    // Basic document fields
+    if (req.body.name !== undefined) updateData.name = req.body.name;
+    if (req.body.signers !== undefined) updateData.signers = req.body.signers;
+    if (req.body.signingOrder !== undefined) updateData.signingOrder = req.body.signingOrder;
+    if (req.body.status !== undefined) updateData.status = req.body.status;
+    if (req.body.dueDate !== undefined) updateData.dueDate = req.body.dueDate;
+    
+    // PDF Editor state fields
+    if (req.body.canvasElements !== undefined) updateData.canvasElements = req.body.canvasElements;
+    if (req.body.pageDimensions !== undefined) updateData.pageDimensions = req.body.pageDimensions;
+    if (req.body.totalPages !== undefined) updateData.totalPages = req.body.totalPages;
+    if (req.body.variables !== undefined) updateData.variables = req.body.variables;
+    
     const updatedDocument = await Document.findOneAndUpdate(
       { _id: req.params.id, business_id },
-      req.body,
+      updateData,
       { new: true }
     );
     if (!updatedDocument) {
