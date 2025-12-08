@@ -1,4 +1,8 @@
-import mongoose, { Document as MongoDocument, Schema } from 'mongoose';
+import { Schema, model, Document, Model } from "mongoose";
+import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
+import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
+
+const SERVICE_NAME = "mcr-contract-management-service";
 
 export interface ISigner {
   name: string;
@@ -13,13 +17,12 @@ export interface IDocumentVariable {
   isSystem?: boolean;
 }
 
-// Canvas Element Interfaces for proper typing
 export interface IBlockElement {
   id: string;
   type: 'heading' | 'image' | 'video' | 'table';
   pageNumber: number;
   order: number;
-  properties: any; // Flexible for different block types
+  properties: any;
 }
 
 export interface IFillableElement {
@@ -27,12 +30,14 @@ export interface IFillableElement {
   type: 'text' | 'signature' | 'date' | 'checkbox' | 'initial';
   pageNumber: number;
   position: { x: number; y: number };
-  properties: any; // Flexible for different fillable types
+  properties: any;
 }
 
 export type ICanvasElement = IBlockElement | IFillableElement;
 
-export interface IDocument extends MongoDocument {
+export interface IDocument {
+  business_id: string;
+  company_id: string;
   name: string;
   status: 'draft' | 'waiting' | 'completed' | 'archived';
   date: Date;
@@ -41,15 +46,18 @@ export interface IDocument extends MongoDocument {
   dueDate?: string;
   createdBy?: string;
   signingOrder?: boolean;
-  business_id: string; // Business identifier for multi-tenancy
-  
-  // PDF Editor State
   uploadPath?: string;
   totalPages: number;
   canvasElements: ICanvasElement[];
   pageDimensions: Map<string, { pageWidth: number; pageHeight: number }>;
   variables: IDocumentVariable[];
   documentType: 'upload-existing' | 'new_document' | null;
+}
+
+export interface DocumentInterface extends IDocument, Document {}
+
+interface DocumentModel extends Model<DocumentInterface> {
+  save(event: string): string;
 }
 
 const SignerSchema = new Schema({
@@ -65,7 +73,9 @@ const DocumentVariableSchema = new Schema({
   isSystem: { type: Boolean }
 });
 
-const DocumentSchema = new Schema<IDocument>({
+const documentSchema: Schema<DocumentInterface> = new Schema({
+  business_id: { type: String, required: true },
+  company_id: { type: String, required: true },
   name: { type: String, required: true },
   status: { type: String, enum: ['draft', 'waiting', 'completed', 'archived'], default: 'draft' },
   date: { type: Date, default: Date.now },
@@ -74,8 +84,6 @@ const DocumentSchema = new Schema<IDocument>({
   dueDate: { type: String },
   createdBy: { type: String },
   signingOrder: { type: Boolean, default: false },
-  business_id: { type: String, required: true, default: "HY7IAUl86AUMMqVbzGKn" },
-  
   uploadPath: { type: String },
   totalPages: { type: Number, default: 0 },
   canvasElements: { type: Schema.Types.Mixed, default: [] },
@@ -84,4 +92,12 @@ const DocumentSchema = new Schema<IDocument>({
   documentType: { type: String, enum: ['upload-existing', 'new_document'], default: 'new_document' }
 }, { timestamps: true });
 
-export default mongoose.model<IDocument>('Document', DocumentSchema);
+export let ContractDocument = model<DocumentInterface, DocumentModel>('contract_document', documentSchema);
+
+eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+  const connection = mcrServiceMeta.mongoDbConnectionObject;
+  if (connection) {
+    ContractDocument = connection.model<DocumentInterface, DocumentModel>('contract_document', documentSchema);
+    console.log("ContractDocument model initialized with dynamic connection.");
+  }
+});

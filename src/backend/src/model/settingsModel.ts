@@ -1,7 +1,12 @@
-import mongoose, { Document as MongoDocument, Schema } from 'mongoose';
+import { Schema, model, Document, Model } from "mongoose";
+import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
+import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
 
-export interface ISettings extends MongoDocument {
-  business_id: string; // Business identifier for multi-tenancy
+const SERVICE_NAME = "mcr-contract-management-service";
+
+export interface ISettings {
+  business_id: string;
+  company_id: string;
   identityVerification: {
     isVarifyOn: boolean;
     verificationMethod: string;
@@ -30,12 +35,19 @@ export interface ISettings extends MongoDocument {
     primaryColor: string;
     secondaryColor: string;
     accentColor: string;
-    logo: string; // Base64 or URL
+    logo: string;
   };
 }
 
-const SettingsSchema = new Schema<ISettings>({
-  business_id: { type: String, required: true, unique: true },
+export interface SettingsInterface extends ISettings, Document {}
+
+interface SettingsModel extends Model<SettingsInterface> {
+  save(event: string): string;
+}
+
+const settingsSchema: Schema<SettingsInterface> = new Schema({
+  business_id: { type: String, required: true },
+  company_id: { type: String, required: true },
   identityVerification: {
     isVarifyOn: { type: Boolean, default: false },
     verificationMethod: { type: String, default: '' },
@@ -68,4 +80,15 @@ const SettingsSchema = new Schema<ISettings>({
   }
 }, { timestamps: true });
 
-export default mongoose.model<ISettings>('Settings', SettingsSchema);
+// Create compound unique index
+settingsSchema.index({ business_id: 1, company_id: 1 }, { unique: true });
+
+export let Settings = model<SettingsInterface, SettingsModel>('contract_settings', settingsSchema);
+
+eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+  const connection = mcrServiceMeta.mongoDbConnectionObject;
+  if (connection) {
+    Settings = connection.model<SettingsInterface, SettingsModel>('contract_settings', settingsSchema);
+    console.log("Settings model initialized with dynamic connection.");
+  }
+});

@@ -1,34 +1,28 @@
 {
-  "name": "backend",
+  "name": "pdf-js-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Contract Management Backend Service",
+  "engines": {
+    "node": ">=10"
+  },
+  "main": "./dist/src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "NODE_ENV=local tsc-watch --onSuccess \"node --inspect ./dist/src/server.js\"",
+    "build:dev": "NODE_ENV=development npx tsc",
+    "build:prod": "NODE_ENV=production npx tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "body-parser": "^2.2.1",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "mongoose": "^9.0.0",
-    "multer": "^2.0.2"
+    "pkg-models-ts": "git+ssh:git@github.com:trenchaant/pkg-models-ts.git#2.0.229"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/mongoose": "^5.11.96",
-    "@types/multer": "^2.0.0",
-    "@types/node": "^24.10.1",
+    "@types/node": "14.18.36",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "tsc-watch": "^6.0.0",
+    "typescript": "4.7.4"
   }
 }

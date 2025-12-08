@@ -1,9 +1,15 @@
-import mongoose, { Document as MongoDocument, Schema } from 'mongoose';
+import { Schema, model, Document, Model } from "mongoose";
+import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
+import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
+import * as mongoose from "mongoose";
 
-export interface IContractManagement extends MongoDocument {
+const SERVICE_NAME = "mcr-contract-management-service";
+
+export interface IContractManagement {
+  business_id: string;
+  company_id: string;
   documents: mongoose.Types.ObjectId[];
   contracts: mongoose.Types.ObjectId[];
-  
   documentsFilters: {
     all: number;
     draft: number;
@@ -22,8 +28,6 @@ export interface IContractManagement extends MongoDocument {
     pendingSignatures: number;
     contractValue: number;
   };
-  
-  // Settings embedded here as they are part of the "state"
   identityVerificationSettings: {
     isVarifyOn: boolean;
     verificationMethod: string;
@@ -56,10 +60,17 @@ export interface IContractManagement extends MongoDocument {
   };
 }
 
-const ContractManagementSchema = new Schema<IContractManagement>({
-  documents: [{ type: Schema.Types.ObjectId, ref: 'Document' }],
-  contracts: [{ type: Schema.Types.ObjectId, ref: 'Contract' }],
-  
+export interface ContractManagementInterface extends IContractManagement, Document {}
+
+interface ContractManagementModel extends Model<ContractManagementInterface> {
+  save(event: string): string;
+}
+
+const contractManagementSchema: Schema<ContractManagementInterface> = new Schema({
+  business_id: { type: String, required: true },
+  company_id: { type: String, required: true },
+  documents: [{ type: Schema.Types.ObjectId, ref: 'contract_document' }],
+  contracts: [{ type: Schema.Types.ObjectId, ref: 'contract' }],
   documentsFilters: {
     all: { type: Number, default: 0 },
     draft: { type: Number, default: 0 },
@@ -78,7 +89,6 @@ const ContractManagementSchema = new Schema<IContractManagement>({
     pendingSignatures: { type: Number, default: 0 },
     contractValue: { type: Number, default: 0 }
   },
-  
   identityVerificationSettings: {
     isVarifyOn: { type: Boolean, default: false },
     verificationMethod: { type: String, default: '' },
@@ -111,4 +121,15 @@ const ContractManagementSchema = new Schema<IContractManagement>({
   }
 }, { timestamps: true });
 
-export default mongoose.model<IContractManagement>('ContractManagement', ContractManagementSchema);
+// Create compound unique index
+contractManagementSchema.index({ business_id: 1, company_id: 1 }, { unique: true });
+
+export let ContractManagement = model<ContractManagementInterface, ContractManagementModel>('contract_management', contractManagementSchema);
+
+eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+  const connection = mcrServiceMeta.mongoDbConnectionObject;
+  if (connection) {
+    ContractManagement = connection.model<ContractManagementInterface, ContractManagementModel>('contract_management', contractManagementSchema);
+    console.log("ContractManagement model initialized with dynamic connection.");
+  }
+});
