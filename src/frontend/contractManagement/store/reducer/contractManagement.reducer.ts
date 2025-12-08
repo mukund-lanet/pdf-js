@@ -269,7 +269,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       };
     case Actions.CREATE_NEW_DOCUMENT: {
       const newDoc: DocumentItem = {
-        id: uuidv4(),
+        _id: uuidv4(),
         name: action.payload.documentName,
         status: 'draft',
         date: new Date().toISOString(),
@@ -296,7 +296,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     }
     case Actions.UPLOAD_DOCUMENT_PDF: {
       const newDoc: DocumentItem = {
-        id: uuidv4(),
+        _id: uuidv4(),
         name: action.payload.documentName,
         status: 'draft',
         date: new Date().toISOString(),
@@ -329,10 +329,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     // }
     
     case Actions.UPDATE_DOCUMENT: {
-      const { documentId, documentName, signers, signingOrder } = action.payload;
+      const { documentId, documentName, signers, signingOrder, canvasElements, pageDimensions } = action.payload;
       const updatedDocuments = state.documents.map(doc => 
-        doc.id === documentId 
-          ? { ...doc, name: documentName, signers, signingOrder }
+        doc._id === documentId 
+          ? { ...doc, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : doc
       );
       
@@ -340,8 +340,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         documents: updatedDocuments,
         // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
-        activeDocument: state.activeDocument && state.activeDocument.id === documentId 
-          ? { ...state.activeDocument, name: documentName, signers, signingOrder }
+        activeDocument: state.activeDocument && state.activeDocument._id === documentId 
+          ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : state.activeDocument,
       };
     }

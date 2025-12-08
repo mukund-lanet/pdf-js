@@ -19,13 +19,22 @@ import Tab from "@trenchaant/pkg-ui-component-library/build/Components/Tab";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import { tabItems } from '../utils/utils';
 
-const PdfEditor: React.FC = () => {
+const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   const dispatch = useDispatch();
   
   // Inject reducer to ensure state is available even on direct load
   React.useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
   }, []);
+
+  // Load document data if documentId is provided
+  React.useEffect(() => {
+    if (documentId) {
+      import('../store/action/contractManagement.actions').then(({ loadDocumentById }) => {
+        dispatch(loadDocumentById(documentId) as any);
+      });
+    }
+  }, [documentId, dispatch]);
 
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
@@ -35,23 +44,18 @@ const PdfEditor: React.FC = () => {
 
     const { source, destination, draggableId } = result;
 
-    // only handle block reordering in the same page
     if (source.droppableId === destination.droppableId && source.droppableId.startsWith('blocks-page-')) {
       if (source.index === destination.index) return;
 
-      // extract the page number from droppableId
       const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
 
-      // get all blocks for this page and sorted by order
       const pageBlocks = canvasElements
         .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 
-      // reorder of the blocks
       const [movedBlock] = pageBlocks.splice(source.index, 1);
       pageBlocks.splice(destination.index, 0, movedBlock);
 
-      // opdate orders
       const updatedBlocks = pageBlocks.map((block, index) => ({
         ...block,
         order: index

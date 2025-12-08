@@ -174,13 +174,13 @@ export const documentTableHeaders = [
 ];
 
 export const actionsMenuItems = [
-  { icon: "eye", label: "View Document" },
-  { icon: "file-check-2", label: "Certificate of Completion" },
-  { icon: "edit-2", label: "Edit Document" },
-  { icon: "send", label: "Send for Signature" },
-  { icon: "download", label: "Download" },
-  { icon: "user", label: "Manage Signers" },
-  { icon: "trash-2", label: "Delete" },
+  { icon: "eye", label: "View Document", key: "view_document" },
+  { icon: "file-check-2", label: "Certificate of Completion", key: "certificate_of_completion" },
+  { icon: "edit-2", label: "Edit Document", key: "edit_document" },
+  { icon: "send", label: "Send for Signature", key: "send_for_signature" },
+  { icon: "download", label: "Download", key: "download" },
+  { icon: "user", label: "Manage Signers", key: "manage_signers" },
+  { icon: "trash-2", label: "Delete", key: "delete" },
 ];
 
 
