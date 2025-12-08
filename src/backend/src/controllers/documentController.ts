@@ -76,6 +76,7 @@ export const updateDocument = async (req: Request, res: Response) => {
     if (req.body.dueDate !== undefined) updateData.dueDate = req.body.dueDate;
     
     // PDF Editor state fields
+    if (req.body.uploadPath !== undefined) updateData.uploadPath = req.body.uploadPath;
     if (req.body.canvasElements !== undefined) updateData.canvasElements = req.body.canvasElements;
     if (req.body.pageDimensions !== undefined) updateData.pageDimensions = req.body.pageDimensions;
     if (req.body.totalPages !== undefined) updateData.totalPages = req.body.totalPages;

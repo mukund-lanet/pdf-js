@@ -12,7 +12,7 @@ import { PageDimension } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 // import MediaButton from "@trenchaant/common-component/dist/commonComponent/mediaButton";
 import MediaButton from "components/commonComponentCode/mediaButton";
-import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, UPDATE_DOCUMENT } from '../../../store/action/contractManagement.actions';
+import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument } from '../../../store/action/contractManagement.actions';
 
 const EditorHeader = () => {
   const dispatch = useDispatch();
@@ -20,22 +20,25 @@ const EditorHeader = () => {
   const file = useSelector((state: RootState) => state?.contractManagement?.media);
   const documentType = useSelector((state: RootState) => state?.contractManagement?.documentType);
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
-
   const uploadPdfUrl = useSelector((state: RootState) => state?.contractManagement?.uploadPdfUrl);
-  const curDocument = useSelector((state: RootState) => state?.contractManagement?.documents?.[0]);
+  const curDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
+  
+  // Access state for saving
+  const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
+  const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
+  const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
 
-  const [docName, setDocName] = useState<string>(curDocument?.name);
+  const [docName, setDocName] = useState<string>(curDocument?.name || '');
+  console.log("id: ", curDocument?._id)
 
   // Handle initial document loading based on documentType
   useEffect(() => {
     const initializeDocument = async () => {
       if (documentType === 'new_document' && !pdfBytes) {
-        // Create a new blank PDF
         await createNewPdf();
       } else if (documentType === 'upload-existing') {
         if (uploadPdfUrl) {
            console.log('Loading PDF from URL:', uploadPdfUrl);
-           // Load from URL
            try {
              dispatch({ type: SET_IS_LOADING, payload: true });
              const response = await fetch(uploadPdfUrl);
@@ -62,7 +65,6 @@ const EditorHeader = () => {
              dispatch({ type: SET_IS_LOADING, payload: false });
            }
         } else if (pdfBytes) {
-          // PDF bytes are already loaded from DocumentDrawer, just ensure state is set
           console.log('Uploaded PDF loaded with', pdfBytes.length, 'bytes');
         }
       }
@@ -186,7 +188,20 @@ const EditorHeader = () => {
         color={"primary"}
         startIcon={ <CustomIcon iconName='save' height={16} width={16} variant={"white"} /> }
         onClick={() => {
-          dispatch({ type: UPDATE_DOCUMENT, payload: { documentName: docName, documentId: curDocument?.id, signers: curDocument?.signers, signingOrder: curDocument?.signingOrder } });
+          if (!curDocument?._id) {
+            console.error('No document ID available for save');
+            return;
+          }
+          
+          dispatch(updateDocument({ 
+            documentId: curDocument._id,
+            documentName: docName,
+            canvasElements: canvasElements || [],
+            pageDimensions: pageDimensions || {},
+            totalPages: totalPages || 0,
+            signers: curDocument?.signers || [], 
+            signingOrder: curDocument?.signingOrder 
+          }));
         }}
       >
         <Typography> Save </Typography>

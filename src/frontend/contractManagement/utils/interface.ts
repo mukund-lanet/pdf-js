@@ -6,7 +6,7 @@ export interface Signer {
 }
 
 export interface DocumentItem {
-  id: string;
+  _id?: string;
   name: string;
   status: 'draft' | 'waiting' | 'completed' | 'archived';
   date: string;
@@ -15,6 +15,8 @@ export interface DocumentItem {
   dueDate?: string;
   createdBy?: string;
   signingOrder?: boolean;
+  canvasElements?: CanvasElement[];
+  pageDimensions?: { [key: number]: PageDimension };
 }
 
 export interface ContractItem {

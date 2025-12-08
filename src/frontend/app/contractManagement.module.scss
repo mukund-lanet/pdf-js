@@ -1,3 +1,5 @@
+@import "@/app/global.module.scss";
+
 .contractManagementContainer {
   width: 100%;
   height: 100%;
@@ -179,6 +181,10 @@
                 .docName {
                   font-weight: 500;
                   color: #0f172a;
+                  cursor: pointer;
+                  &:hover {
+                    text-decoration: underline;
+                  }
                 }
 
                 .docMeta {
@@ -326,6 +332,35 @@
       background: #ffffff;
       border-radius: 8px;
       border: 1px solid #e5e7eb;
+
+      .mediaSelectionWrapper {
+        display: flex;
+        gap: 16px;
+        padding: 8px;
+        background: #f6f6f6;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+
+        .selectedFileCard {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          width: 100%; 
+
+          .fileInfo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            
+            .fileNameWrapper {
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+            }
+          }
+        }
+      }
     }
   
     .errorText {
@@ -347,6 +382,10 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+
+        .addCustomFieldsBtn {
+          color: #000000;
+        }
       }
     }
   

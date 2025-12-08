@@ -25,7 +25,7 @@ const RecipientsSidebar: React.FC = () => {
         type: UPDATE_DOCUMENT,
         payload: {
           ...activeDocument,
-          documentId: activeDocument.id,
+          documentId: activeDocument._id,
           documentName: activeDocument.name,
           signers: activeDocument.signers,
           signingOrder: checked
@@ -42,7 +42,7 @@ const RecipientsSidebar: React.FC = () => {
         type: UPDATE_DOCUMENT,
         payload: {
           ...activeDocument,
-          documentId: activeDocument.id,
+          documentId: activeDocument._id,
           documentName: activeDocument.name,
           signers: newSigners,
           signingOrder: activeDocument.signingOrder

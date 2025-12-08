@@ -2,7 +2,7 @@ import { AppDispatch } from '..';
 import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES } from '../../utils/interface';
+import { DIALOG_DRAWER_NAMES, PageDimension } from '../../utils/interface';
 
 // API Constants
 export const API_URL_PREFIX = '/api';
@@ -150,6 +150,8 @@ export interface UpdateDocumentAction {
     documentName: string;
     signers: any[];
     signingOrder?: boolean;
+    canvasElements?: CanvasElement[];
+    pageDimensions?: { [key: number]: PageDimension };
   };
 }
 
@@ -491,10 +493,10 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
   };
 };
 
-export const uploadDocumentPdf = (data: { documentName: string; file: File; signers: any[]; pdfBytes?: Uint8Array }): AppDispatch => {
+export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string; signers: any[]; pdfBytes?: Uint8Array }): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
-      const currentState = getState();
+      // const currentState = getState();
       // const currentBusiness = currentState.auth?.business;
 
       dispatch({
@@ -502,10 +504,7 @@ export const uploadDocumentPdf = (data: { documentName: string; file: File; sign
         payload: true,
       });
 
-      // Assume uploadPath is provided or file was already uploaded to storage/firebase
-      // For now, we'll use a placeholder uploadPath - in real implementation,
-      // you'd upload to Firebase/S3 first and get the URL
-      const uploadPath = data.file ? `/uploads/${data.file.name}` : '';
+      console.log("in upload Document ation")
 
       const response = await axiosInstance({
         method: 'post',
@@ -515,7 +514,7 @@ export const uploadDocumentPdf = (data: { documentName: string; file: File; sign
         data: {
           documentName: data.documentName,
           signers: data.signers,
-          uploadPath: uploadPath,
+          uploadPath: data.fileUrl || '',
         },
       });
 
@@ -525,7 +524,6 @@ export const uploadDocumentPdf = (data: { documentName: string; file: File; sign
           payload: response.data,
         });
         
-        // If pdfBytes are provided, set them in the store
         if (data.pdfBytes) {
           dispatch({
             type: SET_PDF_BYTES,
@@ -567,10 +565,18 @@ export const setActiveDocument = (document: any | null): AppDispatch => {
   };
 };
 
-export const updateDocument = (data: { documentId: string; documentName: string; signers: any[]; signingOrder?: boolean }): AppDispatch => {
+export const updateDocument = (data: { 
+  documentId: string | undefined; 
+  documentName: string; 
+  signers: any[]; 
+  signingOrder?: boolean;
+  canvasElements?: CanvasElement[];
+  pageDimensions?: { [key: number]: PageDimension };
+  totalPages?: number;
+}): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
-      const currentState = getState();
+      // const currentState = getState();
       // const currentBusiness = currentState?.auth?.business;
 
       dispatch({
@@ -587,6 +593,9 @@ export const updateDocument = (data: { documentId: string; documentName: string;
           name: data.documentName,
           signers: data.signers,
           signingOrder: data.signingOrder,
+          canvasElements: data.canvasElements,
+          pageDimensions: data.pageDimensions,
+          totalPages: data.totalPages,
         },
       });
 
@@ -665,7 +674,7 @@ export const getDocuments = (): AppDispatch => {
   };
 };
 
-export const getDocumentById = (id: string): AppDispatch => {
+export const getDocumentById = (id: string | undefined): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
       const currentState = getState();
@@ -691,6 +700,166 @@ export const getDocumentById = (id: string): AppDispatch => {
         message: error.response?.data?.message || 'Failed to fetch document',
         variant: 'error',
       }));
+      return null;
+    } finally {
+      dispatch({
+        type: SET_IS_LOADING,
+        payload: false,
+      });
+    }
+  };
+};
+
+export const loadDocumentById = (id: string): AppDispatch => {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    try {
+      console.log('Loading document with ID:', id);
+      
+      if (!id || id.trim() === '') {
+        throw new Error('Invalid document ID');
+      }
+      
+      dispatch({
+        type: SET_IS_LOADING,
+        payload: true,
+      });
+
+      const response = await axiosInstance({
+        method: 'get',
+        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        isFromLocal: true,
+      });
+
+      if (!response.data) {
+        throw new Error('Document not found');
+      }
+
+      const document = response.data;
+      console.log('Document loaded from backend:', document);
+
+      dispatch(setActiveDocument(document));
+
+      if (document.uploadPath) {
+        console.log('Loading PDF from:', document.uploadPath);
+        
+        try {
+          const pdfResponse = await fetch(document.uploadPath);
+          if (!pdfResponse.ok) {
+            throw new Error(`Failed to fetch PDF: ${pdfResponse.status} ${pdfResponse.statusText}`);
+          }
+          
+          const arrayBuffer = await pdfResponse.arrayBuffer();
+          
+          if (arrayBuffer.byteLength === 0) {
+            throw new Error('PDF file is empty');
+          }
+          
+          const pdfBytes = new Uint8Array(arrayBuffer);
+          
+          const { PDFDocument } = await import('pdf-lib');
+          const pdfDoc = await PDFDocument.load(arrayBuffer);
+          const pageCount = pdfDoc.getPageCount();
+          
+          dispatch({
+            type: SET_PDF_BYTES,
+           payload: pdfBytes,
+          });
+          
+          dispatch({
+            type: SET_TOTAL_PAGES,
+            payload: pageCount,
+          });
+          
+          console.log(`PDF loaded: ${pageCount} pages`);
+        } catch (pdfError: any) {
+          console.error('Error loading PDF:', pdfError);
+          dispatch(showMessage({
+            message: `Failed to load PDF file: ${pdfError.message || 'Unknown error'}`,
+            variant: 'warning',
+          }));
+          // Continue loading other document data even if PDF fails
+        }
+      }
+
+      // Step 4: Load canvas elements
+      if (document.canvasElements && Array.isArray(document.canvasElements)) {
+        dispatch({
+          type: SET_CANVAS_ELEMENTS,
+          payload: document.canvasElements,
+        });
+        console.log(`Loaded ${document.canvasElements.length} canvas elements`);
+      } else {
+        dispatch({
+          type: SET_CANVAS_ELEMENTS,
+          payload: [],
+        });
+      }
+
+      // Step 5: Load page dimensions
+      if (document.pageDimensions) {
+        // Convert Map to plain object if needed
+        const dimensionsObj = document.pageDimensions instanceof Map 
+          ? Object.fromEntries(document.pageDimensions)
+          : document.pageDimensions;
+        
+        dispatch({
+          type: SET_PAGE_DIMENSIONS,
+          payload: dimensionsObj,
+        });
+        console.log('Loaded page dimensions');
+      }
+
+      // Step 6: Set document type
+      if (document.documentType) {
+        dispatch({
+          type: SET_DOCUMENT_TYPE,
+          payload: document.documentType,
+        });
+      }
+
+      // Step 7: Set current page to 1
+      dispatch({
+        type: SET_CURRENT_PAGE,
+        payload: 1,
+      });
+
+      console.log('Document loading complete');
+      return document;
+      
+    } catch (error: any) {
+      console.error('Error loading document:', error);
+      
+      // Provide user-friendly error messages based on error type
+      let errorMessage = 'Failed to load document';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Document not found. It may have been deleted.';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission to view this document.';
+      } else if (error.message === 'Invalid document ID') {
+        errorMessage = 'Invalid document ID format.';
+      } else if (error.message === 'Network Error' || !navigator.onLine) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      dispatch(showMessage({
+        message: errorMessage,
+        variant: 'error',
+      }));
+      
+      // Redirect to dashboard on critical errors
+      if (error.response?.status === 404 || error.message === 'Invalid document ID') {
+        // Give user time to see the error message before redirecting
+        setTimeout(() => {
+          const businessKey = window.location.pathname.split('/')[1];
+          window.location.href = `/${businessKey}/contract-management`;
+        }, 2000);
+      }
+      
       return null;
     } finally {
       dispatch({

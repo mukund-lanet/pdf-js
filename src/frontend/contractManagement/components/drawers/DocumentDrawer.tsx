@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
@@ -12,10 +12,10 @@ import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/Ic
 import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
 import Chip from "@trenchaant/pkg-ui-component-library/build/Components/Chip";
 import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch";
-import SingleFileDropZone from "components/commonComponentCode/singleFileDropZone";
+import MediaManagerList from "@trenchaant/common-component/dist/commonComponent/mediaManager";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
-import { setDialogDrawerState, createNewDocument, updateDocument, setActiveDocument, uploadDocumentPdf, setDocumentDrawerMode, setUploadPdfUrl } from "../../store/action/contractManagement.actions";
+import { setDialogDrawerState, createNewDocument, updateDocument, setActiveDocument, uploadDocumentPdf, setDocumentDrawerMode, setUploadPdfUrl, SET_DOCUMENT_TYPE } from "../../store/action/contractManagement.actions";
 import { DIALOG_DRAWER_NAMES, Signer } from "../../utils/interface";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 
@@ -30,13 +30,15 @@ const DocumentDrawer = () => {
   const isUploadMode = documentDrawerMode === 'upload';
   const isCreateMode = documentDrawerMode === 'create';
   
-  const [signingOrderEnabled, setSigningOrderEnabled] = React.useState(activeDocument?.signingOrder || false);
+  const [signingOrderEnabled, setSigningOrderEnabled] = useState(activeDocument?.signingOrder || false);
+  const [selectedMenu, setSelectedMenu] = useState("");
+  const [mediaManagerSelection, setMediaManagerSelection] = useState<any[]>([]);
   
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       documentName: activeDocument?.name || '',
-      file: null as File | null,
+      file: null as any,
       signers: activeDocument?.signers || ([] as Signer[]),
       currentSignerName: '',
       currentSignerEmail: '',
@@ -64,13 +66,11 @@ const DocumentDrawer = () => {
             return true;
         }),
       signers: Yup.array()
-        // .min(1, 'At least one signer is required')
     }),
     onSubmit: async (values, { resetForm }) => {
       if (isEditMode && activeDocument) {
-        // Update existing document
        dispatch(updateDocument({
-          documentId: activeDocument.id,
+          documentId: activeDocument._id,
           documentName: values.documentName,
           signers: values.signers,
           signingOrder: signingOrderEnabled
@@ -78,77 +78,50 @@ const DocumentDrawer = () => {
         handleClose();
         resetForm();
       } else if (isUploadMode && values.file) {
-        // Upload PDF document and navigate to editor
-        const fileReader = new FileReader();
-        fileReader.onload = async (e) => {
-          const arrayBuffer = e.target?.result as ArrayBuffer;
-          const pdfBytes = new Uint8Array(arrayBuffer);
-          
-          const newDoc = {
-            id: 'temp-id', // In a real app, this would come from the backend
-            name: values.documentName,
-            status: 'draft',
-            date: new Date().toISOString(),
-            signers: values.signers,
-            progress: 0,
-            dueDate: 'No due date',
-            createdBy: 'Current User',
-          };
 
-          dispatch(uploadDocumentPdf({
-            documentName: values.documentName,
-            file: values.file as File,
-            signers: values.signers,
-            pdfBytes
-          }));
-          
-          dispatch(setActiveDocument(newDoc));
-
-          // Create blob URL for the file
-          const blobUrl = URL.createObjectURL(values.file as File);
-          dispatch(setUploadPdfUrl(blobUrl));
-          
-          // Set document type for PDF editor
-          dispatch({ type: 'SET_DOCUMENT_TYPE', payload: 'upload-existing' });
+        dispatch(setUploadPdfUrl(values.file.original_url));
+        
+        dispatch({ type: SET_DOCUMENT_TYPE, payload: 'upload-existing' });
+        
+        const result = await dispatch(uploadDocumentPdf({
+          documentName: values.documentName,
+          fileUrl: values.file.original_url,
+          signers: values.signers
+        }));
+ 
+        console.log({result})
+        
+        if (result && result._id) {
+          dispatch(setActiveDocument(result));
           
           handleClose();
           resetForm();
           
-          // Navigate to PDF editor (preserve business name in URL)
-          router.push(`/relience-fresh/pdf-editor`);
-        };
-        fileReader.readAsArrayBuffer(values.file);
+          const businessKey = window.location.pathname.split('/')[1];
+          router.push(`/${businessKey}/pdf-editor/builder/${result._id}`);
+        } else {
+          console.error('Failed to get document ID from upload response');
+        }
       } else if (isCreateMode) {
-        // Create new document and navigate to editor
-        const newDoc = {
-          id: 'temp-id', // In a real app, this would come from the backend
-          name: values.documentName,
-          status: 'draft',
-          date: new Date().toISOString(),
-          signers: values.signers,
-          progress: 0,
-          dueDate: 'No due date',
-          createdBy: 'Current User',
-          signingOrder: signingOrderEnabled,
-        };
-
-        // Create new document and navigate to editor
-        dispatch(createNewDocument({
+        dispatch({ type: 'SET_DOCUMENT_TYPE', payload: 'new_document' });
+        
+        const result = await dispatch(createNewDocument({
           documentName: values.documentName,
           signers: values.signers,
           signingOrder: signingOrderEnabled
         }));
-
-        dispatch(setActiveDocument(newDoc));
         
-        // Set document type for PDF editor
-        dispatch({ type: 'SET_DOCUMENT_TYPE', payload: 'new_document' });
-        
-        handleClose();
-        resetForm();
-        
-        // Navigate to PDF editor (preserve business name in URL)
-        router.push(`/relience-fresh/pdf-editor`);
+        if (result && result._id) {
+          dispatch(setActiveDocument(result));
+          
+          handleClose();
+          resetForm();
+          
+          const businessKey = window.location.pathname.split('/')[1];
+          router.push(`/${businessKey}/pdf-editor/builder/${result._id}`);
+        } else {
+          console.error('Failed to get document ID from create response');
+        }
       }
     },
   });
@@ -168,7 +141,18 @@ const DocumentDrawer = () => {
     dispatch(setActiveDocument(null));
     dispatch(setDocumentDrawerMode(null));
     setSigningOrderEnabled(false);
+    setSelectedMenu("");
+    setMediaManagerSelection([]);
     formik.resetForm();
+  };
+
+  const handleMediaSubmit = () => {
+    if (mediaManagerSelection.length > 0) {
+      const selectedFile = mediaManagerSelection[0];
+      setFieldValue('file', selectedFile);
+    }
+    setSelectedMenu("");
+    setMediaManagerSelection([]);
   };
 
   const handleAddSigner = async () => {
@@ -276,26 +260,37 @@ const DocumentDrawer = () => {
           />
           
           {isUploadMode && (
-            <div>
-              <SingleFileDropZone
-                file={values.file ? [values.file] : []}
-                setFiles={(updaterOrValue: any) => {
-                  let result;
-                  if (typeof updaterOrValue === 'function') {
-                    result = updaterOrValue({});
-                  } else {
-                    result = updaterOrValue;
-                  }
-
-                  if (result?.file && Array.isArray(result.file) && result.file.length > 0) {
-                    setFieldValue('file', result.file[0]);
-                  }
-                }}
-                containerHeightClass="h-128"
-                handleDelete={() => setFieldValue('file', null)}
-                handlePreview={() => {}}
-                validation={"application/pdf"}
-              />
+            <div className={styles.mediaSelectionWrapper}>
+              {values.file ? (
+                <div className={styles.selectedFileCard}>
+                  <div className={styles.fileInfo}>
+                    <CustomIcon iconName="file-text" height={24} width={24} variant="gray" />
+                    <div className={styles.fileNameWrapper} >
+                      <Typography fontWeight="500">{values.file.name}</Typography>
+                      <Typography className={styles.fileSize}>
+                        {(values.file.file_size / 1024).toFixed(2)} MB
+                      </Typography>
+                    </div>
+                  </div>
+                  <IconButton
+                    size="small"
+                    onClick={() => setFieldValue('file', null)}
+                  >
+                    <CustomIcon iconName="trash-2" height={16} width={16} customColor="#FF0000" />
+                  </IconButton>
+                </div>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="gray"
+                  startIcon={<CustomIcon iconName="folder-open" height={16} width={16} variant="gray" />}
+                  onClick={() => setSelectedMenu("mediaManage")}
+                  className={styles.selectMediaButton}
+                >
+                  Select PDF from Media Gallery
+                </Button>
+              )}
               {touched.file && errors.file && (
                 <Typography className={styles.errorText}>
                   {typeof errors.file === 'string' ? errors.file : 'Please upload a file'}
@@ -420,6 +415,29 @@ const DocumentDrawer = () => {
           </div>
         )}
       </div>
+      
+      <MediaManagerList
+        type="drawer"
+        anchor="right"
+        acceptedFileType="application/pdf"
+        filterMediaDisplay
+        filterMediaUpload
+        showHeader
+        showFooter
+        showSideBar
+        isMediaOpen={selectedMenu === "mediaManage" || false}
+        multiSelection={false}
+        handleStateChange={(dataObj: any[]) => setMediaManagerSelection(dataObj)}
+        selectedMedia={mediaManagerSelection}
+        handleSubmit={handleMediaSubmit}
+        handleCancel={() => {
+          setSelectedMenu("");
+          setMediaManagerSelection([]);
+        }}
+        submitButtonText="Select"
+        cancelButtonText="Cancel"
+        title="Select PDF Document"
+      />
     </Drawer>
   );
 };

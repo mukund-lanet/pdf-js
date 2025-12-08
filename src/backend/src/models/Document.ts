@@ -13,6 +13,25 @@ export interface IDocumentVariable {
   isSystem?: boolean;
 }
 
+// Canvas Element Interfaces for proper typing
+export interface IBlockElement {
+  id: string;
+  type: 'heading' | 'image' | 'video' | 'table';
+  pageNumber: number;
+  order: number;
+  properties: any; // Flexible for different block types
+}
+
+export interface IFillableElement {
+  id: string;
+  type: 'text' | 'signature' | 'date' | 'checkbox' | 'initial';
+  pageNumber: number;
+  position: { x: number; y: number };
+  properties: any; // Flexible for different fillable types
+}
+
+export type ICanvasElement = IBlockElement | IFillableElement;
+
 export interface IDocument extends MongoDocument {
   name: string;
   status: 'draft' | 'waiting' | 'completed' | 'archived';
@@ -25,9 +44,9 @@ export interface IDocument extends MongoDocument {
   business_id: string; // Business identifier for multi-tenancy
   
   // PDF Editor State
-  uploadPath?: string; // Path to file in Firebase/Storage
+  uploadPath?: string;
   totalPages: number;
-  canvasElements: any[]; // Using Mixed for flexibility with various element types
+  canvasElements: ICanvasElement[];
   pageDimensions: Map<string, { pageWidth: number; pageHeight: number }>;
   variables: IDocumentVariable[];
   documentType: 'upload-existing' | 'new_document' | null;
