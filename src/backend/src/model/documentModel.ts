@@ -1,62 +1,12 @@
 import { Schema, model, Document, Model } from "mongoose";
 import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
 import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
+import { getMcrServiceNameByDevOpsName, MCR_SERVICES } from "mcr-common/src/expresshelper_common/helper/McrCommonServiceList";
+import { ContractDocumentInterface } from "../helper/interface";
 
-const SERVICE_NAME = "mcr-contract-management-service";
+// const SERVICE_NAME = "mcr-contract-management-service";
 
-export interface ISigner {
-  name: string;
-  email: string;
-  type: 'signer' | 'approver' | 'cc';
-  order?: number;
-}
-
-export interface IDocumentVariable {
-  name: string;
-  value: string;
-  isSystem?: boolean;
-}
-
-export interface IBlockElement {
-  id: string;
-  type: 'heading' | 'image' | 'video' | 'table';
-  pageNumber: number;
-  order: number;
-  properties: any;
-}
-
-export interface IFillableElement {
-  id: string;
-  type: 'text' | 'signature' | 'date' | 'checkbox' | 'initial';
-  pageNumber: number;
-  position: { x: number; y: number };
-  properties: any;
-}
-
-export type ICanvasElement = IBlockElement | IFillableElement;
-
-export interface IDocument {
-  business_id: string;
-  company_id: string;
-  name: string;
-  status: 'draft' | 'waiting' | 'completed' | 'archived';
-  date: Date;
-  signers: ISigner[];
-  progress: number;
-  dueDate?: string;
-  createdBy?: string;
-  signingOrder?: boolean;
-  uploadPath?: string;
-  totalPages: number;
-  canvasElements: ICanvasElement[];
-  pageDimensions: Map<string, { pageWidth: number; pageHeight: number }>;
-  variables: IDocumentVariable[];
-  documentType: 'upload-existing' | 'new_document' | null;
-}
-
-export interface DocumentInterface extends IDocument, Document {}
-
-interface DocumentModel extends Model<DocumentInterface> {
+interface ContractDocumentModel extends Model<ContractDocumentInterface> {
   save(event: string): string;
 }
 
@@ -73,9 +23,9 @@ const DocumentVariableSchema = new Schema({
   isSystem: { type: Boolean }
 });
 
-const documentSchema: Schema<DocumentInterface> = new Schema({
+const contractDocumentSchema: Schema<ContractDocumentInterface> = new Schema({
   business_id: { type: String, required: true },
-  company_id: { type: String, required: true },
+  company_id: { type: String },
   name: { type: String, required: true },
   status: { type: String, enum: ['draft', 'waiting', 'completed', 'archived'], default: 'draft' },
   date: { type: Date, default: Date.now },
@@ -89,15 +39,16 @@ const documentSchema: Schema<DocumentInterface> = new Schema({
   canvasElements: { type: Schema.Types.Mixed, default: [] },
   pageDimensions: { type: Map, of: new Schema({ pageWidth: Number, pageHeight: Number }) },
   variables: [DocumentVariableSchema],
-  documentType: { type: String, enum: ['upload-existing', 'new_document'], default: 'new_document' }
+  documentType: { type: String, enum: ['upload-existing', 'new_document'], default: 'new_document' },
+  pages: { type: Schema.Types.Mixed, default: [] }
 }, { timestamps: true });
 
-export let ContractDocument = model<DocumentInterface, DocumentModel>('contract_document', documentSchema);
+export let ContractDocument = model<ContractDocumentInterface, ContractDocumentModel>('contract_document', contractDocumentSchema);
 
-eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+eventBus.on(getMcrServiceNameByDevOpsName(MCR_SERVICES.MCR_ESIGN_CONTRACT_MANAGEMENT) + "_emit", (mcrServiceMeta: McrServiceMeta) => {
   const connection = mcrServiceMeta.mongoDbConnectionObject;
   if (connection) {
-    ContractDocument = connection.model<DocumentInterface, DocumentModel>('contract_document', documentSchema);
+    ContractDocument = connection.model<ContractDocumentInterface, ContractDocumentModel>('contract_document', contractDocumentSchema);
     console.log("ContractDocument model initialized with dynamic connection.");
   }
 });

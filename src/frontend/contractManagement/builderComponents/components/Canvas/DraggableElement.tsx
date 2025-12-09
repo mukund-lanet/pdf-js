@@ -14,16 +14,18 @@ import IconButton from '@trenchaant/pkg-ui-component-library/build/Components/Ic
 import Popover from "@trenchaant/pkg-ui-component-library/build/Components/Popover";
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, FILLABLE_ELEMENT, ADD_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, FILLABLE_ELEMENT, UPDATE_ELEMENT_IN_PAGE, DELETE_ELEMENT_FROM_PAGE, ADD_ELEMENT_TO_PAGE } from '../../../store/action/contractManagement.actions';
 
 interface DraggableElementProps {
   element: FillableFieldElement;
+  pageNumber: number;
   isSelected: boolean;
   onSelect: (id: string, multi: boolean) => void;
 }
 
 const DraggableElement = React.memo(({
   element,
+  pageNumber,
   isSelected,
   onSelect
 }: DraggableElementProps) => {
@@ -68,7 +70,13 @@ const DraggableElement = React.memo(({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch({ type: DELETE_CANVAS_ELEMENT, payload: element.id });
+    dispatch({ 
+      type: DELETE_ELEMENT_FROM_PAGE, 
+      payload: {
+        pageNumber,
+        elementId: element.id
+      }
+    });
   };
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -81,7 +89,13 @@ const DraggableElement = React.memo(({
       x: element.x + 20,
       y: element.y + 20
     };
-    dispatch({ type: ADD_CANVAS_ELEMENT, payload: copiedElement });
+    dispatch({ 
+      type: ADD_ELEMENT_TO_PAGE, 
+      payload: {
+        pageNumber,
+        element: copiedElement
+      } 
+    });
   };
 
   const handleChecked = (e: React.MouseEvent) => {
@@ -97,8 +111,11 @@ const DraggableElement = React.memo(({
 
     if (element.type === 'checkbox') {
       dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, checked: !element.checked },
+        type: UPDATE_ELEMENT_IN_PAGE,
+        payload: { 
+          pageNumber,
+          element: { ...element, checked: !element.checked } 
+        },
       });
     }
   };
@@ -132,8 +149,11 @@ const DraggableElement = React.memo(({
       });
 
       dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, value: formattedDate },
+        type: UPDATE_ELEMENT_IN_PAGE,
+        payload: { 
+          pageNumber,
+          element: { ...element, value: formattedDate } 
+        },
       });
     }
     setDatePickerAnchor(null);
@@ -264,11 +284,14 @@ const DraggableElement = React.memo(({
           }}
           onResizeStop={(e: any, data: any) => {
             dispatch({
-              type: UPDATE_CANVAS_ELEMENT,
+              type: UPDATE_ELEMENT_IN_PAGE,
               payload: {
-                ...element,
-                width: data.size.width,
-                height: data.size.height
+                pageNumber,
+                element: {
+                  ...element,
+                  width: data.size.width,
+                  height: data.size.height
+                }
               }
             });
           }}

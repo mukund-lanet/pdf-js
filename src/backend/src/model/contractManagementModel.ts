@@ -2,8 +2,7 @@ import { Schema, model, Document, Model } from "mongoose";
 import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
 import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
 import * as mongoose from "mongoose";
-
-const SERVICE_NAME = "mcr-contract-management-service";
+import { getMcrServiceNameByDevOpsName, MCR_SERVICES } from "mcr-common/src/expresshelper_common/helper/McrCommonServiceList";
 
 export interface IContractManagement {
   business_id: string;
@@ -68,7 +67,7 @@ interface ContractManagementModel extends Model<ContractManagementInterface> {
 
 const contractManagementSchema: Schema<ContractManagementInterface> = new Schema({
   business_id: { type: String, required: true },
-  company_id: { type: String, required: true },
+  company_id: { type: String },
   documents: [{ type: Schema.Types.ObjectId, ref: 'contract_document' }],
   contracts: [{ type: Schema.Types.ObjectId, ref: 'contract' }],
   documentsFilters: {
@@ -121,12 +120,11 @@ const contractManagementSchema: Schema<ContractManagementInterface> = new Schema
   }
 }, { timestamps: true });
 
-// Create compound unique index
-contractManagementSchema.index({ business_id: 1, company_id: 1 }, { unique: true });
+contractManagementSchema.index({ business_id: 1 }, { unique: true });
 
 export let ContractManagement = model<ContractManagementInterface, ContractManagementModel>('contract_management', contractManagementSchema);
 
-eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+eventBus.on(getMcrServiceNameByDevOpsName(MCR_SERVICES.MCR_ESIGN_CONTRACT_MANAGEMENT) + "_emit", (mcrServiceMeta: McrServiceMeta) => {
   const connection = mcrServiceMeta.mongoDbConnectionObject;
   if (connection) {
     ContractManagement = connection.model<ContractManagementInterface, ContractManagementModel>('contract_management', contractManagementSchema);

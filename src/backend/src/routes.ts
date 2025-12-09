@@ -10,12 +10,12 @@ export const initializeRoutes = (app: any, mcrServiceMeta?: McrServiceMeta) => {
   const router = Router();
 
   // Contract Management - Documents
-  router.get("/documents", contractManagementRoutes.getDocuments);
-  router.get("/documents/:id", contractManagementRoutes.getDocumentById);
-  router.post("/documents", contractManagementRoutes.createDocument);
-  router.put("/documents/:id", contractManagementRoutes.updateDocument);
-  router.delete("/documents/:id", contractManagementRoutes.deleteDocument);
-  router.post("/documents/upload", contractManagementRoutes.uploadDocumentPdf);
+  router.get("/api/documents", contractManagementRoutes.getDocuments);
+  router.get("/api/documents/:id", contractManagementRoutes.getDocumentById);
+  router.post("/api/documents", contractManagementRoutes.createDocument);
+  router.put("/api/documents/:id", contractManagementRoutes.updateDocument);
+  router.delete("/api/documents/:id", contractManagementRoutes.deleteDocument);
+  router.post("/api/documents/upload", contractManagementRoutes.uploadDocumentPdf);
 
   // Contract Management - Contracts
   router.get("/contracts", contractManagementRoutes.getContracts);

@@ -10,16 +10,18 @@
   },
   "dependencies": {
     "@types/react-signature-canvas": "^1.0.7",
+    "@types/uuid": "^10.0.0",
     "next": "16.0.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
     "react": "19.2.0",
     "react-color": "^2.19.3",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
     "react-dom": "19.2.0",
-    "react-movable": "^3.4.1",
-    "react-selecto": "^1.26.3",
     "react-signature-canvas": "^1.0.7",
-    "sass": "^1.93.2"
+    "sass": "^1.93.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@locator/babel-jsx": "^0.5.0-alpha.0",

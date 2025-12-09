@@ -1,28 +1,9 @@
 import { Schema, model, Document, Model } from "mongoose";
 import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
 import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
-
-const SERVICE_NAME = "mcr-contract-management-service";
-
-export interface IContract {
-  business_id: string;
-  company_id: string;
-  name: string;
-  status: 'active' | 'draft' | 'expired';
-  value: number;
-  currency: string;
-  date: Date;
-  startDate: string;
-  endDate: string;
-  renewalPeriod: number;
-  noticePeriod: number;
-  autoRenewal: boolean;
-  termsAndConditions: string;
-  paymentTerms: string;
-  contractType: string;
-}
-
-export interface ContractInterface extends IContract, Document {}
+import { getMcrServiceNameByDevOpsName, MCR_SERVICES } from "mcr-common/src/expresshelper_common/helper/McrCommonServiceList";
+import * as moment from "moment";
+import { ContractInterface } from "../helper/interface";
 
 interface ContractModel extends Model<ContractInterface> {
   save(event: string): string;
@@ -30,7 +11,7 @@ interface ContractModel extends Model<ContractInterface> {
 
 const contractSchema: Schema<ContractInterface> = new Schema({
   business_id: { type: String, required: true },
-  company_id: { type: String, required: true },
+  company_id: { type: String },
   name: { type: String, required: true },
   status: { type: String, enum: ['active', 'draft', 'expired'], default: 'draft' },
   value: { type: Number, default: 0 },
@@ -48,7 +29,7 @@ const contractSchema: Schema<ContractInterface> = new Schema({
 
 export let Contract = model<ContractInterface, ContractModel>('contract', contractSchema);
 
-eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+eventBus.on(getMcrServiceNameByDevOpsName(MCR_SERVICES.MCR_ESIGN_CONTRACT_MANAGEMENT) + "_emit", (mcrServiceMeta: McrServiceMeta) => {
   const connection = mcrServiceMeta.mongoDbConnectionObject;
   if (connection) {
     Contract = connection.model<ContractInterface, ContractModel>('contract', contractSchema);

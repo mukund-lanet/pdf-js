@@ -1,45 +1,10 @@
 import { Schema, model, Document, Model } from "mongoose";
 import { McrServiceMeta } from "mcr-common/src/expresshelper_common/helper/McrServiceMeta";
 import eventBus from "mcr-common/src/expresshelper_common/helper/EventBus";
+import { getMcrServiceNameByDevOpsName, MCR_SERVICES } from "mcr-common/src/expresshelper_common/helper/McrCommonServiceList";
+import { SettingsInterface } from "../helper/interface";
 
-const SERVICE_NAME = "mcr-contract-management-service";
-
-export interface ISettings {
-  business_id: string;
-  company_id: string;
-  identityVerification: {
-    isVarifyOn: boolean;
-    verificationMethod: string;
-    isRequireAllSigners: boolean;
-    isRequirePhone: boolean;
-  };
-  globalDocument: {
-    senderName: string;
-    senderEmail: string;
-    emailSubject: string;
-    emailTemplate: string;
-    redirectDateNotification: boolean;
-    dueDateNotification: boolean;
-    completionNotification: boolean;
-    reminderNotification: boolean;
-    daysBeforeDueDate: number;
-  };
-  branding: {
-    senderName: string;
-    senderEmail: string;
-    emailSubjectLine: string;
-    emailMessage: string;
-    ctaButtonText: string;
-    footerText: string;
-    companyName: string;
-    primaryColor: string;
-    secondaryColor: string;
-    accentColor: string;
-    logo: string;
-  };
-}
-
-export interface SettingsInterface extends ISettings, Document {}
+// const SERVICE_NAME = "mcr-contract-management-service";
 
 interface SettingsModel extends Model<SettingsInterface> {
   save(event: string): string;
@@ -47,7 +12,7 @@ interface SettingsModel extends Model<SettingsInterface> {
 
 const settingsSchema: Schema<SettingsInterface> = new Schema({
   business_id: { type: String, required: true },
-  company_id: { type: String, required: true },
+  company_id: { type: String },
   identityVerification: {
     isVarifyOn: { type: Boolean, default: false },
     verificationMethod: { type: String, default: '' },
@@ -80,12 +45,11 @@ const settingsSchema: Schema<SettingsInterface> = new Schema({
   }
 }, { timestamps: true });
 
-// Create compound unique index
-settingsSchema.index({ business_id: 1, company_id: 1 }, { unique: true });
+settingsSchema.index({ business_id: 1 }, { unique: true });
 
 export let Settings = model<SettingsInterface, SettingsModel>('contract_settings', settingsSchema);
 
-eventBus.on(SERVICE_NAME + "_emit", (mcrServiceMeta: McrServiceMeta) => {
+eventBus.on(getMcrServiceNameByDevOpsName(MCR_SERVICES.MCR_ESIGN_CONTRACT_MANAGEMENT) + "_emit", (mcrServiceMeta: McrServiceMeta) => {
   const connection = mcrServiceMeta.mongoDbConnectionObject;
   if (connection) {
     Settings = connection.model<SettingsInterface, SettingsModel>('contract_settings', settingsSchema);

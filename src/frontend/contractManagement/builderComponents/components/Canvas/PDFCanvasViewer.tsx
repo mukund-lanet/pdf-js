@@ -14,6 +14,7 @@ import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actio
 
 const PDFCanvasViewer = () => {
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const dispatch = useDispatch();
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
@@ -75,13 +76,26 @@ const PDFCanvasViewer = () => {
       {pdfBytes && totalPages > 0 ? (
         <CustomScrollbar ref={scrollContainerRef} className={styles.scrollPdfViewerContainer} >
           <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
-            {Array.from({ length: totalPages }, (_, index) => {
-              return (<PDFPage
-                key={`page_${index + 1}_${renderKey}`}
-                pdfDoc={pdfDoc}
-                pageNumber={index + 1}
-                />)
-              })}
+            {pages && pages.length > 0 ? (
+              pages.map((page, index) => (
+                <PDFPage
+                  key={`page_${page.id}_${renderKey}`}
+                  page={page}
+                  pageNumber={index + 1}
+                  pdfDoc={pdfDoc} // Keep for now if needed for legacy or hybrid
+                />
+              ))
+            ) : (
+              // Fallback for legacy or empty state if pages not yet populated but totalPages > 0 (should not happen after migration)
+              Array.from({ length: totalPages }, (_, index) => {
+                return (<PDFPage
+                  key={`page_${index + 1}_${renderKey}`}
+                  page={null as any} // Temporary cast until PDFPage is updated
+                  pageNumber={index + 1}
+                  pdfDoc={pdfDoc}
+                  />)
+                })
+            )}
           </div>
         </CustomScrollbar>)
         : !isLoading && totalPages === 0 ? (

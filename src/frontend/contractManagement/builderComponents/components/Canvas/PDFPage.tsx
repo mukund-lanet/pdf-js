@@ -14,17 +14,19 @@ import MediaButton from "components/commonComponentCode/mediaButton";
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { PageDimension } from '../../../utils/interface';
-import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { Page, PageDimension, GHLBlockElement, GHLFillableElement, isGHLBlockElement, isGHLFillableElement } from '../../../utils/interface';
+import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, ADD_PAGE, DELETE_PAGE } from '../../../store/action/contractManagement.actions';
 
 interface PDFPageProps {
   pdfDoc: any;
   pageNumber: number;
+  page: Page | null;
 }
 
 const PDFPage = React.memo((({
   pdfDoc,
   pageNumber,
+  page,
 }: PDFPageProps) => {
   const dispatch = useDispatch();
 
@@ -40,8 +42,14 @@ const PDFPage = React.memo((({
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
   const [error, setError] = useState<string | null>(null);
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(page?.component?.options?.src || null);
   const renderTaskRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (page?.component?.options?.src) {
+      setImageSrc(page.component.options.src);
+    }
+  }, [page?.component?.options?.src]);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setActionMenuAnchorEl(event.currentTarget);
@@ -89,6 +97,43 @@ const PDFPage = React.memo((({
       newPageDimensions[pageNumber + 1] = newPageSize;
 
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions });
+      
+      // Dispatch ADD_PAGE for GHL architecture
+      const newPageId = `page_${Date.now()}`;
+      const newPage: Page = {
+        id: newPageId,
+        name: `Page ${pageNumber + 1}`,
+        path: `/pages/${newPageId}`,
+        updatedAt: new Date().toISOString(),
+        previewImage: '', // Blank page
+        component: {
+          id: `comp_${newPageId}`,
+          type: 'Body',
+          options: {
+            paddingTop: '0px',
+            paddingBottom: '0px',
+            paddingLeft: '0px',
+            paddingRight: '0px',
+            src: '', // No background image for blank page
+            bgColor: '#ffffff',
+            pageDimensions: {
+              dimensions: { width: 600, height: 800 },
+              margins: { top: 0, right: 0, bottom: 0, left: 0 },
+              rotation: 'portrait'
+            }
+          }
+        },
+        children: []
+      };
+      
+      dispatch({ 
+        type: ADD_PAGE, 
+        payload: {
+          page: newPage,
+          index: pageNumber
+        }
+      });
+
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
       dispatch({ type: SET_IS_LOADING, payload: false })
     } catch (error) {
@@ -129,6 +174,12 @@ const PDFPage = React.memo((({
         newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
       });
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions })
+      
+      // Dispatch DELETE_PAGE for GHL architecture
+      if (page) {
+        dispatch({ type: DELETE_PAGE, payload: page.id });
+      }
+
       dispatch({ type: SET_IS_LOADING, payload: false })
     } catch (error) {
       dispatch({ type: SET_IS_LOADING, payload: false })
@@ -219,6 +270,8 @@ const PDFPage = React.memo((({
     let isMounted = true;
 
     const renderPage = async () => {
+      // If we have an image source from the page object, we don't need to render the PDF
+      if (imageSrc && !pdfDoc) return;
       if (!pdfDoc) return;
 
       cleanupRenderTask();
@@ -360,6 +413,7 @@ const PDFPage = React.memo((({
             <BlockContainer
               pageNumber={pageNumber}
               pageWidth={pageSize.pageWidth}
+              elements={page?.children.filter(isGHLBlockElement) as GHLBlockElement[] || []}
             />
           </div>
 
@@ -367,6 +421,7 @@ const PDFPage = React.memo((({
             <FillableContainer
               pageNumber={pageNumber}
               containerRef={containerRef}
+              elements={page?.children.filter(isGHLFillableElement) as GHLFillableElement[] || []}
             />
           </div>
         </div>

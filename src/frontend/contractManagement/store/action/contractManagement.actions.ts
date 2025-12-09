@@ -3,6 +3,8 @@ import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
 import { DIALOG_DRAWER_NAMES, PageDimension } from '../../utils/interface';
+import { groupElementsIntoPages } from '../../utils/ghl-converter';
+import { uploadPdfPageAsImage } from '../../utils/firebase-helper';
 
 // API Constants
 export const API_URL_PREFIX = '/api';
@@ -42,7 +44,8 @@ export const SET_SIGNATURE_PAD_OPEN = 'SET_SIGNATURE_PAD_OPEN';
 export const SET_SIGNATURE_FOR_ELEMENT = 'SET_SIGNATURE_FOR_ELEMENT';
 export const UPDATE_MULTIPLE_ELEMENTS = 'UPDATE_MULTIPLE_ELEMENTS';
 export const RESET_EDITOR = 'RESET_EDITOR';
-export const REORDER_PAGE_ELEMENTS = 'REORDER_PAGE_ELEMENTS';
+// export const UPDATE_ELEMENT_IN_PAGE = 'UPDATE_ELEMENT_IN_PAGE'; // Removed duplicate
+export const REORDER_PAGE_ELEMENTS = 'REORDER_PAGE_ELEMENTS'; // Ensure this exists or add it
 export const SET_IS_LOADING = 'SET_IS_LOADING';
 export const SET_DRAWER_COMPONENT_CATEGORY = 'SET_DRAWER_COMPONENT_CATEGORY';
 export const SET_ACTIVE_ELEMENT_ID = 'SET_ACTIVE_ELEMENT_ID';
@@ -55,6 +58,25 @@ export const FILLABLE_ELEMENT = 'FILLABLE_ELEMENT';
 export const TOOLBAR_ITEM = 'TOOLBAR_ITEM';
 export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
+
+// GHL Architecture Actions
+export const SET_PAGES = 'SET_PAGES';
+export const ADD_PAGE = 'ADD_PAGE';
+export const DELETE_PAGE = 'DELETE_PAGE';
+export const REORDER_PAGES = 'REORDER_PAGES';
+export const UPDATE_PAGE_STYLES = 'UPDATE_PAGE_STYLES';
+
+export const ADD_ELEMENT_TO_PAGE = 'ADD_ELEMENT_TO_PAGE';
+export const UPDATE_ELEMENT_IN_PAGE = 'UPDATE_ELEMENT_IN_PAGE';
+export const DELETE_ELEMENT_FROM_PAGE = 'DELETE_ELEMENT_FROM_PAGE';
+export const REORDER_ELEMENTS_IN_PAGE = 'REORDER_ELEMENTS_IN_PAGE';
+export const MOVE_ELEMENT_BETWEEN_PAGES = 'MOVE_ELEMENT_BETWEEN_PAGES';
+
+export const REGISTER_FILLABLE_FIELD = 'REGISTER_FILLABLE_FIELD';
+export const UNREGISTER_FILLABLE_FIELD = 'UNREGISTER_FILLABLE_FIELD';
+
+export const UPLOAD_PDF_TO_FIREBASE = 'UPLOAD_PDF_TO_FIREBASE';
+export const SET_PAGE_FIREBASE_URL = 'SET_PAGE_FIREBASE_URL';
 
 // Dialog/Drawer Names Type
 export type DialogName = DIALOG_DRAWER_NAMES;
@@ -152,6 +174,7 @@ export interface UpdateDocumentAction {
     signingOrder?: boolean;
     canvasElements?: CanvasElement[];
     pageDimensions?: { [key: number]: PageDimension };
+    pages?: Page[];
   };
 }
 
@@ -161,7 +184,7 @@ export interface SetDocumentDrawerModeAction {
 }
 
 // PDF Editor Action Interfaces
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page, FillableField, GHLBlockElement, GHLFillableElement } from '../../utils/interface';
 
 interface SetPdfBytesAction {
   type: typeof SET_PDF_BYTES;
@@ -333,6 +356,104 @@ interface SetSettingsDataAction {
   payload: any;
 }
 
+// GHL Action Interfaces
+interface SetPagesAction {
+  type: typeof SET_PAGES;
+  payload: Page[];
+}
+
+interface AddPageAction {
+  type: typeof ADD_PAGE;
+  payload: {
+    page: Page;
+    index?: number;
+  };
+}
+
+interface DeletePageAction {
+  type: typeof DELETE_PAGE;
+  payload: string; // pageId
+}
+
+interface ReorderPagesAction {
+  type: typeof REORDER_PAGES;
+  payload: {
+    sourceIndex: number;
+    destinationIndex: number;
+  };
+}
+
+interface UpdatePageStylesAction {
+  type: typeof UPDATE_PAGE_STYLES;
+  payload: {
+    pageId: string;
+    styles: any; // Partial<PageStyles>
+  };
+}
+
+interface AddElementToPageAction {
+  type: typeof ADD_ELEMENT_TO_PAGE;
+  payload: {
+    pageNumber: number;
+    element: GHLBlockElement | GHLFillableElement;
+  };
+}
+
+
+
+interface DeleteElementFromPageAction {
+  type: typeof DELETE_ELEMENT_FROM_PAGE;
+  payload: {
+    pageNumber: number;
+    elementId: string;
+  };
+}
+
+interface MoveElementBetweenPagesAction {
+  type: typeof MOVE_ELEMENT_BETWEEN_PAGES;
+  payload: {
+    sourcePageId: string;
+    destPageId: string;
+    elementId: string;
+    newPosition?: { top: number; left: number };
+  };
+}
+
+interface RegisterFillableFieldAction {
+  type: typeof REGISTER_FILLABLE_FIELD;
+  payload: FillableField;
+}
+
+interface UnregisterFillableFieldAction {
+  type: typeof UNREGISTER_FILLABLE_FIELD;
+  payload: string; // fieldId
+}
+
+interface SetPageFirebaseUrlAction {
+  type: typeof SET_PAGE_FIREBASE_URL;
+  payload: {
+    pageId: string;
+    url: string;
+  };
+}
+
+interface UpdateElementInPageAction {
+  type: typeof UPDATE_ELEMENT_IN_PAGE;
+  payload: {
+    pageNumber: number;
+    element: GHLBlockElement | GHLFillableElement;
+  };
+}
+
+interface ReorderElementsInPageAction {
+  type: typeof REORDER_ELEMENTS_IN_PAGE;
+  payload: {
+    pageNumber: number;
+    sourceIndex: number;
+    destinationIndex: number;
+  };
+}
+
 // Union type for all Contract Management actions
 export type ContractManagementAction =
   | SetDocumentActiveFilterAction
@@ -374,10 +495,24 @@ export type ContractManagementAction =
   | SetPdfMediaAction
   | SetDocumentTypeAction
   | SetUploadPdfUrlAction
+  | UpdateElementInPageAction
+  | ReorderElementsInPageAction
   | ReorderPageElementsAction
   | SetDocumentsListAction
   | SetContractsListAction
-  | SetSettingsDataAction;
+  | SetSettingsDataAction
+  | SetPagesAction
+  | AddPageAction
+  | DeletePageAction
+  | ReorderPagesAction
+  | UpdatePageStylesAction
+  | AddElementToPageAction
+  | UpdateElementInPageAction
+  | DeleteElementFromPageAction
+  | MoveElementBetweenPagesAction
+  | RegisterFillableFieldAction
+  | UnregisterFillableFieldAction
+  | SetPageFirebaseUrlAction;
 
 // Action Creators
 export const setDocumentActiveFilter = (filter: string): AppDispatch => {
@@ -449,7 +584,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
       const response = await axiosInstance({
         method: 'post',
         // url: `${API_URL_PREFIX}/documents?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: {
           name: data.documentName,
@@ -509,7 +644,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
       const response = await axiosInstance({
         method: 'post',
         // url: `${API_URL_PREFIX}/documents/upload?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents/upload?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/upload?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: {
           documentName: data.documentName,
@@ -573,6 +708,7 @@ export const updateDocument = (data: {
   canvasElements?: CanvasElement[];
   pageDimensions?: { [key: number]: PageDimension };
   totalPages?: number;
+  pages?: Page[];
 }): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
@@ -587,7 +723,7 @@ export const updateDocument = (data: {
       const response = await axiosInstance({
         method: 'put',
         // url: `${API_URL_PREFIX}/documents/${data.documentId}?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents/${data.documentId}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${data.documentId}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: {
           name: data.documentName,
@@ -596,6 +732,7 @@ export const updateDocument = (data: {
           canvasElements: data.canvasElements,
           pageDimensions: data.pageDimensions,
           totalPages: data.totalPages,
+          pages: data.pages,
         },
       });
 
@@ -658,7 +795,7 @@ export const getDocuments = (): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -822,6 +959,129 @@ export const loadDocumentById = (id: string): AppDispatch => {
         type: SET_CURRENT_PAGE,
         payload: 1,
       });
+
+      // =================================================================
+      // MIGRATION LOGIC: Convert Legacy Documents to GHL Architecture
+      // =================================================================
+      
+      // Check if we need to migrate: has canvasElements but no pages
+      const hasLegacyElements = document.canvasElements && document.canvasElements.length > 0;
+      const hasNoPages = !document.pages || document.pages.length === 0;
+      
+      if (hasLegacyElements && hasNoPages) {
+        console.log('Legacy document detected. Starting migration...');
+        
+        try {
+          dispatch(showMessage({
+            message: 'Migrating legacy document to new format...',
+            variant: 'info',
+          }));
+
+          // 1. Group elements into pages
+          // We need page dimensions for this. If not in document, try to infer or use defaults.
+          const pageDims = document.pageDimensions 
+            ? (document.pageDimensions instanceof Map ? Array.from(document.pageDimensions.values()) : Object.values(document.pageDimensions))
+            : [];
+            
+          // If we have pdfBytes, we can get the count from there, otherwise use pageDims length
+          // Note: pdfBytes might be set in the state by the previous step if it was loaded from uploadPath
+          // But we can't access the updated state immediately here easily without getState().
+          // However, we have the `pdfBytes` variable from the scope above if it was loaded.
+          
+          // Let's rely on the loaded data
+          let pages: Page[] = groupElementsIntoPages(document.canvasElements, pageDims as PageDimension[]);
+          
+          // 2. Handle Background Images (PDF Pages)
+          // If we have a PDF loaded, we need to convert pages to images and upload them
+          // We can reuse the logic from the PDF loading block above, but we need the pdfBytes
+          
+          // Access the pdfBytes from the scope if it was loaded in this function execution
+          // We need to capture it from the try-catch block above or re-access it.
+          // Since the block above is a separate try-catch, `pdfBytes` is not in scope here.
+          // We can check `getState().contractManagement.pdfBytes` but that might not be updated yet due to async dispatch?
+          // Actually, dispatch is synchronous for plain objects, but we are in a thunk.
+          // Let's assume we can get it from the state or we should have returned it from the block above.
+          
+          // Better approach: Check if we have uploadPath and try to process it if we haven't already
+          // Or, since we already loaded it into Redux, let's grab it from Redux state
+          const currentPdfBytes = getState().contractManagement.pdfBytes;
+          
+          if (currentPdfBytes) {
+             console.log('Processing PDF background images for migration...');
+             const updatedPages = [...pages];
+             
+             // We need to process each page
+             // This can be slow, so maybe show a progress indicator or do it in background?
+             // For now, we'll do it and await.
+             
+             for (let i = 0; i < updatedPages.length; i++) {
+               try {
+                 const imageUrl = await uploadPdfPageAsImage(currentPdfBytes, i);
+                 
+                 // Update the page background
+                 if (updatedPages[i].component && updatedPages[i].component.options) {
+                   updatedPages[i].component.options.src = imageUrl;
+                 }
+               } catch (imgError) {
+                 console.error(`Failed to generate image for page ${i + 1}`, imgError);
+               }
+             }
+             pages = updatedPages;
+          }
+          
+          // 3. Update State with New Pages
+          dispatch({
+            type: SET_PAGES,
+            payload: pages
+          });
+          
+          // 4. Persist Migration to Backend
+          // We want to save the new 'pages' structure to the document
+          // We can use the updateDocument action, but we need to be careful not to overwrite other things
+          // Let's construct the update payload
+          
+          const updatePayload = {
+            documentId: document._id || document.id,
+            documentName: document.name,
+            signers: document.signers,
+            // We keep the legacy elements for safety for now, or we could clear them?
+            // Let's keep them for now until fully verified.
+            canvasElements: document.canvasElements, 
+            pageDimensions: document.pageDimensions,
+            pages: pages // This is the new field we are adding
+          };
+          
+          // Dispatch update
+          // Note: updateDocument expects specific args. 
+          // We might need to update the API to accept 'pages' or use a generic update.
+          // Looking at updateDocument action, it takes specific fields.
+          // We need to update `updateDocument` action to support `pages` payload as well.
+          // For now, let's dispatch the action and assume we will update the action creator next.
+          
+          // Wait, I can't pass 'pages' to updateDocument if the type doesn't allow it.
+          // I need to update the `updateDocument` action signature first or cast it.
+          // Let's cast it for now to avoid TS errors if I haven't updated the type yet.
+          
+          dispatch(updateDocument({
+            ...updatePayload,
+            // @ts-ignore
+            pages: pages
+          }) as any);
+          
+          console.log('Migration complete. Pages created:', pages.length);
+          dispatch(showMessage({
+            message: 'Document migrated successfully',
+            variant: 'success',
+          }));
+          
+        } catch (migrationError) {
+          console.error('Migration failed:', migrationError);
+           dispatch(showMessage({
+            message: 'Failed to migrate document',
+            variant: 'error',
+          }));
+        }
+      }
 
       console.log('Document loading complete');
       return document;

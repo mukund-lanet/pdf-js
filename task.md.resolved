@@ -1,0 +1,104 @@
+# GHL Architecture Transformation Tasks
+
+## Phase 1: Type Definitions ✅
+- [x] Create new GHL-compatible interfaces in interface.ts
+- [x] Define Page, PageComponent, PageStyles types
+- [x] Define GHLBlockElement types (Text, Image, Video, Table, PageBreak)
+- [x] Define GHLFillableElement types (Signature, TextField, DateField, InitialsField, Checkbox)
+- [x] Define FillableField global registry type
+- [x] Update DocumentItem to include pages, fillableFields, variables
+- [x] Add helper functions (isGHLBlockElement, isGHLFillableElement)
+
+## Phase 2: Reducer State Update ✅
+- [x] Remove old state fields (Deferred - keeping for migration)
+- [x] Add new state fields:
+  - [x] Add `pages: Page[]`
+  - [x] Add `fillableFields: FillableField[]`
+  - [x] Add `fontsToLoad: string[]`
+- [x] Update initialState
+- [x] Keep `totalPages` and `currentPage` for navigation
+
+## Phase 3: Actions Update ✅
+- [x] Add new action types:
+  - [x] `SET_PAGES`
+  - [x] `ADD_PAGE`
+  - [x] `DELETE_PAGE`
+  - [x] `REORDER_PAGES`
+  - [x] `UPDATE_PAGE_STYLES`
+  - [x] `ADD_ELEMENT_TO_PAGE`
+  - [x] `UPDATE_ELEMENT_IN_PAGE`
+  - [x] `DELETE_ELEMENT_FROM_PAGE`
+  - [x] `MOVE_ELEMENT_BETWEEN_PAGES`
+  - [x] `REGISTER_FILLABLE_FIELD`
+  - [x] `UNREGISTER_FILLABLE_FIELD`
+  - [x] `UPLOAD_PDF_TO_FIREBASE`
+  - [x] `SET_PAGE_FIREBASE_URL`
+- [x] Deprecate old action types (keep temporarily for migration)
+
+## Phase 4: Reducer Logic Update
+- [ ] Implement SET_PAGES handler
+- [ ] Implement ADD_PAGE handler (blank or from Firebase)
+- [ ] Implement DELETE_PAGE handler
+- [ ] Implement REORDER_PAGES handler
+- [ ] Implement UPDATE_PAGE_STYLES handler
+- [ ] Implement ADD_ELEMENT_TO_PAGE handler
+- [ ] Implement UPDATE_ELEMENT_IN_PAGE handler
+- [ ] Implement DELETE_ELEMENT_FROM_PAGE handler
+- [ ] Implement MOVE_ELEMENT_BETWEEN_PAGES handler
+- [ ] Implement REGISTER_FILLABLE_FIELD handler
+- [ ] Implement UNREGISTER_FILLABLE_FIELD handler
+
+## Phase 5: Migration Utilities
+- [ ] Create `utils/ghl-converter.ts`:
+  - [ ] Function to convert old CanvasElement to GHLElement
+  - [ ] Function to convert old document structure to GHL pages
+  - [ ] Function to extract fillable fields from pages
+- [ ] Create `utils/firebase-helper.ts`:
+  - [ ] Function to upload PDF to Firebase
+  - [ ] Function to convert PDF page to image
+  - [ ] Function to get Firebase URL for page
+
+## Phase 6: Action Creators Update
+- [ ] Update [createNewDocument](file:///home/dev/Desktop/crm/pdf-js/src/frontend/contractManagement/store/action/contractManagement.actions.ts#555-612) to create blank pages
+- [ ] Update [uploadDocumentPdf](file:///home/dev/Desktop/crm/mcr-esign-contract-management/src/routes/contractManagementRoutes.ts#135-167) to:
+  - [ ] Upload PDF to Firebase
+  - [ ] Convert each page to image
+  - [ ] Create pages[] with Firebase URLs
+- [ ] Update [updateDocument](file:///home/dev/Desktop/crm/mcr-esign-contract-management/src/routes/contractManagementRoutes.ts#69-109) to save pages structure
+- [ ] Create new action creators for page management
+- [ ] Create new action creators for element management
+
+## Phase 7: Component Updates
+- [ ] Update page rendering components
+- [ ] Update element rendering to use page.children
+- [ ] Remove pdfBytes-based PDF rendering
+- [ ] Add Firebase image rendering for pages
+- [ ] Add blank page rendering (white background)
+- [ ] Update drag-and-drop to work with pages
+- [ ] Update page navigation
+- [ ] Update Pages drawer to show pages array
+
+## Phase 8: Backend API Updates
+- [ ] Update document model to support new structure
+- [ ] Ensure pages field is saved/loaded correctly
+- [ ] Ensure fillableFields are saved/loaded
+
+## Phase 9: Testing & Validation
+- [ ] Test creating new blank document
+- [ ] Test uploading PDF document
+- [ ] Test adding/removing pages
+- [ ] Test reordering pages
+- [ ] Test adding elements to pages
+- [ ] Test moving elements between pages
+- [ ] Test fillable fields registration
+- [ ] Test document save/load with new structure
+
+## Phase 10: Cleanup
+- [ ] Remove deprecated action types
+- [ ] Remove old buffer-based code
+- [ ] Remove unused utility functions
+- [ ] Update documentation
+- [ ] Remove migration utilities after full migration
+
+## Current Status
+**In Progress**: Phase 4 - Reducer Logic Update

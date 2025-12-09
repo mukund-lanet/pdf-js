@@ -27,7 +27,6 @@ const BoxModelControl = ({
 }: BoxModelControlProps) => {
 
   const dispatch = useDispatch();
-  const propertiesDrawerState = useSelector((state: RootState) => state?.contractManagement?.propertiesDrawerState);
 
   const renderValue = (type: 'margin' | 'padding', side: 'top' | 'right' | 'bottom' | 'left', value: number) => {
     const isActive = activeSide?.type === type && activeSide?.side === side;

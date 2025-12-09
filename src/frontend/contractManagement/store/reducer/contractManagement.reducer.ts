@@ -2,7 +2,9 @@ import * as Actions from '../action/contractManagement.actions';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   DocumentItem,
-  ContractItem
+  ContractItem,
+  Page,
+  FillableField
 } from '../../utils/interface';
 import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
 
@@ -105,6 +107,11 @@ export interface ContractManagementState {
   documentsList: any[];
   contractsList: any[];
   settingsData: any | null;
+  
+  // GHL Architecture State
+  pages: Page[];
+  fillableFields: FillableField[];
+  fontsToLoad: string[];
 }
 
 export interface RootState {
@@ -225,8 +232,40 @@ const initialState: ContractManagementState = {
   // API Data
   documentsList: [],
   contractsList: [],
-  settingsData: null
+  settingsData: null,
+  
+  // GHL Architecture State
+  pages: [],
+  fillableFields: [],
+  fontsToLoad: ['Open Sans']
 };
+
+const createDefaultPage = (): Page => ({
+  type: "Page",
+  version: 1,
+  id: uuidv4(),
+  children: [],
+  component: {
+    name: "Page",
+    options: {
+      src: "",
+      pageDimensions: {
+        dimensions: { width: 816, height: 1056 }, // Standard US Letter @ 96 DPI
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        rotation: "portrait"
+      }
+    }
+  },
+  responsiveStyles: {
+    large: {
+       backgroundColor: "#ffffff",
+       backgroundPosition: "center",
+       backgroundSize: "contain",
+       backgroundRepeat: "no-repeat",
+       opacity: 1
+    }
+  }
+});
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
   // console.log('ContractManagement Reducer Action:', action.type);
@@ -236,6 +275,9 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         activeDocument: action.payload,
+        pages: action.payload?.pages || [],
+        fillableFields: action.payload?.fillableFields || [],
+        totalPages: action.payload?.pages?.length || 0,
       };
     case Actions.SET_DIALOG_STATE:
       return {
@@ -279,6 +321,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         createdBy: 'Current User', // Replace with actual user info if available
         signingOrder: action.payload.signingOrder || false,
       };
+
+      const defaultPage = createDefaultPage();
       
       return {
         ...state,
@@ -291,7 +335,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
           ...state.documentsFilters,
           all: state.documentsFilters.all + 1,
           draft: state.documentsFilters.draft + 1,
-        }
+        },
+        pages: [defaultPage],
+        totalPages: 1,
+        currentPage: 1
       };
     }
     case Actions.UPLOAD_DOCUMENT_PDF: {
@@ -329,20 +376,23 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     // }
     
     case Actions.UPDATE_DOCUMENT: {
-      const { documentId, documentName, signers, signingOrder, canvasElements, pageDimensions } = action.payload;
+      const { documentId, documentName, signers, signingOrder, pages, fillableFields, variables } = action.payload;
       const updatedDocuments = state.documents.map(doc => 
         doc._id === documentId 
-          ? { ...doc, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
+          ? { ...doc, name: documentName, signers, signingOrder, pages, fillableFields, variables }
           : doc
       );
       
       return {
         ...state,
         documents: updatedDocuments,
-        // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
+        // Update activeDocument if it's the one being modified
         activeDocument: state.activeDocument && state.activeDocument._id === documentId 
-          ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
+          ? { ...state.activeDocument, name: documentName, signers, signingOrder, pages, fillableFields, variables }
           : state.activeDocument,
+        // Also update the global state pages/fillableFields if this is the active document
+        pages: state.activeDocument && state.activeDocument._id === documentId && pages ? pages : state.pages,
+        fillableFields: state.activeDocument && state.activeDocument._id === documentId && fillableFields ? fillableFields : state.fillableFields,
       };
     }
     
@@ -615,7 +665,9 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         propertiesDrawerState: {
           anchorEl: null,
           isOpen: false
-        }
+        },
+        pages: [],
+        fillableFields: []
       };
 
     case Actions.REORDER_PAGE_ELEMENTS: {
@@ -703,6 +755,244 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         settingsData: action.payload
       };
     
+    // ==================== GHL Architecture Actions ====================
+    
+    case Actions.SET_PAGES:
+      return {
+        ...state,
+        pages: action.payload,
+        totalPages: action.payload.length
+      };
+
+    case Actions.ADD_PAGE: {
+      const { page, index } = action.payload;
+      const newPages = [...state.pages];
+      
+      if (typeof index === 'number' && index >= 0 && index <= newPages.length) {
+        newPages.splice(index, 0, page);
+      } else {
+        newPages.push(page);
+      }
+      
+      return {
+        ...state,
+        pages: newPages,
+        totalPages: newPages.length
+      };
+    }
+
+    case Actions.DELETE_PAGE: {
+      const newPages = state.pages.filter(p => p.id !== action.payload);
+      // Adjust current page if needed
+      let newCurrentPage = state.currentPage;
+      if (newCurrentPage > newPages.length) {
+        newCurrentPage = Math.max(1, newPages.length);
+      }
+      
+      return {
+        ...state,
+        pages: newPages,
+        totalPages: newPages.length,
+        currentPage: newCurrentPage
+      };
+    }
+
+    case Actions.REORDER_PAGES: {
+      const { sourceIndex, destinationIndex } = action.payload;
+      const newPages = [...state.pages];
+      const [movedPage] = newPages.splice(sourceIndex, 1);
+      newPages.splice(destinationIndex, 0, movedPage);
+      
+      return {
+        ...state,
+        pages: newPages
+      };
+    }
+
+    case Actions.UPDATE_PAGE_STYLES: {
+      const { pageId, styles } = action.payload;
+      return {
+        ...state,
+        pages: state.pages.map(page => 
+          page.id === pageId 
+            ? { 
+                ...page, 
+                responsiveStyles: {
+                  ...page.responsiveStyles,
+                  large: {
+                    ...page.responsiveStyles.large,
+                    ...styles
+                  }
+                }
+              }
+            : page
+        )
+      };
+    }
+
+    case Actions.ADD_ELEMENT_TO_PAGE: {
+      const { pageNumber, element } = action.payload;
+      const pageIndex = pageNumber - 1;
+
+      if (pageIndex < 0 || pageIndex >= state.pages.length) return state;
+
+      const newPages = [...state.pages];
+      const page = { ...newPages[pageIndex] };
+      
+      page.children = [...page.children, element];
+      newPages[pageIndex] = page;
+
+      return {
+        ...state,
+        pages: newPages
+      };
+    }
+
+    case Actions.UPDATE_ELEMENT_IN_PAGE: {
+      const { pageNumber, element } = action.payload;
+      const pageIndex = pageNumber - 1;
+
+      if (pageIndex < 0 || pageIndex >= state.pages.length) return state;
+
+      const newPages = [...state.pages];
+      const page = { ...newPages[pageIndex] };
+
+      page.children = page.children.map(child => 
+        child.id === element.id ? element : child
+      );
+
+      newPages[pageIndex] = page;
+
+      return {
+        ...state,
+        pages: newPages
+      };
+    }
+
+
+
+    case Actions.DELETE_ELEMENT_FROM_PAGE: {
+      const { pageNumber, elementId } = action.payload;
+      const pageIndex = pageNumber - 1;
+
+      if (pageIndex < 0 || pageIndex >= state.pages.length) return state;
+
+      const newPages = [...state.pages];
+      const page = { ...newPages[pageIndex] };
+
+      page.children = page.children.filter(child => child.id !== elementId);
+      newPages[pageIndex] = page;
+
+      return {
+        ...state,
+        pages: newPages
+      };
+    }
+
+    case Actions.REORDER_ELEMENTS_IN_PAGE: {
+      const { pageNumber, sourceIndex, destinationIndex } = action.payload;
+      const pageIndex = pageNumber - 1;
+
+      if (pageIndex < 0 || pageIndex >= state.pages.length) return state;
+
+      const newPages = [...state.pages];
+      const page = { ...newPages[pageIndex] };
+      const newChildren = [...page.children];
+
+      const [movedElement] = newChildren.splice(sourceIndex, 1);
+      newChildren.splice(destinationIndex, 0, movedElement);
+
+      page.children = newChildren;
+      newPages[pageIndex] = page;
+
+      return {
+        ...state,
+        pages: newPages
+      };
+    }
+
+    case Actions.MOVE_ELEMENT_BETWEEN_PAGES: {
+      const { sourcePageId, destPageId, elementId, newPosition } = action.payload;
+      
+      // Find the element and source page
+      const sourcePage = state.pages.find(p => p.id === sourcePageId);
+      const elementToMove = sourcePage?.children.find(c => c.id === elementId);
+      
+      if (!sourcePage || !elementToMove) return state;
+
+      // Create updated element with new position if provided
+      const updatedElement = newPosition 
+        ? {
+            ...elementToMove,
+            responsiveStyles: {
+              ...elementToMove.responsiveStyles,
+              large: {
+                ...elementToMove.responsiveStyles.large,
+                position: {
+                  ...elementToMove.responsiveStyles.large.position,
+                  ...newPosition
+                }
+              }
+            }
+          }
+        : elementToMove;
+
+      return {
+        ...state,
+        pages: state.pages.map(page => {
+          if (page.id === sourcePageId) {
+            return {
+              ...page,
+              children: page.children.filter(c => c.id !== elementId)
+            };
+          }
+          if (page.id === destPageId) {
+            return {
+              ...page,
+              children: [...page.children, updatedElement]
+            };
+          }
+          return page;
+        })
+      };
+    }
+
+    case Actions.REGISTER_FILLABLE_FIELD:
+      // Avoid duplicates
+      if (state.fillableFields.some(f => f.id === action.payload.id)) {
+        return state;
+      }
+      return {
+        ...state,
+        fillableFields: [...state.fillableFields, action.payload]
+      };
+
+    case Actions.UNREGISTER_FILLABLE_FIELD:
+      return {
+        ...state,
+        fillableFields: state.fillableFields.filter(f => f.fieldId !== action.payload)
+      };
+
+    case Actions.SET_PAGE_FIREBASE_URL: {
+      const { pageId, url } = action.payload;
+      return {
+        ...state,
+        pages: state.pages.map(page => 
+          page.id === pageId 
+            ? { 
+                ...page, 
+                component: {
+                  ...page.component,
+                  options: {
+                    ...page.component.options,
+                    src: url
+                  }
+                }
+              }
+            : page
+        )
+      };
+    }
     default:
       return state;
   }

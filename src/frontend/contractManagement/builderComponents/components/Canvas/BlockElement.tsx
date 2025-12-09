@@ -6,12 +6,13 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Tooltip from '@trenchaant/pkg-ui-component-library/build/Components/Tooltip';
-import { BlockElement as BlockElementType } from '../../../utils/interface';
-import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { BlockElements } from '../../../utils/interface';
+import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, UPDATE_ELEMENT_IN_PAGE, DELETE_ELEMENT_FROM_PAGE } from '../../../store/action/contractManagement.actions';
 
 interface BlockElementProps {
-  element: BlockElementType;
-  onCopy: (element: BlockElementType) => void;
+  element: BlockElements;
+  pageNumber: number;
+  onCopy: (element: BlockElements) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   canMoveUp: boolean;
@@ -22,6 +23,7 @@ interface BlockElementProps {
 
 const BlockElement = ({
   element,
+  pageNumber,
   onCopy,
   onMoveUp,
   onMoveDown,
@@ -36,10 +38,22 @@ const BlockElement = ({
   const elementRef = useRef<HTMLDivElement>(null);
 
   const handleContentChange = (newContent: string) => {
-    if (element.type === 'heading') {
+    if (element.type === 'Text') {
       dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, content: newContent }
+        type: UPDATE_ELEMENT_IN_PAGE,
+        payload: { 
+          pageNumber,
+          element: { 
+            ...element, 
+            component: {
+              ...element.component,
+              options: {
+                ...element.component.options,
+                text: newContent
+              }
+            }
+          } 
+        }
       });
     }
   };
@@ -67,18 +81,42 @@ const BlockElement = ({
     reader.onload = (event) => {
       const imageData = event.target?.result as string;
       dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, imageData }
+        type: UPDATE_ELEMENT_IN_PAGE,
+        payload: { 
+          pageNumber,
+          element: { 
+            ...element, 
+            component: {
+              ...element.component,
+              options: {
+                ...element.component.options,
+                src: imageData
+              }
+            }
+          } 
+        }
       });
     };
     reader.readAsDataURL(file);
   };
 
   const handleVideoUrlChange = (url: string) => {
-    if (element.type === 'video') {
+    if (element.type === 'Video') {
       dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, videoUrl: url }
+        type: UPDATE_ELEMENT_IN_PAGE,
+        payload: { 
+          pageNumber,
+          element: { 
+            ...element, 
+            component: {
+              ...element.component,
+              options: {
+                ...element.component.options,
+                src: url
+              }
+            }
+          } 
+        }
       });
     }
   };
@@ -93,10 +131,23 @@ const BlockElement = ({
   };
 
   const handleSubtitleChange = (subtitle: string) => {
-    if (element.type === 'heading') {
+    if (element.type === 'Text') {
       dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, subtitle }
+        type: UPDATE_ELEMENT_IN_PAGE,
+        payload: { 
+          pageNumber,
+          element: { 
+            ...element, 
+            // Subtitle is not standard in GHL Text element, storing in options for now if needed
+            component: {
+              ...element.component,
+              options: {
+                ...element.component.options,
+                subtitle
+              }
+            }
+          } 
+        }
       });
     }
   };
@@ -185,8 +236,9 @@ const BlockElement = ({
   };
 
   const renderContent = () => {
+    const elementStyles = element.responsiveStyles.large;
     switch (element.type) {
-      case 'heading':
+      case 'Text':
         return (
           <div
             className={styles.blockHeadingContent}
@@ -196,17 +248,17 @@ const BlockElement = ({
               flexDirection: 'column',
               justifyContent: 'space-between',
               gap: '12px',
-              ...((element.padding || element.margin) && {
-                paddingTop: element.padding?.top,
-                paddingRight: element.padding?.right,
-                paddingBottom: element.padding?.bottom,
-                paddingLeft: element.padding?.left,
-                marginTop: element.margin?.top,
-                marginRight: element.margin?.right,
-                marginBottom: element.margin?.bottom,
-                marginLeft: element.margin?.left,
+              ...((elementStyles) && {
+                paddingTop: elementStyles.paddingTop || undefined,
+                paddingRight: elementStyles.paddingRight || undefined,
+                paddingBottom: elementStyles.paddingBottom || undefined,
+                paddingLeft: elementStyles.paddingLeft || undefined,
+                marginTop: elementStyles.marginTop || undefined,
+                marginRight: elementStyles.marginRight || undefined,
+                marginBottom: elementStyles.marginBottom || undefined,
+                marginLeft: elementStyles.marginLeft || undefined,
               }),
-              backgroundColor: element.backgroundColor,
+              backgroundColor: elementStyles.backgroundColor,
               minHeight: "120px"
             }}
           >
@@ -216,17 +268,17 @@ const BlockElement = ({
               onBlur={(e) => handleContentChange(e.currentTarget.innerText || '')}
               className={styles.blockHeadingText}
               style={{
-                fontSize: element.fontSize || 32,
-                fontWeight: element.fontWeight || '700',
-                color: element.color || '#111827',
-                textAlign: element.textAlign || 'left',
-                fontStyle: element.fontStyle || 'normal',
-                textDecoration: element.textDecoration || 'none',
-                fontFamily: element.fontFamily || 'Open Sans, sans-serif',
+                fontSize: elementStyles.fontSize || 32,
+                fontWeight: elementStyles.fontWeight || '700',
+                color: elementStyles.color || '#111827',
+                textAlign: (elementStyles.textAlign as any) || 'left',
+                fontStyle: elementStyles.fontStyle || 'normal',
+                textDecoration: elementStyles.textDecoration || 'none',
+                fontFamily: elementStyles.fontFamily || 'Open Sans, sans-serif',
                 outline: 'none',
               }}
             >
-              {element.content}
+              {element.component.options.text}
             </div>
             <div
               contentEditable
@@ -234,37 +286,37 @@ const BlockElement = ({
               onBlur={(e) => handleSubtitleChange(e.currentTarget.innerText || '')}
               className={styles.blockSubtitleText}
               style={{
-                fontSize: element.subtitleFontSize || 16,
-                fontWeight: element.subtitleFontWeight || '400',
-                color: element.subtitleColor || '#374151',
-                textAlign: element.textAlign || 'left',
-                fontFamily: element.fontFamily || 'Open Sans, sans-serif',
+                fontSize: (element as any).subtitleFontSize || 16,
+                fontWeight: (element as any).subtitleFontWeight || '400',
+                color: (element as any).subtitleColor || '#374151',
+                textAlign: (elementStyles.textAlign as any) || 'left',
+                fontFamily: elementStyles.fontFamily || 'Open Sans, sans-serif',
                 outline: 'none'
               }}
               data-placeholder="Add a subtitle"
             >
-              {element.subtitle || 'Add a subtitle'}
+              {(element.component.options as any).subtitle || 'Add a subtitle'}
             </div>
           </div>
         );
 
-      case 'image':
-        const imageSource = element.imageUrl || element.imageData;
+      case 'Image':
+        const imageSource = element.component.options.src;
         return (
           <div
             className={styles.blockImageContent}
             style={{
-              ...((element.padding || element.margin) && {
-                paddingTop: element.padding?.top,
-                paddingRight: element.padding?.right,
-                paddingBottom: element.padding?.bottom,
-                paddingLeft: element.padding?.left,
-                marginTop: element.margin?.top,
-                marginRight: element.margin?.right,
-                marginBottom: element.margin?.bottom,
-                marginLeft: element.margin?.left,
+              ...((elementStyles) && {
+                paddingTop: elementStyles.paddingTop || undefined,
+                paddingRight: elementStyles.paddingRight || undefined,
+                paddingBottom: elementStyles.paddingBottom || undefined,
+                paddingLeft: elementStyles.paddingLeft || undefined,
+                marginTop: elementStyles.marginTop || undefined,
+                marginRight: elementStyles.marginRight || undefined,
+                marginBottom: elementStyles.marginBottom || undefined,
+                marginLeft: elementStyles.marginLeft || undefined,
               }),
-              backgroundColor: element.backgroundColor,
+              backgroundColor: elementStyles.backgroundColor,
               display: 'flex',
               justifyContent: 'center',
               minHeight: "120px"
@@ -275,10 +327,10 @@ const BlockElement = ({
                 src={imageSource}
                 alt="Uploaded content"
                 style={{
-                  width: element.width ? `${element.width}px` : '100%',
+                  width: elementStyles.width ? elementStyles.width : '100%',
                   height: '100%',
                   objectFit: 'contain',
-                  filter: element.imageEffect === 'grayscale' ? 'grayscale(100%)' : 'none'
+                  filter: elementStyles.imageEffect === 'grayscale' ? 'grayscale(100%)' : 'none'
                 }}
               />
             ) : (
@@ -287,24 +339,24 @@ const BlockElement = ({
           </div>
         );
 
-      case 'video':
-        const embedUrl = element.videoUrl ? getEmbedUrl(element.videoUrl) : null;
+      case 'Video':
+        const embedUrl = element.component.options.src ? getEmbedUrl(element.component.options.src) : null;
 
         return (
           <div
             className={styles.blockVideoContent}
             style={{
-              ...((element.padding || element.margin) && {
-                paddingTop: element.padding?.top,
-                paddingRight: element.padding?.right,
-                paddingBottom: element.padding?.bottom,
-                paddingLeft: element.padding?.left,
-                marginTop: element.margin?.top,
-                marginRight: element.margin?.right,
-                marginBottom: element.margin?.bottom,
-                marginLeft: element.margin?.left,
+              ...((elementStyles) && {
+                paddingTop: elementStyles.paddingTop || undefined,
+                paddingRight: elementStyles.paddingRight || undefined,
+                paddingBottom: elementStyles.paddingBottom || undefined,
+                paddingLeft: elementStyles.paddingLeft || undefined,
+                marginTop: elementStyles.marginTop || undefined,
+                marginRight: elementStyles.marginRight || undefined,
+                marginBottom: elementStyles.marginBottom || undefined,
+                marginLeft: elementStyles.marginLeft || undefined,
               }),
-              backgroundColor: element.backgroundColor,
+              backgroundColor: elementStyles.backgroundColor,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -313,8 +365,8 @@ const BlockElement = ({
           >
             {embedUrl ? (
               <div className={styles.videoIframeContainer} style={{
-                width: element.width ? `${element.width}px` : '100%',
-                height: element.height ? `${element.height}px` : '100%',
+                width: elementStyles.width ? elementStyles.width : '100%',
+                height: elementStyles.height ? elementStyles.height : '100%',
               }}>
                 <iframe
                   src={embedUrl}
@@ -338,30 +390,30 @@ const BlockElement = ({
           </div>
         );
 
-      case 'table':
+      case 'Table':
         return (
           <div
             className={styles.blockTableContent}
             style={{
-              ...((element.padding || element.margin) && {
-                paddingTop: element.padding?.top,
-                paddingRight: element.padding?.right,
-                paddingBottom: element.padding?.bottom,
-                paddingLeft: element.padding?.left,
-                marginTop: element.margin?.top,
-                marginRight: element.margin?.right,
-                marginBottom: element.margin?.bottom,
-                marginLeft: element.margin?.left,
+              ...((elementStyles) && {
+                paddingTop: elementStyles.paddingTop || undefined,
+                paddingRight: elementStyles.paddingRight || undefined,
+                paddingBottom: elementStyles.paddingBottom || undefined,
+                paddingLeft: elementStyles.paddingLeft || undefined,
+                marginTop: elementStyles.marginTop || undefined,
+                marginRight: elementStyles.marginRight || undefined,
+                marginBottom: elementStyles.marginBottom || undefined,
+                marginLeft: elementStyles.marginLeft || undefined,
               }),
-              backgroundColor: element.backgroundColor,
+              backgroundColor: elementStyles.backgroundColor,
               minHeight: "120px"
             }}
           >
             <table className={styles.blockTable}>
               <tbody>
-                {Array.from({ length: element.rows }).map((_, rowIndex) => (
+                {Array.from({ length: (element as any).rows || 3 }).map((_, rowIndex) => (
                   <tr key={rowIndex}>
-                    {Array.from({ length: element.columns }).map((_, colIndex) => (
+                    {Array.from({ length: (element as any).columns || 3 }).map((_, colIndex) => (
                       <td
                         key={colIndex}
                         contentEditable
@@ -370,16 +422,16 @@ const BlockElement = ({
                         rowSpan={1}
                         colSpan={1}
                         style={{
-                          fontSize: element.fontSize,
-                          fontWeight: element.fontWeight,
-                          color: element.color,
-                          textAlign: element.textAlign,
-                          fontStyle: element.fontStyle,
-                          textDecoration: element.textDecoration,
-                          fontFamily: element.fontFamily || 'Open Sans, sans-serif',
+                          fontSize: elementStyles.fontSize,
+                          fontWeight: elementStyles.fontWeight,
+                          color: elementStyles.color,
+                          textAlign: (elementStyles.textAlign as any),
+                          fontStyle: elementStyles.fontStyle,
+                          textDecoration: elementStyles.textDecoration,
+                          fontFamily: elementStyles.fontFamily || 'Open Sans, sans-serif',
                         }}
                       >
-                        {element.data?.[rowIndex]?.[colIndex] || ''}
+                        {(element.component.options as any).data?.[rowIndex]?.[colIndex] || ''}
                       </td>
                     ))}
                   </tr>
@@ -397,7 +449,7 @@ const BlockElement = ({
   return (
     <div
       ref={elementRef}
-      className={`${styles.blockElement} ${isDragging ? styles.blockDragging : ''} ${isHovered ? styles.blockHovered : ''} ${element.type === 'table' ? styles.tableBlock : ''} `}
+      className={`${styles.blockElement} ${isDragging ? styles.blockDragging : ''} ${isHovered ? styles.blockHovered : ''} ${element.type === 'Table' ? styles.tableBlock : ''} `}
       // style={{ height: `${height}px`, minHeight: `${MIN_HEIGHT}px` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -425,8 +477,11 @@ const BlockElement = ({
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   dispatch({
-                    type: DELETE_CANVAS_ELEMENT,
-                    payload: element.id
+                    type: DELETE_ELEMENT_FROM_PAGE,
+                    payload: {
+                      pageNumber,
+                      elementId: element.id
+                    }
                   });
                 }}
               >

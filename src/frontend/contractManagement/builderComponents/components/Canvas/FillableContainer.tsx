@@ -4,24 +4,26 @@ import { useDrop, useDragLayer } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import DraggableElement from './DraggableElement';
-import { FillableFieldElement, CanvasElement, isFillableElement } from '../../../utils/interface';
+import { GHLFillableElement, isGHLFillableElement } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { UPDATE_CANVAS_ELEMENT, ADD_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { UPDATE_ELEMENT_IN_PAGE, ADD_ELEMENT_TO_PAGE } from '../../../store/action/contractManagement.actions';
 
 interface FillableContainerProps {
   pageNumber: number;
   containerRef: React.RefObject<HTMLDivElement>;
+  elements: GHLFillableElement[];
 }
 
 const FillableContainer = ({
   pageNumber,
-  containerRef
+  containerRef,
+  elements
 }: FillableContainerProps) => {
   const dispatch = useDispatch();
-  const allElements = useSelector((state: RootState) =>
-    state?.contractManagement.canvasElements.filter(el => el.page === pageNumber)
-  );
-  const fillableElements = allElements.filter(el => isFillableElement(el)) as FillableFieldElement[];
+  // const allElements = useSelector((state: RootState) =>
+  //   state?.contractManagement.canvasElements.filter(el => el.page === pageNumber)
+  // );
+  const fillableElements = elements;
 
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
 
@@ -46,11 +48,14 @@ const FillableContainer = ({
         const newY = Math.round(item.y + delta.y);
 
         dispatch({
-          type: UPDATE_CANVAS_ELEMENT,
+          type: UPDATE_ELEMENT_IN_PAGE,
           payload: {
-            ...element,
-            x: newX,
-            y: newY
+            pageNumber,
+            element: {
+              ...element,
+              x: newX,
+              y: newY
+            }
           }
         });
         return;
@@ -76,155 +81,164 @@ const FillableContainer = ({
 
         const elementType = type as 'text-field' | 'image' | 'signature' | 'date' | 'initials' | 'checkbox' | 'heading' | 'video' | 'table';
 
-        const getNextOrder = () => {
-          const pageBlocks = allElements.filter(el => ['heading', 'image', 'video', 'table'].includes(el.type));
-          return pageBlocks.length > 0
-            ? Math.max(...pageBlocks.map((el: any) => el.order || 0)) + 1
-            : 0;
-        };
+
 
         switch (elementType) {
           case 'heading':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'heading',
-                id: generateId(),
-                order: getNextOrder(),
-                height: defaultSize.heading.height,
-                content: 'Heading',
-                page: pageNumber,
-                fontSize: 32,
-                fontWeight: '700'
+                pageNumber,
+                element: {
+                  type: 'heading',
+                  id: generateId(),
+                  height: defaultSize.heading.height,
+                  content: 'Heading',
+                  fontSize: 32,
+                  fontWeight: '700'
+                }
               }
             });
             break;
 
           case 'text-field':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'text-field',
-                id: generateId(),
-                x: x - defaultSize['text-field'].width / 2,
-                y: y - defaultSize['text-field'].height / 2,
-                width: defaultSize['text-field'].width,
-                height: defaultSize['text-field'].height,
-                content: 'Enter text here...',
-                page: pageNumber,
-                fontSize: 12,
-                color: '#000000',
-                fontWeight: 'normal',
-                fontStyle: 'normal',
-                textDecoration: 'none',
-                textAlign: 'left'
+                pageNumber,
+                element: {
+                  type: 'text-field',
+                  id: generateId(),
+                  x: x - defaultSize['text-field'].width / 2,
+                  y: y - defaultSize['text-field'].height / 2,
+                  width: defaultSize['text-field'].width,
+                  height: defaultSize['text-field'].height,
+                  content: 'Enter text here...',
+                  fontSize: 12,
+                  color: '#000000',
+                  fontWeight: 'normal',
+                  fontStyle: 'normal',
+                  textDecoration: 'none',
+                  textAlign: 'left'
+                }
               }
             });
             break;
 
           case 'image':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'image',
-                id: generateId(),
-                order: getNextOrder(),
-                height: defaultSize.image.height,
-                imageData: '',
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'image',
+                  id: generateId(),
+                  height: defaultSize.image.height,
+                  imageData: ''
+                }
               }
             });
             break;
 
           case 'video':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'video',
-                id: generateId(),
-                order: getNextOrder(),
-                height: defaultSize.video.height,
-                videoUrl: '',
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'video',
+                  id: generateId(),
+                  height: defaultSize.video.height,
+                  videoUrl: ''
+                }
               }
             });
             break;
 
           case 'table':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'table',
-                id: generateId(),
-                order: getNextOrder(),
-                height: defaultSize.table.height,
-                rows: 2,
-                columns: 2,
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'table',
+                  id: generateId(),
+                  height: defaultSize.table.height,
+                  rows: 2,
+                  columns: 2
+                }
               }
             });
             break;
 
           case 'signature':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'signature',
-                id: generateId(),
-                x: x - defaultSize.signature.width / 2,
-                y: y - defaultSize.signature.height / 2,
-                width: defaultSize.signature.width,
-                height: defaultSize.signature.height,
-                imageData: '',
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'signature',
+                  id: generateId(),
+                  x: x - defaultSize.signature.width / 2,
+                  y: y - defaultSize.signature.height / 2,
+                  width: defaultSize.signature.width,
+                  height: defaultSize.signature.height,
+                  imageData: ''
+                }
               }
             });
             break;
 
           case 'date':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'date',
-                id: generateId(),
-                x: x - defaultSize.date.width / 2,
-                y: y - defaultSize.date.height / 2,
-                width: defaultSize.date.width,
-                height: defaultSize.date.height,
-                value: '',
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'date',
+                  id: generateId(),
+                  x: x - defaultSize.date.width / 2,
+                  y: y - defaultSize.date.height / 2,
+                  width: defaultSize.date.width,
+                  height: defaultSize.date.height,
+                  value: ''
+                }
               }
             });
             break;
 
           case 'initials':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'initials',
-                id: generateId(),
-                x: x - defaultSize.initials.width / 2,
-                y: y - defaultSize.initials.height / 2,
-                width: defaultSize.initials.width,
-                height: defaultSize.initials.height,
-                content: '',
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'initials',
+                  id: generateId(),
+                  x: x - defaultSize.initials.width / 2,
+                  y: y - defaultSize.initials.height / 2,
+                  width: defaultSize.initials.width,
+                  height: defaultSize.initials.height,
+                  content: ''
+                }
               }
             });
             break;
 
           case 'checkbox':
             dispatch({
-              type: ADD_CANVAS_ELEMENT,
+              type: ADD_ELEMENT_TO_PAGE,
               payload: {
-                type: 'checkbox',
-                id: generateId(),
-                x: x - defaultSize.checkbox.width / 2,
-                y: y - defaultSize.checkbox.height / 2,
-                width: defaultSize.checkbox.width,
-                height: defaultSize.checkbox.height,
-                checked: false,
-                page: pageNumber
+                pageNumber,
+                element: {
+                  type: 'checkbox',
+                  id: generateId(),
+                  x: x - defaultSize.checkbox.width / 2,
+                  y: y - defaultSize.checkbox.height / 2,
+                  width: defaultSize.checkbox.width,
+                  height: defaultSize.checkbox.height,
+                  checked: false
+                }
               }
             });
             break;
@@ -260,6 +274,7 @@ const FillableContainer = ({
         <div key={element.id} className={styles.fillableElementWrapper}>
           <DraggableElement
             element={element}
+            pageNumber={pageNumber}
             isSelected={selectedIds.includes(element.id)}
             onSelect={handleSelect}
           />

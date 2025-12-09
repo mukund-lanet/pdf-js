@@ -1,63 +1,28 @@
-# PDF Editor Backend
+# mcr-esign-contract-management
 
-This is the backend service for the PDF Editor Contract Management module.
+This is a Esignature and contract management service created using nodejs and typescipt.
 
-## Prerequisites
+### Development Setup
 
-- Node.js
-- MongoDB
+- Clone this repo to your local environment. 
+- Copy it with new micro service name.
+- Replace `esign-contract-management` with your own micro service name.
 
-## Installation
-
-1. Navigate to the backend directory:
-   ```bash
-   cd pdf-js/backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-## Configuration
-
-The application uses default configuration. You can create a `.env` file to override defaults:
-
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/pdf-editor
+### Package installation
+```
+$ yarn
+$ yarn buld
 ```
 
-## Running the Application
+### Run locally
 
-### Development
-```bash
-npm run dev
+```
+yarn dev
+http://localhost:8080
 ```
 
-### Production
-```bash
-npm run build
-npm start
+# Deployment:
+
 ```
-
-## API Endpoints
-
-### Documents
-- `GET /api/documents` - List all documents
-- `GET /api/documents/:id` - Get a specific document
-- `POST /api/documents` - Create a new document
-- `PUT /api/documents/:id` - Update a document
-- `DELETE /api/documents/:id` - Delete a document
-- `POST /api/documents/upload` - Upload a PDF file
-
-### Contracts
-- `GET /api/contracts` - List all contracts
-- `GET /api/contracts/:id` - Get a specific contract
-- `POST /api/contracts` - Create a new contract
-- `PUT /api/contracts/:id` - Update a contract
-- `DELETE /api/contracts/:id` - Delete a contract
-
-### Settings
-- `GET /api/settings` - Get global settings
-- `PUT /api/settings` - Update global settings
+gcloud app deploy --version=<version number> --no-promote
+```

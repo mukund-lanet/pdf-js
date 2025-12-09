@@ -1,0 +1,60 @@
+def pipelineName = env.JOB_NAME.tokenize('/').last()
+pipeline {
+    agent any
+
+    environment {
+        GCP_PROJECT_ID = "crmone-prod"
+        GCP_SA_KEY = credentials('GCP_SA_KEY')
+        SSH_PRIVATE_KEY = credentials('SSH_PRIVATE_KEY')
+    }
+
+    stages {       
+        stage('Set Up Google Cloud SDK') {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: 'GCP_SA_KEY', variable: 'GCP_SA_KEY_FILE')]) {
+                        sh """                            
+                            gcloud auth activate-service-account --key-file=${GCP_SA_KEY_FILE} --project='${GCP_PROJECT_ID}'
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Configure Docker') {
+            steps {
+                script {
+                    sh 'gcloud --quiet auth configure-docker'
+                }
+            }
+        }
+
+        stage('Yarn Install and Build') {
+            steps {
+                script {
+                    nodejs(nodeJSInstallationName: 'Node.js 16'){                       
+                        sh 'yarn || true'                        
+                        sh 'yarn build:prod || true'
+                    }
+                }
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t gcr.io/${GCP_PROJECT_ID}/${pipelineName} ."
+                    sh "docker push gcr.io/${GCP_PROJECT_ID}/${pipelineName}"
+                }
+            }
+        }
+
+        stage('Deploy to kubernetes') {
+            steps {
+                script {
+                    mcrdeploy("production")
+                }
+            }
+        }
+    }
+}

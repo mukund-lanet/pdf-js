@@ -1,0 +1,23 @@
+serviceName: mcr-esign-contract-management
+#replicas: 1
+env:
+  NODE_ENV: production
+#  CRM_GC_REGION: us-east1
+  CRM_MS_PREFIX: /esign
+  CRM_MONGO_DB_NAME: esign-prod
+  CRM_API_MCR_DEVOPS_NAME: esign
+
+# customEnv:
+#   testenv: testenvvalue
+#port: 8080
+#requestMemory: 128Mi
+#requestCpu: 100m
+
+#limitMemory: 256Mi
+#limitCpu: 200m
+
+#minReplicas: 1
+#maxReplicas: 5
+
+#targetCPUUtilizationPercentage: 70
+#targetMemoryUtilizationPercentage: 70
