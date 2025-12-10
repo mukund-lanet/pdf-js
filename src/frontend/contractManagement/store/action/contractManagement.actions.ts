@@ -449,7 +449,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
       const response = await axiosInstance({
         method: 'post',
         // url: `${API_URL_PREFIX}/documents?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: {
           name: data.documentName,
@@ -509,7 +509,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
       const response = await axiosInstance({
         method: 'post',
         // url: `${API_URL_PREFIX}/documents/upload?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents/upload?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/upload?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: {
           documentName: data.documentName,
@@ -524,6 +524,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
           payload: response.data,
         });
         
+        // If pdfBytes are provided, set them in the store
         if (data.pdfBytes) {
           dispatch({
             type: SET_PDF_BYTES,
@@ -587,7 +588,7 @@ export const updateDocument = (data: {
       const response = await axiosInstance({
         method: 'put',
         // url: `${API_URL_PREFIX}/documents/${data.documentId}?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents/${data.documentId}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${data.documentId}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: {
           name: data.documentName,
@@ -658,7 +659,7 @@ export const getDocuments = (): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -687,7 +688,7 @@ export const getDocumentById = (id: string | undefined): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -726,7 +727,7 @@ export const loadDocumentById = (id: string): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -883,7 +884,7 @@ export const deleteDocument = (id: string, documentName: string): AppDispatch =>
 
       const response = await axiosInstance({
         method: 'delete',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -920,7 +921,7 @@ export const getContracts = (): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -949,7 +950,7 @@ export const createContract = (contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'post',
-        url: `http://localhost:5000/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: contractData,
       });
@@ -991,7 +992,7 @@ export const updateContract = (id: string, contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'put',
-        url: `http://localhost:5000/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: contractData,
       });
@@ -1033,7 +1034,7 @@ export const deleteContract = (id: string, contractName: string): AppDispatch =>
 
       const response = await axiosInstance({
         method: 'delete',
-        url: `http://localhost:5000/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1069,7 +1070,7 @@ export const getSettings = (): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1109,7 +1110,7 @@ export const updateSettings = (settingsData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'put',
-        url: `http://localhost:5000/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: settingsData,
       });

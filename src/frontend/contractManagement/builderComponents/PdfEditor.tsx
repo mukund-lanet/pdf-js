@@ -44,18 +44,23 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
 
     const { source, destination, draggableId } = result;
 
+    // only handle block reordering in the same page
     if (source.droppableId === destination.droppableId && source.droppableId.startsWith('blocks-page-')) {
       if (source.index === destination.index) return;
 
+      // extract the page number from droppableId
       const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
 
+      // get all blocks for this page and sorted by order
       const pageBlocks = canvasElements
         .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 
+      // reorder of the blocks
       const [movedBlock] = pageBlocks.splice(source.index, 1);
       pageBlocks.splice(destination.index, 0, movedBlock);
 
+      // opdate orders
       const updatedBlocks = pageBlocks.map((block, index) => ({
         ...block,
         order: index

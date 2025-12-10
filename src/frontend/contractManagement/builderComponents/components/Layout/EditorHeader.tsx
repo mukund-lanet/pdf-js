@@ -20,6 +20,7 @@ const EditorHeader = () => {
   const file = useSelector((state: RootState) => state?.contractManagement?.media);
   const documentType = useSelector((state: RootState) => state?.contractManagement?.documentType);
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+
   const uploadPdfUrl = useSelector((state: RootState) => state?.contractManagement?.uploadPdfUrl);
   const curDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
   
@@ -28,17 +29,18 @@ const EditorHeader = () => {
   const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
 
-  const [docName, setDocName] = useState<string>(curDocument?.name || '');
-  console.log("id: ", curDocument?._id)
+  const [docName, setDocName] = useState<string>(curDocument?.name);
 
   // Handle initial document loading based on documentType
   useEffect(() => {
     const initializeDocument = async () => {
       if (documentType === 'new_document' && !pdfBytes) {
+        // Create a new blank PDF
         await createNewPdf();
       } else if (documentType === 'upload-existing') {
         if (uploadPdfUrl) {
            console.log('Loading PDF from URL:', uploadPdfUrl);
+           // Load from URL
            try {
              dispatch({ type: SET_IS_LOADING, payload: true });
              const response = await fetch(uploadPdfUrl);
@@ -65,6 +67,7 @@ const EditorHeader = () => {
              dispatch({ type: SET_IS_LOADING, payload: false });
            }
         } else if (pdfBytes) {
+          // PDF bytes are already loaded from DocumentDrawer, just ensure state is set
           console.log('Uploaded PDF loaded with', pdfBytes.length, 'bytes');
         }
       }
