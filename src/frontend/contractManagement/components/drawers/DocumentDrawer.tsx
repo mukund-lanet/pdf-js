@@ -25,6 +25,7 @@ const DocumentDrawer = () => {
   const documentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.documentDrawerOpen);
   const documentDrawerMode = useSelector((state: RootState) => state?.contractManagement?.documentDrawerMode);
   const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
+  const isDocumentLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
   
   const isEditMode = documentDrawerMode === 'edit';
   const isUploadMode = documentDrawerMode === 'upload';
@@ -235,7 +236,7 @@ const DocumentDrawer = () => {
       submitBtn={{ 
         onClick: handleSubmit, 
         label: getSubmitLabel(),
-        // loading: loading state here and the user will wait.
+        loading: isDocumentLoading
       }}
       onClose={handleClose}
       className={styles.createDocumentDrawer}

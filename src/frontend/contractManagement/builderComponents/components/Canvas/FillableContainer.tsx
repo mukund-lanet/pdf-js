@@ -4,14 +4,14 @@ import { useDrop, useDragLayer } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import DraggableElement from './DraggableElement';
-import { GHLFillableElement, isGHLFillableElement } from '../../../utils/interface';
+import { FillableElements, isFillableElement } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { UPDATE_ELEMENT_IN_PAGE, ADD_ELEMENT_TO_PAGE } from '../../../store/action/contractManagement.actions';
+import { UPDATE_ELEMENT_IN_PAGE, ADD_ELEMENT_TO_PAGE, SET_ACTIVE_TOOL } from '../../../store/action/contractManagement.actions';
 
 interface FillableContainerProps {
   pageNumber: number;
   containerRef: React.RefObject<HTMLDivElement>;
-  elements: GHLFillableElement[];
+  elements: FillableElements[];
 }
 
 const FillableContainer = ({
@@ -67,184 +67,168 @@ const FillableContainer = ({
         const y = clientOffset.y - rect.top;
         const type = item.type;
 
-        const defaultSize = {
-          heading: { height: 115 },
-          'text-field': { width: 200, height: 40 },
-          image: { height: 300 },
-          signature: { width: 150, height: 80 },
-          date: { width: 150, height: 40 },
-          initials: { width: 100, height: 60 },
-          checkbox: { width: 40, height: 40 },
-          video: { height: 300 },
-          table: { height: 200 }
-        };
+        // Helper to generate common GHL structure
+        const createBaseElement = (type: string, name: string, options: any, width: number, height: number, customProps: any = {}) => ({
+          type,
+          version: 1,
+          id: generateId(),
+          children: [],
+          component: {
+            isDraggable: true,
+            name,
+            options: {
+              isGhost: true,
+              ...options
+            }
+          },
+          responsiveStyles: {
+            large: {
+              paddingTop: "0px",
+              paddingBottom: "0px",
+              paddingLeft: "0px",
+              paddingRight: "0px",
+              mobileHide: false,
+              desktopHide: false,
+              boxShadow: "none",
+              borderStyle: "solid",
+              borderColor: "#000",
+              borderWidth: "0px",
+              borderRadius: "0px",
+              opacity: 100,
+              position: {
+                top: parseInt(y.toFixed(0)),
+                left: parseInt(x.toFixed(0)),
+                width,
+                height,
+                cols: 25,
+                rows: 25,
+                xOffset: 0,
+                yOffset: 0
+              }
+            }
+          },
+          ...customProps
+        });
 
-        const elementType = type as 'text-field' | 'image' | 'signature' | 'date' | 'initials' | 'checkbox' | 'heading' | 'video' | 'table';
+        const elementType = type as 'TextField' | 'Image' | 'Signature' | 'DateField' | 'InitialsField' | 'Checkbox' | 'Text' | 'Video' | 'Table';
 
-
+        
+        let newElement;
 
         switch (elementType) {
-          case 'heading':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'heading',
-                  id: generateId(),
-                  height: defaultSize.heading.height,
-                  content: 'Heading',
-                  fontSize: 32,
-                  fontWeight: '700'
-                }
-              }
-            });
+          case 'Text':
+            newElement = createBaseElement("Text", "Text Element", {
+              text: "Heading",
+              subtitle: "Add a subtitle",
+              color: "#000000",
+              fontFamily: "Open Sans",
+              fontSize: "32px",
+              fontWeight: "700",
+              textAlign: "left",
+              lineHeight: "1.2",
+              letterSpacing: "normal"
+            }, 300, 50);
             break;
 
-          case 'text-field':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'text-field',
-                  id: generateId(),
-                  x: x - defaultSize['text-field'].width / 2,
-                  y: y - defaultSize['text-field'].height / 2,
-                  width: defaultSize['text-field'].width,
-                  height: defaultSize['text-field'].height,
-                  content: 'Enter text here...',
-                  fontSize: 12,
-                  color: '#000000',
-                  fontWeight: 'normal',
-                  fontStyle: 'normal',
-                  textDecoration: 'none',
-                  textAlign: 'left'
-                }
-              }
-            });
+          case 'TextField':
+            newElement = createBaseElement("TextField", "Text Field Element", {
+              text: "",
+              required: true,
+              fieldId: generateId(),
+              src: "",
+              recipient: "assignedContact",
+              timestamp: null,
+              entityName: "contacts",
+              placeholder: "Enter value"
+            }, 200, 40);
             break;
 
-          case 'image':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'image',
-                  id: generateId(),
-                  height: defaultSize.image.height,
-                  imageData: ''
-                }
-              }
-            });
+          case 'Image':
+            newElement = createBaseElement("Image", "Image Element", {
+              src: "https://via.placeholder.com/150",
+              alt: "Image",
+              link: "",
+              width: "100%",
+              height: "auto",
+              objectFit: "cover"
+            }, 300, 200);
             break;
 
-          case 'video':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'video',
-                  id: generateId(),
-                  height: defaultSize.video.height,
-                  videoUrl: ''
-                }
-              }
-            });
+          case 'Video':
+            newElement = createBaseElement("Video", "Video Element", {
+              src: "",
+              type: "url",
+              autoplay: false,
+              controls: true,
+              loop: false,
+              muted: false
+            }, 300, 200);
             break;
 
-          case 'table':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'table',
-                  id: generateId(),
-                  height: defaultSize.table.height,
-                  rows: 2,
-                  columns: 2
-                }
-              }
-            });
+          case 'Table':
+            newElement = createBaseElement("Table", "Table Element", {
+              text: "", // Table data structure
+              rows: 2,
+              cols: 2,
+              data: [["", ""], ["", ""]],
+              borderColor: "#000000",
+              borderWidth: "1px",
+              padding: "5px"
+            }, 400, 200);
             break;
 
-          case 'signature':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'signature',
-                  id: generateId(),
-                  x: x - defaultSize.signature.width / 2,
-                  y: y - defaultSize.signature.height / 2,
-                  width: defaultSize.signature.width,
-                  height: defaultSize.signature.height,
-                  imageData: ''
-                }
-              }
-            });
+          case 'Signature':
+            newElement = createBaseElement("Signature", "Signature Element", {
+              required: true,
+              fieldId: generateId(),
+              recipient: "assignedContact",
+              entityName: "contacts"
+            }, 200, 60);
             break;
 
-          case 'date':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'date',
-                  id: generateId(),
-                  x: x - defaultSize.date.width / 2,
-                  y: y - defaultSize.date.height / 2,
-                  width: defaultSize.date.width,
-                  height: defaultSize.date.height,
-                  value: ''
-                }
-              }
-            });
+          case 'DateField':
+            newElement = createBaseElement("DateField", "Text Field Element", { // Component name might be reused or specific
+              text: "", // Format
+              required: true,
+              fieldId: generateId(),
+              recipient: "assignedContact",
+              entityName: "contacts",
+              placeholder: "Select Date",
+              format: "MM/DD/YYYY"
+            }, 150, 40);
             break;
 
-          case 'initials':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'initials',
-                  id: generateId(),
-                  x: x - defaultSize.initials.width / 2,
-                  y: y - defaultSize.initials.height / 2,
-                  width: defaultSize.initials.width,
-                  height: defaultSize.initials.height,
-                  content: ''
-                }
-              }
-            });
+          case 'InitialsField':
+            newElement = createBaseElement("InitialsField", "Initials Field Element", {
+              required: true,
+              fieldId: generateId(),
+              recipient: "assignedContact",
+              entityName: "contacts"
+            }, 100, 50);
             break;
 
-          case 'checkbox':
-            dispatch({
-              type: ADD_ELEMENT_TO_PAGE,
-              payload: {
-                pageNumber,
-                element: {
-                  type: 'checkbox',
-                  id: generateId(),
-                  x: x - defaultSize.checkbox.width / 2,
-                  y: y - defaultSize.checkbox.height / 2,
-                  width: defaultSize.checkbox.width,
-                  height: defaultSize.checkbox.height,
-                  checked: false
-                }
-              }
-            });
+          case 'Checkbox':
+            newElement = createBaseElement("Checkbox", "Checkbox Field Element", {
+              preChecked: false,
+              required: false,
+              fieldId: generateId(),
+              recipient: "assignedContact",
+              entityName: "contacts"
+            }, 30, 30);
             break;
         }
 
-        dispatch({ type: 'SET_ACTIVE_TOOL', payload: null });
+        if (newElement) {
+          dispatch({
+            type: ADD_ELEMENT_TO_PAGE,
+            payload: {
+              pageNumber,
+              element: newElement
+            }
+          });
+        }
+
+        dispatch({ type: SET_ACTIVE_TOOL, payload: null });
       }
     },
   });
@@ -265,7 +249,7 @@ const FillableContainer = ({
 
   return (
     <div
-      ref={drop}
+      ref={drop as unknown as React.Ref<HTMLDivElement>}
       className={styles.fillableContainer}
       onClick={handleContainerClick}
       style={{ pointerEvents: isDragging ? 'auto' : 'none' }}

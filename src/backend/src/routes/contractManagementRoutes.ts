@@ -49,10 +49,47 @@ export const createDocument = async (req: any, res: any) => {
       return res.status(400).json({ message: 'business_id is required' });
     }
     
-    const newDocument = new ContractDocument({
+    // Create default page for new documents
+    const createDefaultPage = () => ({
+      type: "Page",
+      version: 1,
+      id: `page_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      children: [],
+      component: {
+        name: "Page",
+        options: {
+          src: "",
+          pageDimensions: {
+            dimensions: { width: 816, height: 1056 },
+            margins: { top: 0, right: 0, bottom: 0, left: 0 },
+            rotation: "portrait"
+          }
+        }
+      },
+      responsiveStyles: {
+        large: {
+          backgroundColor: "#ffffff",
+          backgroundPosition: "center",
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          opacity: 1
+        }
+      }
+    });
+    
+    // If this is a new document (not upload), create default page
+    const documentData: any = {
       ...req.body,
       business_id
-    });
+    };
+    
+    // Only create default page for new documents
+    if (req.body.documentType === 'new_document' || !req.body.documentType) {
+      documentData.pages = [createDefaultPage()];
+      documentData.totalPages = 1;
+    }
+    
+    const newDocument = new ContractDocument(documentData);
     
     const savedDocument = await newDocument.save();
     res.status(201).json(savedDocument);

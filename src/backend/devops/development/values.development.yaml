@@ -9,7 +9,7 @@ env:
 
 # customEnv:
 #   testenv: testenvvalue
-#port: 8080
+#port: 5000
 #requestMemory: 128Mi
 #requestCpu: 100m
 

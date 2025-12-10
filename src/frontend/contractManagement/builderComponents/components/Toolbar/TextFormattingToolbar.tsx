@@ -7,7 +7,7 @@ import Select from "@trenchaant/pkg-ui-component-library/build/Components/Select
 import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/MenuItem";
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { HeadingElement, TableElement } from '../../../utils/interface';
+import { TextElement, TableElement } from '../../../utils/interface';
 import ColorInput from '../Properties/ColorInput';
 import { fontSizeList, fontFamilyList, headingLevels } from '../../../utils/utils';
 import { UPDATE_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
@@ -19,13 +19,13 @@ const TextFormattingToolbar: React.FC = () => {
 
   const activeElement = canvasElements?.find(el => el.id === activeElementId);
 
-  if (!activeElement || (activeElement.type !== 'heading' && activeElement.type !== 'table')) {
+  if (!activeElement || (activeElement.type !== 'Text' && activeElement.type !== 'Table')) {
     return null;
   }
 
-  const element = activeElement as HeadingElement | TableElement;
+  const element = activeElement as TextElement | TableElement;
 
-  const updateElement = (updates: Partial<HeadingElement | TableElement>) => {
+  const updateElement = (updates: Partial<TextElement | TableElement>) => {
     dispatch({
       type: UPDATE_CANVAS_ELEMENT,
       payload: { ...element, ...updates }
@@ -97,7 +97,7 @@ const TextFormattingToolbar: React.FC = () => {
 
         <Divider orientation="vertical" className={styles.toolbarDivider} />
         <Select
-          value={element.fontSize || (element.type === 'heading' ? 32 : 14)}
+          value={element.fontSize || (element.type === 'Text' ? 32 : 14)}
           size="small"
           onChange={handleFontSizeChange}
           className={styles.fontSizeSelect}
@@ -110,7 +110,7 @@ const TextFormattingToolbar: React.FC = () => {
 
         <Divider orientation="vertical" className={styles.toolbarDivider} />
 
-        {element.type === 'heading' && (
+        {element.type === 'Text' && (
           <>
             <Select
               value={element.tagName || 'h1'}

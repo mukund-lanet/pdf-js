@@ -62,7 +62,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
       const COLOR = '#00838f';
       const BORDER = '#00acc1';
 
-      if (element.type === 'heading') {
+      if (element.type === 'Text') {
         // for heading with larger text and border
         context.fillStyle = '#ffffff';
         context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
@@ -84,7 +84,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         context.textBaseline = 'top';
         context.fillText(element.content || 'Heading', scaledX + 8 * scale, scaledY + 8 * scale);
 
-      } else if (element.type === 'text-field') {
+      } else if (element.type === 'TextField') {
         const fontSize = (element.fontSize || 16) * scale;
         context.font = `${element.fontWeight || 'normal'} ${element.fontStyle || 'normal'} ${fontSize}px Arial`;
         context.textAlign = (element.textAlign as CanvasTextAlign) || 'left';
@@ -97,7 +97,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         context.fillStyle = COLOR;
         context.fillText(element.content, scaledX + 4, scaledY + fontSize);
 
-      } else if (element.type === 'image' || element.type === 'signature') {
+      } else if (element.type === 'Image' || element.type === 'Signature') {
 
         context.fillStyle = BG;
         context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
@@ -116,7 +116,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
           };
         }
 
-      } else if (element.type === 'video') {
+      } else if (element.type === 'Video') {
         // render tht video placeholder
         context.fillStyle = '#f5f5f5';
         context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
@@ -127,7 +127,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
         context.setLineDash([]);
 
-      } else if (element.type === 'table') {
+      } else if (element.type === 'Table') {
         // render the table grid
         const rows = element.rows || 2;
         const cols = element.columns || 2;
@@ -154,7 +154,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
           context.stroke();
         }
 
-      } else if (element.type === 'date') {
+      } else if (element.type === 'DateField') {
 
         context.fillStyle = BG;
         context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
@@ -165,7 +165,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
         context.setLineDash([]);
 
-      } else if (element.type === 'initials') {
+      } else if (element.type === 'InitialsField') {
 
         context.fillStyle = BG;
         context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
@@ -183,7 +183,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         context.textBaseline = 'middle';
         context.fillText(element.content || 'IN', scaledX + scaledWidth / 2, scaledY + scaledHeight / 2);
 
-      } else if (element.type === 'checkbox') {
+      } else if (element.type === 'Checkbox') {
 
         context.fillStyle = BG;
         context.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
@@ -194,7 +194,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
         context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
         context.setLineDash([]);
 
-        if (element.checked) {
+        if (element.preChecked) {
           context.strokeStyle = COLOR;
           context.lineWidth = 2 * scale;
           context.beginPath();
@@ -213,11 +213,11 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
       const elementWidth = currentPageDimensions.pageWidth;
       let elementHeight = element.height;
 
-      if (element.type === 'image' && !element.imageData) {
+      if (element.type === 'Image' && !element.imageData) {
         elementHeight = 110;
-      } else if (element.type === 'video' && !element.videoUrl) {
+      } else if (element.type === 'Video' && !element.videoUrl) {
         elementHeight = 110;
-      } else if (element.type === 'table') {
+      } else if (element.type === 'Table') {
         elementHeight = 100;
       }
 

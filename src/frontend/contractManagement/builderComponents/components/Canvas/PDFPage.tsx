@@ -14,7 +14,7 @@ import MediaButton from "components/commonComponentCode/mediaButton";
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { Page, PageDimension, GHLBlockElement, GHLFillableElement, isGHLBlockElement, isGHLFillableElement } from '../../../utils/interface';
+import { Page, PageDimension, BlockElements, FillableElements, isBlockElement, isFillableElement } from '../../../utils/interface';
 import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, ADD_PAGE, DELETE_PAGE } from '../../../store/action/contractManagement.actions';
 
 interface PDFPageProps {
@@ -74,7 +74,7 @@ const PDFPage = React.memo((({
       dispatch({ type: SET_PDF_BYTES, payload: newPdfBytes });
       dispatch({ type: SET_TOTAL_PAGES, payload: pdfDoc.getPageCount() });
 
-      const updatedElements = canvasElements.map((el: { page: number; }) => {
+      const updatedElements = canvasElements?.map((el: { page: number; }) => {
         if (el.page > pageNumber) {
           return { ...el, page: el.page + 1 };
         }
@@ -166,11 +166,11 @@ const PDFPage = React.memo((({
       }
 
       // Update element page numbers and filter out deleted page elements
-      dispatch({ type: UPDATE_MULTIPLE_ELEMENTS, payload: canvasElements.filter((el: { page: number; }) => el.page !== pageNumber).map((el: { page: number; }) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el) });
+      dispatch({ type: UPDATE_MULTIPLE_ELEMENTS, payload: canvasElements?.filter((el: { page: number; }) => el.page !== pageNumber)?.map((el: { page: number; }) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el) });
 
       // Update page dimensions keys
       const newPageDimensions: { [key: number]: PageDimension } = {};
-      Object.keys(pageDimensions).filter(key => parseInt(key) !== pageNumber).forEach(key => {
+      Object.keys(pageDimensions)?.filter(key => parseInt(key) !== pageNumber).forEach(key => {
         newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
       });
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions })
@@ -230,7 +230,7 @@ const PDFPage = React.memo((({
       dispatch({ type: SET_TOTAL_PAGES, payload: mainDoc.getPageCount() })
 
       // Update elements to shift page numbers
-      const updatedElements = canvasElements.map((el: { page: number; }) => {
+      const updatedElements = canvasElements?.map((el: { page: number; }) => {
         if (el.page > pageNumber) {
           return { ...el, page: el.page + numNewPages };
         }
@@ -413,7 +413,7 @@ const PDFPage = React.memo((({
             <BlockContainer
               pageNumber={pageNumber}
               pageWidth={pageSize.pageWidth}
-              elements={page?.children.filter(isGHLBlockElement) as GHLBlockElement[] || []}
+              elements={page?.children?.filter(isBlockElement) as BlockElements[] || []}
             />
           </div>
 
@@ -421,7 +421,7 @@ const PDFPage = React.memo((({
             <FillableContainer
               pageNumber={pageNumber}
               containerRef={containerRef}
-              elements={page?.children.filter(isGHLFillableElement) as GHLFillableElement[] || []}
+              elements={page?.children?.filter(isFillableElement) as FillableElements[] || []}
             />
           </div>
         </div>

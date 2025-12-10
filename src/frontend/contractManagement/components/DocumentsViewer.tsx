@@ -140,7 +140,7 @@ const DocumentsViewer = () => {
                       <div className={styles.docInfo}>
                         <Typography 
                           onClick={() => {
-                            router.push(`/relience-fresh/pdf-editor/document/${doc._id}?business_id=HY7IAUl86AUMMqVbzGKn`);
+                            router.push(`/relience-fresh/pdf-editor/document/${doc._id}`);
                             dispatch(setActiveDocument(doc));
                           }}
                           className={styles.docName}

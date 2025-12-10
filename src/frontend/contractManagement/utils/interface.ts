@@ -356,10 +356,10 @@ export const isFillableElement = (element: BlockElements | FillableElements): el
 
 // ==================== LEGACY SUPPORT (Temporary during migration) ====================
 
-// export interface PageDimension {
-//   pageWidth: number;
-//   pageHeight: number;
-// }
+export interface PageDimension {
+  pageWidth: number;
+  pageHeight: number;
+}
 
 // export interface PageInfo {
 //   pageWidth: number;

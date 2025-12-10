@@ -5,6 +5,54 @@ import { showMessage } from 'components/store/actions';
 import { DIALOG_DRAWER_NAMES, PageDimension } from '../../utils/interface';
 import { groupElementsIntoPages } from '../../utils/ghl-converter';
 import { uploadPdfPageAsImage } from '../../utils/firebase-helper';
+import { v4 as uuidv4 } from 'uuid';
+
+// Helper function to create default page
+const createDefaultPage = (): Page => ({
+  type: "Page",
+  version: 1,
+  id: uuidv4(),
+  children: [],
+  component: {
+    name: "Page",
+    options: {
+      src: "",
+      pageDimensions: {
+        dimensions: { width: 816, height: 1056 },
+        margins: { top: 48, right: 48, bottom: 48, left: 48 },
+        rotation: "portrait"
+      }
+    }
+  },
+  responsiveStyles: {
+    large: {
+       backgroundColor: "#ffffff",
+       backgroundPosition: "top left",
+       backgroundSize: "cover",
+       backgroundRepeat: "repeat",
+       opacity: 100
+    }
+  }
+});
+
+// Default document variables
+const createDefaultVariables = () => [
+  {
+    name: 'document.createdDate',
+    value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    isSystem: true
+  },
+  {
+    name: 'document.refNumber',
+    value: `P${Math.floor(10000 + Math.random() * 90000)}`,
+    isSystem: true
+  },
+  {
+    name: 'document.subAccountName',
+    value: "CRMOne",
+    isSystem: true
+  },
+];
 
 // API Constants
 export const API_URL_PREFIX = '/api';
@@ -175,6 +223,8 @@ export interface UpdateDocumentAction {
     canvasElements?: CanvasElement[];
     pageDimensions?: { [key: number]: PageDimension };
     pages?: Page[];
+    fillableFields?: FillableField[];
+    variables?: DocumentVariable[];
   };
 }
 
@@ -184,7 +234,7 @@ export interface SetDocumentDrawerModeAction {
 }
 
 // PDF Editor Action Interfaces
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page, FillableField, GHLBlockElement, GHLFillableElement } from '../../utils/interface';
+import { CanvasElement, TextFieldElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page, FillableField, BlockElements, FillableElements } from '../../utils/interface';
 
 interface SetPdfBytesAction {
   type: typeof SET_PDF_BYTES;
@@ -311,7 +361,7 @@ interface SetActiveToolAction {
 
 interface SetSelectedTextElementAction {
   type: typeof SET_SELECTED_TEXT_ELEMENT;
-  payload: TextElement | null;
+  payload: TextFieldElement | null;
 }
 
 interface SetSignaturePadOpenAction {
@@ -395,7 +445,7 @@ interface AddElementToPageAction {
   type: typeof ADD_ELEMENT_TO_PAGE;
   payload: {
     pageNumber: number;
-    element: GHLBlockElement | GHLFillableElement;
+    element: BlockElements | FillableElements;
   };
 }
 
@@ -441,7 +491,7 @@ interface UpdateElementInPageAction {
   type: typeof UPDATE_ELEMENT_IN_PAGE;
   payload: {
     pageNumber: number;
-    element: GHLBlockElement | GHLFillableElement;
+    element: BlockElements | FillableElements;
   };
 }
 
@@ -592,6 +642,9 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
           signingOrder: data.signingOrder || false,
           status: 'draft',
           documentType: 'new_document',
+          pages: [createDefaultPage()],
+          fillableFields: [],
+          variables: createDefaultVariables(),
         },
       });
 
@@ -709,6 +762,8 @@ export const updateDocument = (data: {
   pageDimensions?: { [key: number]: PageDimension };
   totalPages?: number;
   pages?: Page[];
+  fillableFields?: FillableField[];
+  variables?: DocumentVariable[];
 }): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
@@ -733,6 +788,8 @@ export const updateDocument = (data: {
           pageDimensions: data.pageDimensions,
           totalPages: data.totalPages,
           pages: data.pages,
+          fillableFields: data.fillableFields,
+          variables: data.variables,
         },
       });
 
@@ -824,7 +881,7 @@ export const getDocumentById = (id: string | undefined): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -863,7 +920,7 @@ export const loadDocumentById = (id: string): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1143,7 +1200,7 @@ export const deleteDocument = (id: string, documentName: string): AppDispatch =>
 
       const response = await axiosInstance({
         method: 'delete',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1180,7 +1237,7 @@ export const getContracts = (): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1209,7 +1266,7 @@ export const createContract = (contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'post',
-        url: `http://localhost:5000/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: contractData,
       });
@@ -1251,7 +1308,7 @@ export const updateContract = (id: string, contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'put',
-        url: `http://localhost:5000/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: contractData,
       });
@@ -1293,7 +1350,7 @@ export const deleteContract = (id: string, contractName: string): AppDispatch =>
 
       const response = await axiosInstance({
         method: 'delete',
-        url: `http://localhost:5000/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1329,7 +1386,7 @@ export const getSettings = (): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1369,7 +1426,7 @@ export const updateSettings = (settingsData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'put',
-        url: `http://localhost:5000/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: settingsData,
       });

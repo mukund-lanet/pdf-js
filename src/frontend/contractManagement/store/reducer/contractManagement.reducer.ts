@@ -6,7 +6,7 @@ import {
   Page,
   FillableField
 } from '../../utils/interface';
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
+import { CanvasElement, TextFieldElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
 
 export interface ContractManagementState {
   pdfBuilderDrawerOpen: boolean;
@@ -90,7 +90,7 @@ export interface ContractManagementState {
   pageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } };
   activeTool: null | 'text' | 'image' | 'signature';
   media: any;
-  selectedTextElement: TextElement | null;
+  selectedTextElement: TextFieldElement | null;
   isSignaturePadOpen: boolean;
   signatureForElement: string | null;
   isLoading: boolean;
@@ -251,7 +251,7 @@ const createDefaultPage = (): Page => ({
       src: "",
       pageDimensions: {
         dimensions: { width: 816, height: 1056 }, // Standard US Letter @ 96 DPI
-        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        margins: { top: 48, right: 48, bottom: 48, left: 48 },
         rotation: "portrait"
       }
     }
@@ -259,10 +259,10 @@ const createDefaultPage = (): Page => ({
   responsiveStyles: {
     large: {
        backgroundColor: "#ffffff",
-       backgroundPosition: "center",
-       backgroundSize: "contain",
-       backgroundRepeat: "no-repeat",
-       opacity: 1
+       backgroundPosition: "top left",
+       backgroundSize: "cover",
+       backgroundRepeat: "repeat",
+       opacity: 100
     }
   }
 });
@@ -510,8 +510,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ),
         // also update the selectedTextElement if its the one being updated
         selectedTextElement:
-          state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text-field'
-            ? (action.payload as TextElement)
+          state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'TextField'
+            ? (action.payload as TextFieldElement)
             : state.selectedTextElement
       };
 
@@ -530,70 +530,98 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
     case Actions.ADD_BLOCK_ELEMENT: {
       const { element, pageNumber } = action.payload;
-      // calculate the next order for this page
-      const pageBlocks = state.canvasElements.filter(
-        el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type)
-      );
-      const maxOrder = pageBlocks.length > 0
-        ? Math.max(...pageBlocks.map((el: any) => el.order || 0))
-        : -1;
+      const pageIndex = pageNumber - 1;
 
-      const blockWithOrder = {
-        ...element,
-        order: maxOrder + 1
-      };
+      // If using new page-centric architecture
+      if (state.pages.length > 0 && pageIndex >= 0 && pageIndex < state.pages.length) {
+        const newPages = [...state.pages];
+        const page = { ...newPages[pageIndex] };
+        
+        // Add element to the page's children array
+        page.children = [...page.children, element];
+        newPages[pageIndex] = page;
 
+        return {
+          ...state,
+          pages: newPages
+        };
+      }
+
+      // Fallback for legacy canvasElements (if still being used)
       return {
         ...state,
-        canvasElements: [...state.canvasElements, blockWithOrder]
+        canvasElements: [...state.canvasElements, element]
       };
     }
 
     case Actions.REORDER_BLOCK_ELEMENTS: {
       const { pageNumber, sourceIndex, destinationIndex } = action.payload;
+      const pageIndex = pageNumber - 1;
 
-      // get all blocks for this page and sorted by order
-      const pageBlocks = state.canvasElements
-        .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
-        .sort((a: any, b: any) => a.order - b.order);
+      // If using new page-centric architecture
+      if (state.pages.length > 0 && pageIndex >= 0 && pageIndex < state.pages.length) {
+        const newPages = [...state.pages];
+        const page = { ...newPages[pageIndex] };
+        const newChildren = [...page.children];
 
-      // get non-block elements
-      const otherElements = state.canvasElements.filter(
-        el => !(el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
-      );
+        // Get only block elements from this page's children
+        const blockElements = newChildren.filter(child => 
+          ['Text', 'Image', 'Video', 'Table', 'PageBreak'].includes(child.type)
+        );
+        const fillableElements = newChildren.filter(child => 
+          ['TextField', 'DateField', 'Checkbox', 'Signature', 'InitialsField'].includes(child.type)
+        );
 
-      // reorder the blocks
-      const [movedBlock] = pageBlocks.splice(sourceIndex, 1);
-      pageBlocks.splice(destinationIndex, 0, movedBlock);
+        // Reorder the blocks
+        const [movedBlock] = blockElements.splice(sourceIndex, 1);
+        blockElements.splice(destinationIndex, 0, movedBlock);
 
-      // update the orders
-      const updatedBlocks = pageBlocks.map((block, index) => ({
-        ...block,
-        order: index
-      }));
+        // Combine back together (blocks first, then fillables)
+        page.children = [...blockElements, ...fillableElements];
+        newPages[pageIndex] = page;
 
-      return {
-        ...state,
-        canvasElements: [...otherElements, ...updatedBlocks]
-      };
+        return {
+          ...state,
+          pages: newPages
+        };
+      }
+
+      // Fallback for legacy canvasElements (if still being used)
+      return state;
     }
 
     case Actions.UPDATE_BLOCK_ORDER: {
       const { pageNumber, blockOrders } = action.payload;
+      const pageIndex = pageNumber - 1;
       const orderMap = new Map(blockOrders.map(item => [item.id, item.order]));
 
-      return {
-        ...state,
-        canvasElements: state.canvasElements.map(el => {
-          if (el.page === pageNumber && orderMap.has(el.id)) {
+      // If using new page-centric architecture
+      if (state.pages.length > 0 && pageIndex >= 0 && pageIndex < state.pages.length) {
+        const newPages = [...state.pages];
+        const page = { ...newPages[pageIndex] };
+        
+        // Update order for matching elements
+        page.children = page.children.map(child => {
+          if (orderMap.has(child.id)) {
             return {
-              ...el,
-              order: orderMap.get(el.id)!
+              ...child,
+              // Note: In GHL architecture, order is typically based on position in children array
+              // If you need to store explicit order, ensure your element types support it
             };
           }
-          return el;
-        })
-      };
+          return child;
+        });
+        
+        newPages[pageIndex] = page;
+        
+        return {
+          ...state,
+          pages: newPages
+        };
+      }
+
+      // Fallback for legacy canvasElements
+      return state;
     }
 
     case Actions.SET_ACTIVE_TOOL:
@@ -672,66 +700,39 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
     case Actions.REORDER_PAGE_ELEMENTS: {
       const { sourceIndex, destinationIndex } = action.payload;
-      const sourcePage = sourceIndex + 1;
-      const destPage = destinationIndex + 1;
 
-      // Update Canvas Elements
-      const updatedElements = state.canvasElements.map(el => {
-        if (el.page === sourcePage) {
-          return { ...el, page: destPage };
-        }
-
-        if (sourcePage < destPage) {
-          if (el.page > sourcePage && el.page <= destPage) {
-            return { ...el, page: el.page - 1 };
+      // If using new page-centric architecture, use REORDER_PAGES instead
+      if (state.pages.length > 0) {
+        const newPages = [...state.pages];
+        const [movedPage] = newPages.splice(sourceIndex, 1);
+        newPages.splice(destinationIndex, 0, movedPage);
+        
+        // Adjust current page if needed
+        let newCurrentPage = state.currentPage;
+        const sourcePageNum = sourceIndex + 1;
+        const destPageNum = destinationIndex + 1;
+        
+        if (state.currentPage === sourcePageNum) {
+          newCurrentPage = destPageNum;
+        } else if (sourceIndex < destinationIndex) {
+          if (state.currentPage > sourcePageNum && state.currentPage <= destPageNum) {
+            newCurrentPage = state.currentPage - 1;
           }
         } else {
-          if (el.page >= destPage && el.page < sourcePage) {
-            return { ...el, page: el.page + 1 };
+          if (state.currentPage >= destPageNum && state.currentPage < sourcePageNum) {
+            newCurrentPage = state.currentPage + 1;
           }
         }
-
-        return el;
-      });
-
-      const newPageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } } = {};
-      Object.entries(state.pageDimensions).forEach(([key, value]) => {
-        const pageNum = parseInt(key);
-        let newPageNum = pageNum;
-
-        if (pageNum === sourcePage) {
-          newPageNum = destPage;
-        } else if (sourcePage < destPage) {
-          if (pageNum > sourcePage && pageNum <= destPage) {
-            newPageNum = pageNum - 1;
-          }
-        } else {
-          if (pageNum >= destPage && pageNum < sourcePage) {
-            newPageNum = pageNum + 1;
-          }
-        }
-        newPageDimensions[newPageNum] = value;
-      });
-
-      let newCurrentPage = state.currentPage;
-      if (state.currentPage === sourcePage) {
-        newCurrentPage = destPage;
-      } else if (sourcePage < destPage) {
-        if (state.currentPage > sourcePage && state.currentPage <= destPage) {
-          newCurrentPage = state.currentPage - 1;
-        }
-      } else {
-        if (state.currentPage >= destPage && state.currentPage < sourcePage) {
-          newCurrentPage = state.currentPage + 1;
-        }
+        
+        return {
+          ...state,
+          pages: newPages,
+          currentPage: newCurrentPage
+        };
       }
 
-      return {
-        ...state,
-        canvasElements: updatedElements,
-        pageDimensions: newPageDimensions,
-        currentPage: newCurrentPage
-      };
+      // Fallback for legacy canvasElements
+      return state;
     }
     
     // API Data Actions

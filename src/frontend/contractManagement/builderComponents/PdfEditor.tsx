@@ -49,12 +49,11 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
 
       const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
 
-      const pageBlocks = canvasElements
-        .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
+      const pageBlocks = canvasElements?.filter(el => el.page === pageNumber && ['Text', 'Image', 'Video', 'Table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 
-      const [movedBlock] = pageBlocks.splice(source.index, 1);
-      pageBlocks.splice(destination.index, 0, movedBlock);
+      const [movedBlock] = pageBlocks?.splice(source.index, 1);
+      pageBlocks?.splice(destination.index, 0, movedBlock);
 
       const updatedBlocks = pageBlocks.map((block, index) => ({
         ...block,

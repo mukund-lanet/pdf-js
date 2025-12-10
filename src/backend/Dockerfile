@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . .
 
 # Expose the port your Express.js app listens on
-EXPOSE 8080
+EXPOSE 5000
 
 # Start your Express.js application
 CMD ["node", "dist/src/server.js"]

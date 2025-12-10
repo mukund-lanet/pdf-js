@@ -18,7 +18,7 @@ $ yarn buld
 
 ```
 yarn dev
-http://localhost:8080
+http://localhost:5000
 ```
 
 # Deployment:
