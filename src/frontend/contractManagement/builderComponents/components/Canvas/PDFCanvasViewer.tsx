@@ -10,7 +10,8 @@ import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components
 import PDFPage from './PDFPage';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { noPdfDocument } from '../../../utils/utils';
-import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actions';
+import { SET_CURRENT_PAGE, SET_IS_LOADING } from '../../../store/action/contractManagement.actions';
+import { pdfToImages } from '../../../pdfUtils';
 
 const PDFCanvasViewer = () => {
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
@@ -18,46 +19,36 @@ const PDFCanvasViewer = () => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
-  const [pdfjsLib, setPdfjsLib] = useState<any>(null);
-  const [pdfDoc, setPdfDoc] = useState<any>(null);
-  const [renderKey, setRenderKey] = useState(0); 
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('pdfjs-dist').then((pdfjs) => {
-        const workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
-        setPdfjsLib(pdfjs);
-      }).catch((error) => {
-        console.error('Failed to load PDF.js:', error);
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    const loadPdfDocument = async () => {
-      if (!pdfBytes || !pdfjsLib) {
-        setPdfDoc(null);
+    const loadPdfImages = async () => {
+      if (!pdfBytes) {
+        setImageUrls([]);
         return;
       }
 
+      dispatch({ type: SET_IS_LOADING, payload: true });
       try {
-        const pdfBytesCopy = new Uint8Array(pdfBytes);
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
-        const pdf = await loadingTask.promise;
-
-        setPdfDoc(pdf);
-        setRenderKey(prev => prev + 1); // force hht re-rendering of all pages
-
+        const blobs = await pdfToImages(pdfBytes);
+        const urls = blobs.map(blob => URL.createObjectURL(blob));
+        setImageUrls(urls);
       } catch (error) {
-        console.error('Error loading PDF document:', error);
-        setPdfDoc(null);
+        console.error('Error converting PDF to images:', error);
+        setImageUrls([]);
+      } finally {
+        dispatch({ type: SET_IS_LOADING, payload: false });
       }
     };
 
-    loadPdfDocument();
-  }, [pdfBytes, pdfjsLib]);
+    loadPdfImages();
+
+    return () => {
+      // Revoke the object URLs to avoid memory leaks
+      imageUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [pdfBytes]);
 
   const handleScrollToTop = () => {
     dispatch({ type: SET_CURRENT_PAGE, payload: 1 });
@@ -72,13 +63,13 @@ const PDFCanvasViewer = () => {
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
-      {pdfBytes && totalPages > 0 ? (
+      {pdfBytes && imageUrls.length > 0 ? (
         <CustomScrollbar ref={scrollContainerRef} className={styles.scrollPdfViewerContainer} >
-          <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
-            {Array.from({ length: totalPages }, (_, index) => {
+          <div className={styles.pdfViewerContainer}>
+            {imageUrls.map((imageUrl, index) => {
               return (<PDFPage
-                key={`page_${index + 1}_${renderKey}`}
-                pdfDoc={pdfDoc}
+                key={`page_${index + 1}`}
+                imageUrl={imageUrl}
                 pageNumber={index + 1}
                 />)
               })}

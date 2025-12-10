@@ -18,12 +18,12 @@ import { PageDimension } from '../../../utils/interface';
 import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT } from '../../../store/action/contractManagement.actions';
 
 interface PDFPageProps {
-  pdfDoc: any;
+  imageUrl: string;
   pageNumber: number;
 }
 
 const PDFPage = React.memo((({
-  pdfDoc,
+  imageUrl,
   pageNumber,
 }: PDFPageProps) => {
   const dispatch = useDispatch();
@@ -35,13 +35,18 @@ const PDFPage = React.memo((({
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
-  const imageRef = useRef<HTMLImageElement | null>(null);
+  const imageRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
-  const [error, setError] = useState<string | null>(null);
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const renderTaskRef = useRef<any>(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => {
+      setPageSize({ pageWidth: img.width, pageHeight: img.height });
+    };
+  }, [imageUrl]);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setActionMenuAnchorEl(event.currentTarget);
@@ -203,79 +208,6 @@ const PDFPage = React.memo((({
     }
   };
 
-  // Cleanup function to cancel any ongoing render tasks
-  const cleanupRenderTask = () => {
-    if (renderTaskRef.current) {
-      try {
-        renderTaskRef.current.cancel();
-      } catch (error) {
-        console.log("error: ", error)
-      }
-      renderTaskRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const renderPage = async () => {
-      if (!pdfDoc) return;
-
-      cleanupRenderTask();
-
-      dispatch({ type: SET_IS_LOADING, payload: true })
-      setError(null);
-
-      try {
-        const page = await pdfDoc.getPage(pageNumber);
-        if (!isMounted) return;
-
-        const viewport = page.getViewport({ scale: 1.5 });
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        if (!context) throw new Error("Could not get canvas context");
-
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        const renderContext = { canvasContext: context, viewport };
-
-        const task = page.render(renderContext);
-        renderTaskRef.current = task;
-
-        await task.promise;
-
-        if (isMounted) {
-          setImageSrc(canvas.toDataURL('image/png'));
-          setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
-          dispatch({ type: SET_IS_LOADING, payload: false })
-        }
-
-      } catch (error: any) {
-        if (
-          error?.name !== "RenderingCancelledException" &&
-          error?.message !== "Rendering cancelled"
-        ) {
-          console.error(`Error rendering page ${pageNumber}:`, error);
-          if (isMounted) setError(`Failed to render page ${pageNumber}`);
-        }
-      }
-    };
-
-    renderPage();
-
-    return () => {
-      isMounted = false;
-      cleanupRenderTask();
-    };
-  }, [pdfDoc, pageNumber]);
-
-
-
   const handlePageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch({ type: SET_SELECTED_TEXT_ELEMENT, payload: null });
@@ -288,9 +220,8 @@ const PDFPage = React.memo((({
       className={styles.pdfPageContainer}
     >
       <div
-        ref={containerRef}
-        className={styles.pdfCanvasViewer}
-      >
+            className={styles.pdfCanvasViewer}
+          >
         <div
           onClick={handlePageClick}
           className={styles.canvasContainer}
@@ -336,7 +267,7 @@ const PDFPage = React.memo((({
             </div>
           </div>
 
-          { !isLoading && imageSrc ? (
+          { !isLoading && imageUrl ? (
             <div
               ref={imageRef}
               className={styles.canvasWrapper}
@@ -344,7 +275,7 @@ const PDFPage = React.memo((({
                 width: '100%',
                 paddingTop: `${(pageSize.pageHeight / pageSize.pageWidth) * 100}%`,
                 // @ts-ignore
-                "--bg-image": `url(${imageSrc})`,
+                "--bg-image": `url(${imageUrl})`,
                 backgroundSize: 'contain',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
