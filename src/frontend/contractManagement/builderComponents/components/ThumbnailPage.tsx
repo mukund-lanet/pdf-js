@@ -62,6 +62,8 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
       const COLOR = '#00838f';
       const BORDER = '#00acc1';
 
+      context.save(); // Save state before drawing
+
       if (element.type === 'heading') {
         // for heading with larger text and border
         context.fillStyle = '#ffffff';
@@ -104,9 +106,9 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
 
         context.strokeStyle = BORDER;
         context.lineWidth = 2;
-        context.setLineDash([6, 4]); // dashed border
-        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
-        context.setLineDash([]);
+        context.beginPath();
+        context.rect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.stroke();
 
         if (element.imageData) {
           const img = new Image();
@@ -123,9 +125,9 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
 
         context.strokeStyle = '#ccc';
         context.lineWidth = 2;
-        context.setLineDash([6, 4]);
-        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
-        context.setLineDash([]);
+        context.beginPath();
+        context.rect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.stroke();
 
       } else if (element.type === 'table') {
         // render the table grid
@@ -161,9 +163,9 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
 
         context.strokeStyle = BORDER;
         context.lineWidth = 2;
-        context.setLineDash([6, 4]);
-        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
-        context.setLineDash([]);
+        context.beginPath();
+        context.rect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.stroke();
 
       } else if (element.type === 'initials') {
 
@@ -172,9 +174,9 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
 
         context.strokeStyle = BORDER;
         context.lineWidth = 2;
-        context.setLineDash([6, 4]);
-        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
-        context.setLineDash([]);
+        context.beginPath();
+        context.rect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.stroke();
 
         const fontSize = 12 * scale;
         context.font = `bold ${fontSize}px Arial`;
@@ -190,9 +192,9 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
 
         context.strokeStyle = BORDER;
         context.lineWidth = 2;
-        context.setLineDash([6, 4]);
-        context.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
-        context.setLineDash([]);
+        context.beginPath();
+        context.rect(scaledX, scaledY, scaledWidth, scaledHeight);
+        context.stroke();
 
         if (element.checked) {
           context.strokeStyle = COLOR;
@@ -204,6 +206,8 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
           context.stroke();
         }
       }
+
+      context.restore(); // Restore state
     };
 
     let currentY = 0;
