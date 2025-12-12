@@ -313,8 +313,8 @@ interface ResetEditorAction {
 interface ReorderPageElementsAction {
   type: typeof REORDER_PAGE_ELEMENTS;
   payload: {
-    sourceIndex: number; 
-    destinationIndex: number; 
+    sourceIndex: number;
+    destinationIndex: number;
   };
 }
 
@@ -465,15 +465,15 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
           type: CREATE_NEW_DOCUMENT,
           payload: response.data,
         });
-        
+
         dispatch(showMessage({
           message: `Document "${data.documentName}" created successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
         dispatch(getDocuments());
-        
+
         return response.data;
       }
     } catch (error: any) {
@@ -504,8 +504,6 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
         payload: true,
       });
 
-      console.log("in upload Document ation")
-
       const response = await axiosInstance({
         method: 'post',
         // url: `${API_URL_PREFIX}/documents/upload?business_id=${currentBusiness?.id}`,
@@ -523,7 +521,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
           type: UPLOAD_DOCUMENT_PDF,
           payload: response.data,
         });
-        
+
         // If pdfBytes are provided, set them in the store
         if (data.pdfBytes) {
           dispatch({
@@ -531,15 +529,15 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
             payload: data.pdfBytes,
           });
         }
-        
+
         dispatch(showMessage({
           message: `Document "${data.documentName}" uploaded successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
         dispatch(getDocuments());
-        
+
         return response.data;
       }
     } catch (error: any) {
@@ -566,10 +564,10 @@ export const setActiveDocument = (document: any | null): AppDispatch => {
   };
 };
 
-export const updateDocument = (data: { 
-  documentId: string | undefined; 
-  documentName: string; 
-  signers: any[]; 
+export const updateDocument = (data: {
+  documentId: string | undefined;
+  documentName: string;
+  signers: any[];
   signingOrder?: boolean;
   canvasElements?: CanvasElement[];
   pageDimensions?: { [key: number]: PageDimension };
@@ -605,15 +603,15 @@ export const updateDocument = (data: {
           type: UPDATE_DOCUMENT,
           payload: response.data,
         });
-        
+
         dispatch(showMessage({
           message: `Document "${data.documentName}" updated successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
         dispatch(getDocuments());
-        
+
         return response.data;
       }
     } catch (error: any) {
@@ -646,7 +644,7 @@ export const setUploadPdfUrl = (url: string | null): AppDispatch => {
       type: SET_UPLOAD_PDF_URL,
       payload: url,
     });
-  }; 
+  };
 };
 
 // ============ Document API Actions ============
@@ -714,12 +712,10 @@ export const getDocumentById = (id: string | undefined): AppDispatch => {
 export const loadDocumentById = (id: string): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
-      console.log('Loading document with ID:', id);
-      
       if (!id || id.trim() === '') {
         throw new Error('Invalid document ID');
       }
-      
+
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
@@ -736,42 +732,39 @@ export const loadDocumentById = (id: string): AppDispatch => {
       }
 
       const document = response.data;
-      console.log('Document loaded from backend:', document);
 
       dispatch(setActiveDocument(document));
 
       if (document.uploadPath) {
-        console.log('Loading PDF from:', document.uploadPath);
-        
+
         try {
           const pdfResponse = await fetch(document.uploadPath);
           if (!pdfResponse.ok) {
             throw new Error(`Failed to fetch PDF: ${pdfResponse.status} ${pdfResponse.statusText}`);
           }
-          
+
           const arrayBuffer = await pdfResponse.arrayBuffer();
-          
+
           if (arrayBuffer.byteLength === 0) {
             throw new Error('PDF file is empty');
           }
-          
+
           const pdfBytes = new Uint8Array(arrayBuffer);
-          
+
           const { PDFDocument } = await import('pdf-lib');
           const pdfDoc = await PDFDocument.load(arrayBuffer);
           const pageCount = pdfDoc.getPageCount();
-          
+
           dispatch({
             type: SET_PDF_BYTES,
-           payload: pdfBytes,
+            payload: pdfBytes,
           });
-          
+
           dispatch({
             type: SET_TOTAL_PAGES,
             payload: pageCount,
           });
-          
-          console.log(`PDF loaded: ${pageCount} pages`);
+
         } catch (pdfError: any) {
           console.error('Error loading PDF:', pdfError);
           dispatch(showMessage({
@@ -788,7 +781,6 @@ export const loadDocumentById = (id: string): AppDispatch => {
           type: SET_CANVAS_ELEMENTS,
           payload: document.canvasElements,
         });
-        console.log(`Loaded ${document.canvasElements.length} canvas elements`);
       } else {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
@@ -799,15 +791,14 @@ export const loadDocumentById = (id: string): AppDispatch => {
       // Step 5: Load page dimensions
       if (document.pageDimensions) {
         // Convert Map to plain object if needed
-        const dimensionsObj = document.pageDimensions instanceof Map 
+        const dimensionsObj = document.pageDimensions instanceof Map
           ? Object.fromEntries(document.pageDimensions)
           : document.pageDimensions;
-        
+
         dispatch({
           type: SET_PAGE_DIMENSIONS,
           payload: dimensionsObj,
         });
-        console.log('Loaded page dimensions');
       }
 
       // Step 6: Set document type
@@ -824,15 +815,14 @@ export const loadDocumentById = (id: string): AppDispatch => {
         payload: 1,
       });
 
-      console.log('Document loading complete');
       return document;
-      
+
     } catch (error: any) {
       console.error('Error loading document:', error);
-      
+
       // Provide user-friendly error messages based on error type
       let errorMessage = 'Failed to load document';
-      
+
       if (error.response?.status === 404) {
         errorMessage = 'Document not found. It may have been deleted.';
       } else if (error.response?.status === 403) {
@@ -846,12 +836,12 @@ export const loadDocumentById = (id: string): AppDispatch => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       dispatch(showMessage({
         message: errorMessage,
         variant: 'error',
       }));
-      
+
       // Redirect to dashboard on critical errors
       if (error.response?.status === 404 || error.message === 'Invalid document ID') {
         // Give user time to see the error message before redirecting
@@ -860,7 +850,7 @@ export const loadDocumentById = (id: string): AppDispatch => {
           window.location.href = `/${businessKey}/contract-management`;
         }, 2000);
       }
-      
+
       return null;
     } finally {
       dispatch({
@@ -893,7 +883,7 @@ export const deleteDocument = (id: string, documentName: string): AppDispatch =>
           message: `Document "${documentName}" deleted successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
         dispatch(getDocuments());
       }
@@ -960,7 +950,7 @@ export const createContract = (contractData: any): AppDispatch => {
           message: `Contract "${contractData.name}" created successfully`,
           variant: 'success',
         }));
-        
+
         dispatch(getContracts());
         return response.data;
       }
@@ -1002,7 +992,7 @@ export const updateContract = (id: string, contractData: any): AppDispatch => {
           message: `Contract "${contractData.name}" updated successfully`,
           variant: 'success',
         }));
-        
+
         dispatch(getContracts());
         return response.data;
       }
@@ -1043,7 +1033,7 @@ export const deleteContract = (id: string, contractName: string): AppDispatch =>
           message: `Contract "${contractName}" deleted successfully`,
           variant: 'success',
         }));
-        
+
         dispatch(getContracts());
       }
     } catch (error: any) {
@@ -1079,7 +1069,7 @@ export const getSettings = (): AppDispatch => {
           type: SET_SETTINGS_DATA,
           payload: response.data,
         });
-        
+
         // Also update individual settings in Redux
         if (response.data.identityVerification) {
           dispatch(setIdentityVerificationSettings(response.data.identityVerification));
@@ -1120,7 +1110,7 @@ export const updateSettings = (settingsData: any): AppDispatch => {
           message: 'Settings updated successfully',
           variant: 'success',
         }));
-        
+
         dispatch(getSettings());
         return response.data;
       }

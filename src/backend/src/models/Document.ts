@@ -1,5 +1,5 @@
 import mongoose, { Document as MongoDocument, Schema } from 'mongoose';
-import { IDocumentVariable, ISigner, Page } from '../helper/interface';
+import { ICanvasElement, IDocumentVariable, ISigner, Page } from '../helper/interface';
 
 export interface IDocument extends MongoDocument {
   name: string;
@@ -16,7 +16,7 @@ export interface IDocument extends MongoDocument {
   // PDF Editor State
   uploadPath?: string;
   totalPages: number;
-  // canvasElements: ICanvasElement[];
+  canvasElements: ICanvasElement[];
   pageDimensions: Map<string, { pageWidth: number; pageHeight: number }>;
   documentType: 'upload-existing' | 'new_document' | null;
 }
@@ -44,6 +44,7 @@ const DocumentSchema = new Schema<IDocument>({
   }],
   uploadPath: { type: String },
   totalPages: { type: Number, default: 0 },
+  canvasElements: [{ type: Schema.Types.Mixed }],
   pageDimensions: { type: Map, of: { pageWidth: Number, pageHeight: Number } },
   documentType: { type: String, enum: ['upload-existing', 'new_document'], default: 'new_document' }
 }, { timestamps: true });

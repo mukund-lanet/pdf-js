@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -37,33 +37,55 @@ const EditorRightSidebar = () => {
 
   const HeadingProperties: React.FC<{ element: HeadingElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<HeadingElement>(element);
     const [activeSide, setActiveSide] = useState<{ type: 'margin' | 'padding'; side: 'top' | 'right' | 'bottom' | 'left' } | null>(null);
 
-    const updateElement = (updates: Partial<HeadingElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<HeadingElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<HeadingElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const handleSpacingChange = (value: number) => {
       if (!activeSide) return;
 
       const { type, side } = activeSide;
-      const currentSpacing = element[type] || { top: 0, right: 0, bottom: 0, left: 0 };
-
-      updateElement({
+      const currentSpacing = localElement[type] || { top: 0, right: 0, bottom: 0, left: 0 };
+      const newSpacing = {
         [type]: {
           ...currentSpacing,
           [side]: value
         }
-      });
+      };
+
+      updateLocal(newSpacing as any);
+      // For spacing, we might want immediate feedback or debounced. 
+      // Given the controls are usually inputs in SpacingControl, let's defer? 
+      // Actually SpacingControl usually has a slider or input. 
+      // Let's dispatch immediately for spacing to see the move, as it's not high-frequency typing usually.
+      dispatchUpdate(newSpacing as any);
     };
 
     const getActiveValue = () => {
       if (!activeSide) return 0;
       const { type, side } = activeSide;
-      return element[type]?.[side] || 0;
+      return localElement[type]?.[side] || 0;
     };
 
     return (
@@ -76,8 +98,9 @@ const EditorRightSidebar = () => {
             label="Heading font size"
             required
             hideBorder={true}
-            value={element.fontSize}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ fontSize: parseInt(event.target.value) || 32 })}
+            value={localElement.fontSize}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ fontSize: parseInt(event.target.value) || 32 })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -95,8 +118,9 @@ const EditorRightSidebar = () => {
             label="Subtitle font size"
             required
             hideBorder={true}
-            value={element.subtitleFontSize}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleFontSize: parseInt(event.target.value) || 16 })}
+            value={localElement.subtitleFontSize}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ subtitleFontSize: parseInt(event.target.value) || 16 })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -113,14 +137,18 @@ const EditorRightSidebar = () => {
             label="Subtitle color"
             placeholder="Enter subtitle color"
             hideBorder={true}
-            value={element.subtitleColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleColor: e.target.value })}
+            value={localElement.subtitleColor || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ subtitleColor: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end">
                 <ColorInput
-                  value={element.subtitleColor}
-                  onChange={(value) => updateElement({ subtitleColor: value })}
+                  value={localElement.subtitleColor}
+                  onChange={(value) => {
+                    updateLocal({ subtitleColor: value });
+                    dispatchUpdate({ subtitleColor: value });
+                  }}
                 />
               </InputAdornment>
             )}
@@ -134,14 +162,18 @@ const EditorRightSidebar = () => {
             label="Background color"
             placeholder="Enter background color"
             hideBorder={true}
-            value={element.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+            value={localElement.backgroundColor || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ backgroundColor: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end">
                 <ColorInput
-                  value={element.backgroundColor}
-                  onChange={(value) => updateElement({ backgroundColor: value })}
+                  value={localElement.backgroundColor}
+                  onChange={(value) => {
+                    updateLocal({ backgroundColor: value });
+                    dispatchUpdate({ backgroundColor: value }); // Immediate for picker
+                  }}
                 />
               </InputAdornment>
             )}
@@ -149,8 +181,8 @@ const EditorRightSidebar = () => {
         </div>
 
         <BoxModelControl
-          margin={element.margin}
-          padding={element.padding}
+          margin={localElement.margin}
+          padding={localElement.padding}
           onSelectSide={(type, side) => setActiveSide({ type, side })}
           activeSide={activeSide}
         />
@@ -169,23 +201,41 @@ const EditorRightSidebar = () => {
 
   const ImageProperties: React.FC<{ element: ImageElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<ImageElement>(element);
     const [activeSide, setActiveSide] = useState<{ type: 'margin' | 'padding'; side: 'top' | 'right' | 'bottom' | 'left' } | null>(null);
 
-    const updateElement = (updates: Partial<ImageElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<ImageElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<ImageElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const handleSpacingChange = (value: number) => {
       if (!activeSide) return;
       const { type, side } = activeSide;
-      const currentSpacing = element[type] || { top: 0, right: 0, bottom: 0, left: 0 };
-      updateElement({ [type]: { ...currentSpacing, [side]: value } });
+      const currentSpacing = localElement[type] || { top: 0, right: 0, bottom: 0, left: 0 };
+      const newSpacing = { [type]: { ...currentSpacing, [side]: value } };
+      updateLocal(newSpacing as any);
+      dispatchUpdate(newSpacing as any);
     };
 
-    const getActiveValue = () => activeSide ? element[activeSide.type]?.[activeSide.side] || 0 : 0;
+    const getActiveValue = () => activeSide ? localElement[activeSide.type]?.[activeSide.side] || 0 : 0;
 
     return (
       <div className={styles.propertiesContentWrapper}>
@@ -196,8 +246,9 @@ const EditorRightSidebar = () => {
             placeholder={"Please enter image url"}
             label="Image URL"
             hideBorder={true}
-            value={element.imageUrl}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ imageUrl: event.target?.value })}
+            value={localElement.imageUrl}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ imageUrl: event.target?.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -213,8 +264,11 @@ const EditorRightSidebar = () => {
             {['left', 'center', 'right'].map((align) => (
               <Button
                 key={align}
-                className={`${styles.buttonGroupButton} ${element.align === align ? styles.active : ''}`}
-                onClick={() => updateElement({ align: align as any })}
+                className={`${styles.buttonGroupButton} ${localElement.align === align ? styles.active : ''}`}
+                onClick={() => {
+                  updateLocal({ align: align as any });
+                  dispatchUpdate({ align: align as any });
+                }}
               >
                 {align.charAt(0).toUpperCase() + align.slice(1)}
               </Button>
@@ -226,14 +280,20 @@ const EditorRightSidebar = () => {
           <Typography className={styles.propertyLabel}>Image effects</Typography>
           <div className={styles.buttonGroup}>
             <Button
-              className={`${styles.buttonGroupButton} ${element.imageEffect !== 'grayscale' ? styles.active : ''}`}
-              onClick={() => updateElement({ imageEffect: 'none' })}
+              className={`${styles.buttonGroupButton} ${localElement.imageEffect !== 'grayscale' ? styles.active : ''}`}
+              onClick={() => {
+                updateLocal({ imageEffect: 'none' });
+                dispatchUpdate({ imageEffect: 'none' });
+              }}
             >
               Full color
             </Button>
             <Button
-              className={`${styles.buttonGroupButton} ${element.imageEffect === 'grayscale' ? styles.active : ''}`}
-              onClick={() => updateElement({ imageEffect: 'grayscale' })}
+              className={`${styles.buttonGroupButton} ${localElement.imageEffect === 'grayscale' ? styles.active : ''}`}
+              onClick={() => {
+                updateLocal({ imageEffect: 'grayscale' });
+                dispatchUpdate({ imageEffect: 'grayscale' });
+              }}
             >
               Black & White
             </Button>
@@ -247,14 +307,18 @@ const EditorRightSidebar = () => {
             label="Background color"
             placeholder="Enter background color"
             hideBorder={true}
-            value={element.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+            value={localElement.backgroundColor || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ backgroundColor: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end">
                 <ColorInput
-                  value={element.backgroundColor}
-                  onChange={(backgroundColor) => updateElement({ backgroundColor })}
+                  value={localElement.backgroundColor}
+                  onChange={(backgroundColor) => {
+                    updateLocal({ backgroundColor });
+                    dispatchUpdate({ backgroundColor });
+                  }}
                 />
               </InputAdornment>
             )}
@@ -268,8 +332,9 @@ const EditorRightSidebar = () => {
             placeholder={"Please enter height"}
             label="Height"
             hideBorder={true}
-            value={element.height}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ height: parseInt(event.target?.value) || 0 })}
+            value={localElement.height}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ height: parseInt(event.target?.value) || 0 })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -286,8 +351,9 @@ const EditorRightSidebar = () => {
             placeholder={"Please enter width"}
             label="Width"
             hideBorder={true}
-            value={element.width}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ width: parseInt(event.target?.value) || 0 })}
+            value={localElement.width}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ width: parseInt(event.target?.value) || 0 })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -298,8 +364,8 @@ const EditorRightSidebar = () => {
         </div>
 
         <BoxModelControl
-          margin={element.margin}
-          padding={element.padding}
+          margin={localElement.margin}
+          padding={localElement.padding}
           onSelectSide={(type, side) => setActiveSide({ type, side })}
           activeSide={activeSide}
         />
@@ -318,23 +384,41 @@ const EditorRightSidebar = () => {
 
   const VideoProperties: React.FC<{ element: VideoElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<VideoElement>(element);
     const [activeSide, setActiveSide] = useState<{ type: 'margin' | 'padding'; side: 'top' | 'right' | 'bottom' | 'left' } | null>(null);
 
-    const updateElement = (updates: Partial<VideoElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<VideoElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<VideoElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const handleSpacingChange = (value: number) => {
       if (!activeSide) return;
       const { type, side } = activeSide;
-      const currentSpacing = element[type] || { top: 0, right: 0, bottom: 0, left: 0 };
-      updateElement({ [type]: { ...currentSpacing, [side]: value } });
+      const currentSpacing = localElement[type] || { top: 0, right: 0, bottom: 0, left: 0 };
+      const newSpacing = { [type]: { ...currentSpacing, [side]: value } };
+      updateLocal(newSpacing as any);
+      dispatchUpdate(newSpacing as any);
     };
 
-    const getActiveValue = () => activeSide ? element[activeSide.type]?.[activeSide.side] || 0 : 0;
+    const getActiveValue = () => activeSide ? localElement[activeSide.type]?.[activeSide.side] || 0 : 0;
 
     return (
       <div className={styles.propertiesContentWrapper}>
@@ -352,8 +436,9 @@ const EditorRightSidebar = () => {
             placeholder={"Please enter video url"}
             label="Video URL"
             hideBorder={true}
-            value={element.videoUrl}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ videoUrl: event.target?.value })}
+            value={localElement.videoUrl}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ videoUrl: event.target?.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -373,14 +458,18 @@ const EditorRightSidebar = () => {
             label="Background color"
             placeholder="Enter background color"
             hideBorder={true}
-            value={element.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+            value={localElement.backgroundColor || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ backgroundColor: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end">
                 <ColorInput
-                  value={element.backgroundColor}
-                  onChange={(value) => updateElement({ backgroundColor: value })}
+                  value={localElement.backgroundColor}
+                  onChange={(value) => {
+                    updateLocal({ backgroundColor: value });
+                    dispatchUpdate({ backgroundColor: value });
+                  }}
                 />
               </InputAdornment>
             )}
@@ -394,8 +483,9 @@ const EditorRightSidebar = () => {
             placeholder={"Please enter video height"}
             label="Height"
             hideBorder={true}
-            value={element.height || ''}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ height: parseInt(event.target?.value) })}
+            value={localElement.height || ''}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ height: parseInt(event.target?.value) })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -412,8 +502,9 @@ const EditorRightSidebar = () => {
             placeholder={"Please enter video width"}
             label="Width"
             hideBorder={true}
-            value={element.width || ''}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateElement({ width: parseInt(event.target?.value) || undefined })}
+            value={localElement.width || ''}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateLocal({ width: parseInt(event.target?.value) || undefined })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end" >
@@ -424,8 +515,8 @@ const EditorRightSidebar = () => {
         </div>
 
         <BoxModelControl
-          margin={element.margin}
-          padding={element.padding}
+          margin={localElement.margin}
+          padding={localElement.padding}
           onSelectSide={(type, side) => setActiveSide({ type, side })}
           activeSide={activeSide}
         />
@@ -444,23 +535,41 @@ const EditorRightSidebar = () => {
 
   const TableProperties: React.FC<{ element: TableElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<TableElement>(element);
     const [activeSide, setActiveSide] = useState<{ type: 'margin' | 'padding'; side: 'top' | 'right' | 'bottom' | 'left' } | null>(null);
 
-    const updateElement = (updates: Partial<TableElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<TableElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<TableElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const handleSpacingChange = (value: number) => {
       if (!activeSide) return;
       const { type, side } = activeSide;
-      const currentSpacing = element[type] || { top: 0, right: 0, bottom: 0, left: 0 };
-      updateElement({ [type]: { ...currentSpacing, [side]: value } });
+      const currentSpacing = localElement[type] || { top: 0, right: 0, bottom: 0, left: 0 };
+      const newSpacing = { [type]: { ...currentSpacing, [side]: value } };
+      updateLocal(newSpacing as any);
+      dispatchUpdate(newSpacing as any);
     };
 
-    const getActiveValue = () => activeSide ? element[activeSide.type]?.[activeSide.side] || 0 : 0;
+    const getActiveValue = () => activeSide ? localElement[activeSide.type]?.[activeSide.side] || 0 : 0;
 
     return (
       <div className={styles.propertiesContentWrapper}>
@@ -471,14 +580,18 @@ const EditorRightSidebar = () => {
             label="Background color"
             placeholder="Enter background color"
             hideBorder={true}
-            value={element.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+            value={localElement.backgroundColor || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ backgroundColor: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
             endAdornment={(
               <InputAdornment position="end">
                 <ColorInput
-                  value={element.backgroundColor}
-                  onChange={(value) => updateElement({ backgroundColor: value })}
+                  value={localElement.backgroundColor}
+                  onChange={(value) => {
+                    updateLocal({ backgroundColor: value });
+                    dispatchUpdate({ backgroundColor: value });
+                  }}
                 />
               </InputAdornment>
             )}
@@ -486,8 +599,8 @@ const EditorRightSidebar = () => {
         </div>
 
         <BoxModelControl
-          margin={element.margin}
-          padding={element.padding}
+          margin={localElement.margin}
+          padding={localElement.padding}
           onSelectSide={(type, side) => setActiveSide({ type, side })}
           activeSide={activeSide}
         />
@@ -506,12 +619,28 @@ const EditorRightSidebar = () => {
 
   const SignatureProperties: React.FC<{ element: SignatureElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<SignatureElement>(element);
 
-    const updateElement = (updates: Partial<SignatureElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<SignatureElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<SignatureElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const mockUser = {
@@ -555,8 +684,9 @@ const EditorRightSidebar = () => {
             variant="outlined"
             hideBorder={true}
             // @ts-ignore
-            value={element.content || 'Signature'}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ content: e.target.value })}
+            value={localElement.content || 'Signature'}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ content: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
           />
         </div>
@@ -564,8 +694,11 @@ const EditorRightSidebar = () => {
         <div className={styles.propertyGroup}>
           <Checkbox
             // @ts-ignore
-            checked={element.showSignerName || false}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ showSignerName: e.target.checked })}
+            checked={localElement.showSignerName || false}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              updateLocal({ showSignerName: e.target.checked });
+              dispatchUpdate({ showSignerName: e.target.checked });
+            }}
             label="Show signer name"
           />
         </div>
@@ -575,12 +708,28 @@ const EditorRightSidebar = () => {
 
   const TextFieldProperties: React.FC<{ element: TextElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<TextElement>(element);
 
-    const updateElement = (updates: Partial<TextElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<TextElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<TextElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const mockUser = {
@@ -626,8 +775,9 @@ const EditorRightSidebar = () => {
             variant="outlined"
             hideBorder={true}
             // @ts-ignore
-            value={element.content !== undefined ? element.content : 'Enter value'}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ content: e.target.value })}
+            value={localElement.content !== undefined ? localElement.content : 'Enter value'}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ content: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
           />
         </div>
@@ -635,8 +785,11 @@ const EditorRightSidebar = () => {
         <div className={styles.propertyGroup}>
           <Checkbox
             // @ts-ignore
-            checked={element.required || false}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ required: e.target.checked })}
+            checked={localElement.required || false}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              updateLocal({ required: e.target.checked });
+              dispatchUpdate({ required: e.target.checked });
+            }}
             label="Required"
           />
         </div>
@@ -658,12 +811,28 @@ const EditorRightSidebar = () => {
 
   const DateProperties: React.FC<{ element: DateElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<DateElement>(element);
 
-    const updateElement = (updates: Partial<DateElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<DateElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<DateElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const mockUser = {
@@ -714,8 +883,9 @@ const EditorRightSidebar = () => {
             variant="outlined"
             hideBorder={true}
             placeholder='Select date'
-            value={element.placeholder}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ placeholder: e.target.value })}
+            value={localElement.placeholder}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ placeholder: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
           />
         </div>
@@ -724,8 +894,11 @@ const EditorRightSidebar = () => {
           <Typography className={styles.propertyLabel}>Date Formats</Typography>
           <Select
             fullWidth
-            value={element.dateFormat || 'YYYY-MM-DD'}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateElement({ dateFormat: e.target.value })}
+            value={localElement.dateFormat || 'YYYY-MM-DD'}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+              updateLocal({ dateFormat: e.target.value });
+              dispatchUpdate({ dateFormat: e.target.value });
+            }}
             size="small"
           >
             {dateFormats.map(format => (
@@ -738,8 +911,11 @@ const EditorRightSidebar = () => {
           <Typography className={styles.propertyLabel}>Available Dates</Typography>
           <Select
             fullWidth
-            value={element.availableDates || 'Any Date'}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ availableDates: e.target.value })}
+            value={localElement.availableDates || 'Any Date'}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              updateLocal({ availableDates: e.target.value });
+              dispatchUpdate({ availableDates: e.target.value });
+            }}
             size="small"
           >
             {availableDates.map(date => (
@@ -750,8 +926,11 @@ const EditorRightSidebar = () => {
 
         <div className={styles.propertyGroup}>
           <Checkbox
-            checked={element.required || false}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ required: e.target.checked })}
+            checked={localElement.required || false}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              updateLocal({ required: e.target.checked });
+              dispatchUpdate({ required: e.target.checked });
+            }}
             label="Required"
           />
         </div>
@@ -773,12 +952,28 @@ const EditorRightSidebar = () => {
 
   const InitialsProperties: React.FC<{ element: InitialsElement }> = ({ element }) => {
     const dispatch = useDispatch();
+    const [localElement, setLocalElement] = useState<InitialsElement>(element);
 
-    const updateElement = (updates: Partial<InitialsElement>) => {
+    useEffect(() => {
+      setLocalElement(element);
+    }, [element]);
+
+    React.useEffect(() => {
+    });
+
+    const dispatchUpdate = (updates: Partial<InitialsElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, ...updates }
+        payload: { ...localElement, ...updates }
       });
+    };
+
+    const updateLocal = (updates: Partial<InitialsElement>) => {
+      setLocalElement(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleBlur = () => {
+      dispatchUpdate(localElement);
     };
 
     const mockUser = {
@@ -822,8 +1017,9 @@ const EditorRightSidebar = () => {
             variant="outlined"
             hideBorder={true}
             // @ts-ignore
-            value={element.content || 'Initials'}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ content: e.target.value })}
+            value={localElement.content || 'Initials'}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateLocal({ content: e.target.value })}
+            onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
           />
         </div>

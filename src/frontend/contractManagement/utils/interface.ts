@@ -7,11 +7,11 @@ export interface Signer {
 
 export interface DocumentItem {
   _id?: string;
-  name: string;
-  status: 'draft' | 'waiting' | 'completed' | 'archived';
-  date: string;
-  signers: Signer[];
-  progress: number;
+  name?: string;
+  status?: 'draft' | 'waiting' | 'completed' | 'archived';
+  date?: string;
+  signers?: Signer[];
+  progress?: number;
   dueDate?: string;
   createdBy?: string;
   signingOrder?: boolean;
@@ -73,10 +73,10 @@ export interface TextElement {
 export interface ImageElement extends BlockStyle {
   type: 'image';
   id: string;
-  order: number; 
+  order: number;
   height: number;
-  width?: number; 
-  imageData?: string; 
+  width?: number;
+  imageData?: string;
   imageUrl?: string;
   page: number;
   align?: 'left' | 'center' | 'right';
@@ -90,7 +90,7 @@ export interface SignatureElement {
   y: number;
   width: number;
   height: number;
-  imageData: string; 
+  imageData: string;
   page: number;
   content?: string;
   showSignerName?: boolean;
@@ -150,9 +150,9 @@ export interface BlockStyle {
 export interface HeadingElement extends BlockStyle {
   type: 'heading';
   id: string;
-  order: number; 
+  order: number;
   height: number;
-  content: string; 
+  content: string;
   subtitle?: string;
   page: number;
   fontSize?: number;

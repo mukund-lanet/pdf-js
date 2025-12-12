@@ -20,13 +20,18 @@ const EditorHeader = () => {
 
   const uploadPdfUrl = useSelector((state: RootState) => state?.contractManagement?.uploadPdfUrl);
   const curDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
-
   // Access state for saving
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
   const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
 
-  const [docName, setDocName] = useState<string>(curDocument?.name || '');
+  const [docName, setDocName] = useState(curDocument?.name || '');
+
+  useEffect(() => {
+    if (curDocument?.name) {
+      setDocName(curDocument.name);
+    }
+  }, [curDocument?.name]);
 
   // Handle initial document loading based on documentType
   useEffect(() => {
@@ -101,13 +106,11 @@ const EditorHeader = () => {
         variant={"outlined"}
         color={"secondary"}
         startIcon={<CustomIcon iconName='arrow-left' height={16} width={16} />}
-        onClick={() => {
-          const businessKey = window.location.pathname.split('/')[1];
-          router.push(`/${businessKey}/contract-management`);
-        }}
+        onClick={() => router.back()}
       >
         <Typography> Previous </Typography>
       </Button>
+
       <TextField
         variant="outlined"
         value={docName}

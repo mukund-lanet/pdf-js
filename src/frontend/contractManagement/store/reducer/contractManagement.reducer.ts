@@ -1,6 +1,6 @@
 import * as Actions from '../action/contractManagement.actions';
 import { v4 as uuidv4 } from 'uuid';
-import { 
+import {
   DocumentItem,
   ContractItem,
   Page
@@ -80,7 +80,7 @@ export interface ContractManagementState {
   };
   documents: DocumentItem[];
   contracts: ContractItem[];
-  activeDocument: DocumentItem | null;
+  activeDocument: DocumentItem;
   // PDF Editor State
   pdfBytes: Uint8Array | null;
   totalPages: number;
@@ -186,7 +186,7 @@ const initialState: ContractManagementState = {
   },
   documents: [],
   contracts: [],
-  activeDocument: null,
+  activeDocument: {},
   // PDF Editor State
   pdfBytes: null,
   totalPages: 0,
@@ -216,10 +216,8 @@ const initialState: ContractManagementState = {
 };
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
-  // console.log('ContractManagement Reducer Action:', action.type);
   switch (action.type) {
     case Actions.SET_ACTIVE_DOCUMENT:
-      console.log('SET_ACTIVE_DOCUMENT payload:', action.payload);
       return {
         ...state,
         activeDocument: action.payload,
@@ -266,7 +264,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         createdBy: 'Current User', // Replace with actual user info if available
         signingOrder: action.payload.signingOrder || false,
       };
-      
+
       return {
         ...state,
         documents: [newDoc, ...state.documents],
@@ -307,32 +305,32 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         }
       };
     }
-    
+
     // case Actions.SET_ACTIVE_DOCUMENT: {
     //   return {
     //     ...state,
     //     activeDocument: action.payload,
     //   };
     // }
-    
+
     case Actions.UPDATE_DOCUMENT: {
       const { documentId, documentName, signers, signingOrder, canvasElements, pageDimensions } = action.payload;
-      const updatedDocuments = state.documents.map(doc => 
-        doc._id === documentId 
+      const updatedDocuments = state.documents.map(doc =>
+        doc._id === documentId
           ? { ...doc, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : doc
       );
-      
+
       return {
         ...state,
         documents: updatedDocuments,
         // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
-        activeDocument: state.activeDocument && state.activeDocument._id === documentId 
+        activeDocument: state.activeDocument && state.activeDocument._id === documentId
           ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : state.activeDocument,
       };
     }
-    
+
     case Actions.SET_DOCUMENT_DRAWER_MODE: {
       return {
         ...state,
@@ -668,7 +666,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         currentPage: newCurrentPage
       };
     }
-    
+
     // API Data Actions
     case Actions.SET_DOCUMENTS_LIST:
       return {
@@ -676,20 +674,20 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         documentsList: action.payload,
         documents: action.payload // Also update documents for compatibility
       };
-    
+
     case Actions.SET_CONTRACTS_LIST:
       return {
         ...state,
         contractsList: action.payload,
         contracts: action.payload // Also update contracts for compatibility
       };
-    
+
     case Actions.SET_SETTINGS_DATA:
       return {
         ...state,
         settingsData: action.payload
       };
-    
+
     default:
       return state;
   }

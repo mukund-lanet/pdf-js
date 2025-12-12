@@ -544,7 +544,6 @@ const EditorLeftDrawer: React.FC = () => {
       }
     }, []);
 
-    console.log({ pdfBytes, pdfjsLib });
     useEffect(() => {
       const loadPdf = async () => {
         if (!pdfBytes || !pdfjsLib) return;
@@ -588,11 +587,8 @@ const EditorLeftDrawer: React.FC = () => {
         if (!pdfBytes) return;
 
         const pdfDoc = await PDFDocument.load(pdfBytes);
-        console.log({ pdfDoc })
         const pages = pdfDoc.getPages();
-        console.log({ pages })
         const pageToMove = pages[sourceIndex];
-        console.log({ pageToMove })
 
         pdfDoc.removePage(sourceIndex);
         pdfDoc.insertPage(destinationIndex, pageToMove);

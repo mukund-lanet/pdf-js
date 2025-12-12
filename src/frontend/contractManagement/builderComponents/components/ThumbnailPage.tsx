@@ -31,7 +31,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
       try {
         renderTaskRef.current.cancel();
       } catch (e) {
-        console.log("error: ", e)
+        console.error("error: ", e)
       }
       renderTaskRef.current = null;
     }
@@ -287,8 +287,6 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
       cleanup();
     };
   }, [pdfDoc, pageNumber, canvasElements]);
-
-  console.log("workig thumbnail")
 
   return (
     <div className={styles.thumbnailWrapper}>

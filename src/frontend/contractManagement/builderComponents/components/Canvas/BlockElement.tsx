@@ -264,7 +264,7 @@ const BlockElement = ({
                 marginBottom: element.margin?.bottom,
                 marginLeft: element.margin?.left,
               }),
-              backgroundColor: element.backgroundColor,
+              backgroundColor: element.backgroundColor || (element.imageUrl ? 'transparent' : '#fff'),
               display: 'flex',
               justifyContent: 'center',
               minHeight: "120px"
