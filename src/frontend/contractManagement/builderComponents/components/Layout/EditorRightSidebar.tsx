@@ -626,7 +626,7 @@ const EditorRightSidebar = () => {
             variant="outlined"
             hideBorder={true}
             // @ts-ignore
-            value={element.content || 'Enter value'}
+            value={element.content !== undefined ? element.content : 'Enter value'}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ content: e.target.value })}
             inputProps={{ className: 'py-10 text-13' }}
           />

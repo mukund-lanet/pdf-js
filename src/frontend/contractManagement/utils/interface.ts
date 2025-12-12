@@ -239,3 +239,10 @@ export interface DraggableToolbarItemProps {
   activeTool: string | null;
   dispatch: any;
 }
+
+export interface Page {
+  pageSrc: String;
+  fromPdf: Boolean;
+  imagePath: String;
+  layout: CanvasElement[];
+}

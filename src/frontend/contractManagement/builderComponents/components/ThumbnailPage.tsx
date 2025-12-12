@@ -2,10 +2,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
-import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { CanvasElement, isBlockElement, isFillableElement } from '../../../utils/interface';
+import { RootState } from '../../store/reducer/contractManagement.reducer';
+import { CanvasElement, isBlockElement, isFillableElement } from '../../utils/interface';
 import Typography from '@trenchaant/pkg-ui-component-library/build/Components/Typography';
-import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actions';
+import { SET_CURRENT_PAGE } from '../../store/action/contractManagement.actions';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
@@ -288,6 +288,8 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
     };
   }, [pdfDoc, pageNumber, canvasElements]);
 
+  console.log("workig thumbnail")
+
   return (
     <div className={styles.thumbnailWrapper}>
       <div className={styles.thumbnailDragHandle} {...dragHandleProps}>
@@ -301,7 +303,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
           onClick={() => dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber })}
         >
           <div className={styles.thumbnailContent}>
-            {thumbnailUrl && !isLoading && !error && (
+            {thumbnailUrl && !isLoading && (
               <div
                 className={styles.thumbnailImage}
                 style={{

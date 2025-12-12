@@ -2,7 +2,8 @@ import * as Actions from '../action/contractManagement.actions';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   DocumentItem,
-  ContractItem
+  ContractItem,
+  Page
 } from '../../utils/interface';
 import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
 
@@ -105,6 +106,7 @@ export interface ContractManagementState {
   documentsList: any[];
   contractsList: any[];
   settingsData: any | null;
+  pages: Page[];
 }
 
 export interface RootState {
@@ -199,23 +201,7 @@ const initialState: ContractManagementState = {
   isLoading: false,
   drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
   activeElementId: null,
-  documentVariables: [
-    {
-      name: 'document.createdDate',
-      value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      isSystem: true
-    },
-    {
-      name: 'document.refNumber',
-      value: `P${Math.floor(10000 + Math.random() * 90000)} `,
-      isSystem: true
-    },
-    {
-      name: 'document.subAccountName',
-      value: "CRMOne",
-      isSystem: true
-    },
-  ],
+  documentVariables: [],
   propertiesDrawerState: {
     anchorEl: null,
     isOpen: false
@@ -225,7 +211,8 @@ const initialState: ContractManagementState = {
   // API Data
   documentsList: [],
   contractsList: [],
-  settingsData: null
+  settingsData: null,
+  pages: [],
 };
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {

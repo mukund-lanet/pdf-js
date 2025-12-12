@@ -6,11 +6,11 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import Select from "@trenchaant/pkg-ui-component-library/build/Components/Select/SimpleSelect";
 import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/MenuItem";
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
-import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { HeadingElement, TableElement } from '../../../utils/interface';
-import ColorInput from '../Properties/ColorInput';
-import { fontSizeList, fontFamilyList, headingLevels } from '../../../utils/utils';
-import { UPDATE_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { RootState } from '../../store/reducer/contractManagement.reducer';
+import { HeadingElement, TableElement } from '../../utils/interface';
+import ColorInput from './Properties/ColorInput';
+import { fontSizeList, fontFamilyList, headingLevels } from '../../utils/utils';
+import { UPDATE_CANVAS_ELEMENT } from '../../store/action/contractManagement.actions';
 
 const TextFormattingToolbar: React.FC = () => {
   const dispatch = useDispatch();
