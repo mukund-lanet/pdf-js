@@ -188,7 +188,7 @@
   .scrollPdfViewerContainer {
     height: 100%;
     width: 100%;
-  
+
     .pdfViewerContainer {
       height: 100%;
       width: 100%;
@@ -1559,6 +1559,7 @@
   height: 100%;
   z-index: 4;
   max-height: calc(100% - 64px);
+  // pointer-events: auto;
   pointer-events: none;
 }
 
@@ -2288,7 +2289,7 @@
   margin: 4px;
   padding: 8px 16px;
   width: 100%;
-  
+
   .mediaBtnMenu {
     padding: 0;
     margin: 0;
@@ -2299,7 +2300,7 @@
     border-radius: 0;
     height: auto;
     min-width: unset;
-    
+
     &:hover {
       background: #ffffff;
     }
@@ -2439,7 +2440,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       span {
         font-size: 10px;
         font-weight: 600;
