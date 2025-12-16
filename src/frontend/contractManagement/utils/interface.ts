@@ -241,8 +241,9 @@ export interface DraggableToolbarItemProps {
 }
 
 export interface Page {
-  pageSrc: String;
-  fromPdf: Boolean;
-  imagePath: String;
-  layout: CanvasElement[];
+  pageSrc?: string;
+  fromPdf: boolean;
+  imagePath?: string;
+  originalPdfPageIndex?: number; // 0-based index in the original PDF
+  layout?: CanvasElement[];
 }

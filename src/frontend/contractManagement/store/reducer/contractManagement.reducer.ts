@@ -603,6 +603,12 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         }
       };
 
+    case Actions.SET_PAGES:
+      return {
+        ...state,
+        pages: action.payload
+      };
+
     case Actions.REORDER_PAGE_ELEMENTS: {
       const { sourceIndex, destinationIndex } = action.payload;
       const sourcePage = sourceIndex + 1;

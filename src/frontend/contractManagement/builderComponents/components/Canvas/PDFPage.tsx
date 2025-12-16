@@ -137,7 +137,7 @@ const PDFPage = React.memo((({
     }
   };
 
-  const handleUploadAndInsert = async (fileToUpload: any) => {
+  const handleUpsert = async (fileToUpload: any) => {
     if (!fileToUpload || !pdfBytes) return;
 
     try {
@@ -315,7 +315,7 @@ const PDFPage = React.memo((({
                 title="Insert PDF from media manager"
                 setSelectedMedia={(selectedMedia: any) => {
                   if (selectedMedia && selectedMedia.length > 0) {
-                    handleUploadAndInsert(selectedMedia[0]);
+                    handleUpsert(selectedMedia[0]);
                   }
                 }}
                 allow={true}

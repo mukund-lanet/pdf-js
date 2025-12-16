@@ -55,6 +55,7 @@ export const FILLABLE_ELEMENT = 'FILLABLE_ELEMENT';
 export const TOOLBAR_ITEM = 'TOOLBAR_ITEM';
 export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
+export const SET_PAGES = 'SET_PAGES';
 
 // Dialog/Drawer Names Type
 export type DialogName = DIALOG_DRAWER_NAMES;
@@ -161,7 +162,7 @@ export interface SetDocumentDrawerModeAction {
 }
 
 // PDF Editor Action Interfaces
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
 
 interface SetPdfBytesAction {
   type: typeof SET_PDF_BYTES;
@@ -189,6 +190,11 @@ interface SetDocumentTypeAction {
 interface SetUploadPdfUrlAction {
   type: typeof SET_UPLOAD_PDF_URL;
   payload: string | null;
+}
+
+interface SetPagesAction {
+  type: typeof SET_PAGES;
+  payload: Page[];
 }
 
 interface SetDrawerComponentCategoryAction {
@@ -374,6 +380,7 @@ export type ContractManagementAction =
   | SetPdfMediaAction
   | SetDocumentTypeAction
   | SetUploadPdfUrlAction
+  | SetPagesAction
   | ReorderPageElementsAction
   | SetDocumentsListAction
   | SetContractsListAction
@@ -750,20 +757,88 @@ export const loadDocumentById = (id: string): AppDispatch => {
           }
 
           const pdfBytes = new Uint8Array(arrayBuffer);
-
           const { PDFDocument } = await import('pdf-lib');
-          const pdfDoc = await PDFDocument.load(arrayBuffer);
-          const pageCount = pdfDoc.getPageCount();
 
-          dispatch({
-            type: SET_PDF_BYTES,
-            payload: pdfBytes,
-          });
+          let pages = document.pages;
 
-          dispatch({
-            type: SET_TOTAL_PAGES,
-            payload: pageCount,
-          });
+          // Fallback: If no pages metadata exists, initialize it from the PDF
+          if (!pages || pages.length === 0) {
+            const pdfDocForCount = await PDFDocument.load(arrayBuffer);
+            const pageCount = pdfDocForCount.getPageCount();
+            pages = Array.from({ length: pageCount }, (_, i) => ({
+              fromPdf: true,
+              originalPdfPageIndex: i,
+              // pageSrc: document.uploadPath // Optional
+            }));
+
+            // We must set this to state so the editor knows about it
+            dispatch({
+              type: SET_PAGES,
+              payload: pages
+            });
+          }
+
+          if (pages && pages.length > 0) {
+            // Dispatch pages state immediately
+            dispatch({
+              type: SET_PAGES,
+              payload: pages
+            });
+
+            // Reconstruction Logic
+            // If any page is NOT from PDF, we need to reconstruct
+            const needsReconstruction = pages.some((p: any) => !p.fromPdf);
+
+            if (needsReconstruction) {
+              const originalPdfDoc = await PDFDocument.load(arrayBuffer);
+              const newPdfDoc = await PDFDocument.create();
+
+              for (const pageInfo of pages) {
+                if (pageInfo.fromPdf && typeof pageInfo.originalPdfPageIndex === 'number') {
+                  const [copiedPage] = await newPdfDoc.copyPages(originalPdfDoc, [pageInfo.originalPdfPageIndex]);
+                  newPdfDoc.addPage(copiedPage);
+                } else {
+                  // Blank page
+                  newPdfDoc.addPage([600, 800]);
+                }
+              }
+              const reconstructedBytes = await newPdfDoc.save();
+
+              dispatch({
+                type: SET_PDF_BYTES,
+                payload: reconstructedBytes,
+              });
+
+              dispatch({
+                type: SET_TOTAL_PAGES,
+                payload: newPdfDoc.getPageCount(),
+              });
+            } else {
+              // If all pages are from PDF and in order, just load the original
+              const pdfDoc = await PDFDocument.load(arrayBuffer);
+              dispatch({
+                type: SET_PDF_BYTES,
+                payload: pdfBytes,
+              });
+
+              dispatch({
+                type: SET_TOTAL_PAGES,
+                payload: pdfDoc.getPageCount(),
+              });
+            }
+          } else {
+            // Should not happen due to fallback, but safe default
+            const pdfDoc = await PDFDocument.load(arrayBuffer);
+            dispatch({
+              type: SET_PDF_BYTES,
+              payload: pdfBytes,
+            });
+
+            dispatch({
+              type: SET_TOTAL_PAGES,
+              payload: pdfDoc.getPageCount(),
+            });
+          }
 
         } catch (pdfError: any) {
           console.error('Error loading PDF:', pdfError);
@@ -772,6 +847,56 @@ export const loadDocumentById = (id: string): AppDispatch => {
             variant: 'warning',
           }));
           // Continue loading other document data even if PDF fails
+        }
+      } else {
+        // Handle "New Document" (No uploadPath)
+        try {
+          const { PDFDocument } = await import('pdf-lib');
+          const newPdfDoc = await PDFDocument.create();
+          let pages = document.pages;
+
+          if (pages && pages.length > 0) {
+            dispatch({
+              type: SET_PAGES,
+              payload: pages
+            });
+
+            for (const pageInfo of pages) {
+              // For new documents, we assume all pages are blank or constructed, 
+              // unless we support mixing uploaded pages into new docs later.
+              // For now, just add blank pages.
+              newPdfDoc.addPage([600, 800]);
+            }
+          } else {
+            // Default initialization for new document: 1 Blank Page
+            newPdfDoc.addPage([600, 800]);
+
+            // Initialize pages metadata
+            const initialPages: Page[] = [{ fromPdf: false }];
+            dispatch({
+              type: SET_PAGES,
+              payload: initialPages
+            });
+          }
+
+          const pdfBytes = await newPdfDoc.save();
+
+          dispatch({
+            type: SET_PDF_BYTES,
+            payload: pdfBytes,
+          });
+
+          dispatch({
+            type: SET_TOTAL_PAGES,
+            payload: newPdfDoc.getPageCount(),
+          });
+
+        } catch (error) {
+          console.error('Error creating new document PDF:', error);
+          dispatch(showMessage({
+            message: 'Failed to initialize new document',
+            variant: 'error',
+          }));
         }
       }
 
