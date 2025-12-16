@@ -37,8 +37,8 @@ const DocumentSchema = new Schema<IDocument>({
   signingOrder: { type: Boolean, default: false },
   business_id: { type: String, required: true },
   pages: [{
-    page_src: { type: String },
-    from_pdf: { type: Boolean, default: false },
+    pageSrc: { type: String },
+    fromPdf: { type: Boolean, default: false },
     imagePath: { type: String },
     layout: [{ type: Schema.Types.Mixed }]
   }],

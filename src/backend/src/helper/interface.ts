@@ -33,10 +33,10 @@ export interface TextElement {
 export interface ImageElement extends BlockStyle {
   type: 'image';
   id: string;
-  order: number; 
+  order: number;
   height: number;
-  width?: number; 
-  imageData?: string; 
+  width?: number;
+  imageData?: string;
   imageUrl?: string;
   page: number;
   align?: 'left' | 'center' | 'right';
@@ -50,7 +50,7 @@ export interface SignatureElement {
   y: number;
   width: number;
   height: number;
-  imageData: string; 
+  imageData: string;
   page: number;
   content?: string;
   showSignerName?: boolean;
@@ -110,9 +110,9 @@ export interface BlockStyle {
 export interface HeadingElement extends BlockStyle {
   type: 'heading';
   id: string;
-  order: number; 
+  order: number;
   height: number;
-  content: string; 
+  content: string;
   subtitle?: string;
   page: number;
   fontSize?: number;
@@ -164,8 +164,8 @@ export type FillableFieldElement = TextElement | SignatureElement | DateElement 
 export type ICanvasElement = BlockElement | FillableFieldElement;
 
 export interface Page {
-  page_src: String;
-  from_pdf: Boolean;
+  pageSrc: String;
+  fromPdf: Boolean;
   imagePath: String;
   layout: ICanvasElement[];
 }

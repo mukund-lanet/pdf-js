@@ -14,7 +14,7 @@ export interface IContract extends MongoDocument {
   termsAndConditions: string;
   paymentTerms: string;
   contractType: string;
-  business_id: string; // Business identifier for multi-tenancy
+  business_id: string; 
 }
 
 const ContractSchema = new Schema<IContract>({
