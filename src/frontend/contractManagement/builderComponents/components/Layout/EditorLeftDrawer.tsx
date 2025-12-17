@@ -262,7 +262,7 @@ const EditorLeftDrawer: React.FC = () => {
 
     const handleDeleteSigner = (index: number) => {
       if (activeDocument) {
-        const newSigners = [...activeDocument.signers];
+        const newSigners = activeDocument.signers ? [...activeDocument.signers] : [];
         newSigners.splice(index, 1);
         dispatch({
           type: UPDATE_DOCUMENT,

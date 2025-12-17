@@ -8,9 +8,7 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Menu from '@trenchaant/pkg-ui-component-library/build/Components/Menu';
 import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/MenuItem';
-import SimpleLoading from '@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading';
-// import MediaButton from "@trenchaant/common-component/dist/commonComponent/mediaButton";
-import MediaButton from "components/commonComponentCode/mediaButton";
+import MediaManagerList from "@trenchaant/common-component/dist/commonComponent/mediaManager";
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
@@ -33,12 +31,13 @@ const PDFPage = React.memo((({
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
   const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
-  const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
+  // const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
   const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [pageSize, setPageSize] = useState<{ pageWidth: number; pageHeight: number }>({ pageWidth: 600, pageHeight: 800 });
-  const [error, setError] = useState<string | null>(null);
+  const [selectedMenu, setSelectedMenu] = useState<boolean>(false);
+  const [mediaManagerSelection, setMediaManagerSelection] = useState<any[]>([]);
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const renderTaskRef = useRef<any>(null);
@@ -224,7 +223,6 @@ const PDFPage = React.memo((({
       cleanupRenderTask();
 
       dispatch({ type: SET_IS_LOADING, payload: true })
-      setError(null);
 
       try {
         const page = await pdfDoc.getPage(pageNumber);
@@ -261,7 +259,6 @@ const PDFPage = React.memo((({
           error?.message !== "Rendering cancelled"
         ) {
           console.error(`Error rendering page ${pageNumber}:`, error);
-          if (isMounted) setError(`Failed to render page ${pageNumber}`);
         }
       }
     };
@@ -274,12 +271,19 @@ const PDFPage = React.memo((({
     };
   }, [pdfDoc, pageNumber]);
 
-
-
   const handlePageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch({ type: SET_SELECTED_TEXT_ELEMENT, payload: null });
     dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber });
+  };
+
+  const handleMediaSubmit = () => {
+    if (mediaManagerSelection.length > 0) {
+      const selectedFile = mediaManagerSelection[0];
+      handleUpsert(selectedFile);
+    }
+    setSelectedMenu(false);
+    setMediaManagerSelection([]);
   };
 
   return (
@@ -307,24 +311,32 @@ const PDFPage = React.memo((({
             <MenuItem onClick={handleDeletePage}>
               <Typography>Delete Page</Typography>
             </MenuItem>
-            <MenuItem>
-              <MediaButton
-                classes={{ mediaButton: styles.mediaBtnMenu, mediaButtonWrap: styles.mediaBtnMenuWrap }}
-                noBtnIcon
-                noTooltip
-                title="Insert PDF from media manager"
-                setSelectedMedia={(selectedMedia: any) => {
-                  if (selectedMedia && selectedMedia.length > 0) {
-                    handleUpsert(selectedMedia[0]);
-                  }
-                }}
-                allow={true}
-                allowFromLocal={true}
-                supportedDocTypes="pdf"
-              />
+            <MenuItem onClick={() => setSelectedMenu(true)}>
+              <Typography>Insert PDF from media manager</Typography>
             </MenuItem>
           </Menu>
-
+          <MediaManagerList
+            type="drawer"
+            anchor="right"
+            acceptedFileType="application/pdf"
+            filterMediaDisplay
+            filterMediaUpload
+            showHeader
+            showFooter
+            showSideBar
+            isMediaOpen={selectedMenu}
+            multiSelection={false}
+            handleStateChange={(dataObj: any[]) => setMediaManagerSelection(dataObj)}
+            selectedMedia={mediaManagerSelection}
+            handleSubmit={handleMediaSubmit}
+            handleCancel={() => {
+              setSelectedMenu(false);
+              setMediaManagerSelection([]);
+            }}
+            submitButtonText="Select"
+            cancelButtonText="Cancel"
+            title="Select PDF Document"
+          />
           <div className={styles.actionButtonWrapper} >
             <div className={styles.actionBtnJustifyWrapper} >
               <Button className={styles.addPageRound} onClick={handleAddBlankPage}>

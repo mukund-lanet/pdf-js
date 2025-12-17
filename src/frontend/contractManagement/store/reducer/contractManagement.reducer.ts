@@ -199,7 +199,7 @@ const initialState: ContractManagementState = {
   isSignaturePadOpen: false,
   signatureForElement: null,
   isLoading: false,
-  drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
+  drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS,
   activeElementId: null,
   documentVariables: [],
   propertiesDrawerState: {

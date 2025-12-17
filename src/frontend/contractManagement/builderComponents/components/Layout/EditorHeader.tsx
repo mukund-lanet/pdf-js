@@ -50,9 +50,6 @@ const EditorHeader = () => {
             const pdfDoc = await PDFDocument.load(arrayBuffer);
             const pageCount = pdfDoc.getPageCount();
 
-            const tempDoc = PDFDocument.create();
-            const tempBytes = (await tempDoc).copyPages(pdfDoc, [0, 1, 2, 3, 4]);
-
             const dimensions: { [key: number]: PageDimension } = {};
             for (let i = 0; i < pageCount; i++) {
               const page = pdfDoc.getPages()[i];

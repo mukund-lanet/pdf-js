@@ -59,30 +59,6 @@ const BlockElement = ({
     };
   }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageData = event.target?.result as string;
-      dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, imageData }
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleVideoUrlChange = (url: string) => {
-    if (element.type === 'video') {
-      dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, videoUrl: url }
-      });
-    }
-  };
-
   const handleBlockClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsClicked(true);
@@ -465,8 +441,7 @@ const BlockElement = ({
         </div>
       )}
 
-      {/* rendering content */}
-      <div className={styles.blockContent}>
+      <div className={styles.blockContent} style={element.type === 'heading' ? {background: "transparent"} : {}} >
         {renderContent()}
       </div>
 
