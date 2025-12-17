@@ -12,6 +12,7 @@ const EditorMainArea = () => {
   const editorPanelRef = useRef<HTMLDivElement>(null);
 
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
@@ -28,8 +29,8 @@ const EditorMainArea = () => {
   return (
     <div className={styles.editorPanel} ref={editorPanelRef}>
       <div className={styles.pdfViewerWrapper} >
-        <div className={` ${pdfBytes ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
-          {pdfBytes && totalPages > 0 ? (
+        <div className={` ${(pdfBytes || (pages && pages.length > 0)) ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
+          {(pdfBytes || (pages && pages.length > 0)) && totalPages > 0 ? (
             <PDFCanvasViewer />
           ) : isLoading ? <div className={styles.simpleLoadingWrapper} > <SimpleLoading /> </div>
             : (

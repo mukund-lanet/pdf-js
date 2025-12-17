@@ -15,6 +15,7 @@ import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actio
 const PDFCanvasViewer = () => {
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
   const dispatch = useDispatch();
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
@@ -36,6 +37,14 @@ const PDFCanvasViewer = () => {
   }, []);
 
   useEffect(() => {
+    // If we have pages data, we don't need to load the PDF document
+    if (pages && pages.length > 0) {
+      setPdfDoc(null);
+      setRenderKey(prev => prev + 1); // force re-rendering of all pages
+      return;
+    }
+
+    // Fallback to original pdfBytes loading if no pages data
     const loadPdfDocument = async () => {
       if (!pdfBytes || !pdfjsLib) {
         setPdfDoc(null);
@@ -57,7 +66,7 @@ const PDFCanvasViewer = () => {
     };
 
     loadPdfDocument();
-  }, [pdfBytes, pdfjsLib]);
+  }, [pdfBytes, pdfjsLib, pages]);
 
   const handleScrollToTop = () => {
     dispatch({ type: SET_CURRENT_PAGE, payload: 1 });
@@ -72,7 +81,7 @@ const PDFCanvasViewer = () => {
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
-      {pdfBytes && totalPages > 0 ? (
+      {(pdfBytes || (pages && pages.length > 0)) && totalPages > 0 ? (
         <CustomScrollbar ref={scrollContainerRef} className={styles.scrollPdfViewerContainer} >
           <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
             {Array.from({ length: totalPages }, (_, index) => {

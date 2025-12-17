@@ -21,6 +21,7 @@ import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS,
 import ThumbnailPage from '../ThumbnailPage';
 import { blocks, fillableFields, noPdfDocument } from '../../../utils/utils';
 import { useDrag } from 'react-dnd';
+import { SET_PAGES } from '../../../store/action/contractManagement.actions';
 
 const EditorLeftDrawer: React.FC = () => {
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
@@ -507,6 +508,7 @@ const EditorLeftDrawer: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
     const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+    const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
     const [pageIds, setPageIds] = useState<string[]>([]);
 
     // StrictModeDroppable component
@@ -537,28 +539,33 @@ const EditorLeftDrawer: React.FC = () => {
     }, []);
 
     useEffect(() => {
-      const loadPdf = async () => {
-        if (!pdfBytes || !pdfjsLib) return;
-
-        try {
-          const pdfBytesCopy = new Uint8Array(pdfBytes);
-          const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
-          const pdf = await loadingTask.promise;
-          setPdfDoc(pdf);
-
-          // Initialize page IDs if not already set or if count mismatches
-          // We use a simple index-based ID initially, but we need them to be stable across reorders if possible.
-          // However, since we re-render the whole list on drop, we can just use a local state that we reorder.
-          if (pageIds.length !== pdf.numPages) {
-            setPageIds(Array.from({ length: pdf.numPages }, (_, i) => `page-${i + 1}-${Date.now()}`));
-          }
-        } catch (error) {
-          console.error('Error loading PDF for thumbnails:', error);
+      // Initialize pageIds based on pages array length
+      // If we have pages data, initialize pageIds based on that
+      if (pages && pages.length > 0) {
+        if (pageIds.length !== pages.length) {
+          setPageIds(Array.from({ length: pages.length }, (_, i) => `page-${i + 1}-${Date.now()}`));
         }
-      };
+      } else if (pdfBytes && pdfjsLib) {
+        // Fallback to original pdfBytes loading if no pages data
+        const loadPdf = async () => {
+          try {
+            const pdfBytesCopy = new Uint8Array(pdfBytes);
+            const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
+            const pdf = await loadingTask.promise;
+            setPdfDoc(pdf);
 
-      loadPdf();
-    }, [pdfBytes, pdfjsLib]);
+            // Initialize page IDs if not already set or if count mismatches
+            if (pageIds.length !== pdf.numPages) {
+              setPageIds(Array.from({ length: pdf.numPages }, (_, i) => `page-${i + 1}-${Date.now()}`));
+            }
+          } catch (error) {
+            console.error('Error loading PDF for thumbnails:', error);
+          }
+        };
+
+        loadPdf();
+      }
+    }, [pdfBytes, pdfjsLib, pages]);
 
     const onDragEnd = async (result: DropResult) => {
       if (!result.destination) return;
@@ -576,18 +583,13 @@ const EditorLeftDrawer: React.FC = () => {
 
       try {
         setIsLoading(true);
-        if (!pdfBytes) return;
-
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const pages = pdfDoc.getPages();
-        const pageToMove = pages[sourceIndex];
-
-        pdfDoc.removePage(sourceIndex);
-        pdfDoc.insertPage(destinationIndex, pageToMove);
-
-        const newPdfBytes = await pdfDoc.save();
-
-        dispatch({ type: SET_PDF_BYTES, payload: newPdfBytes });
+        
+        // Update pages array
+        const currentPages = [...pages];
+        const [movedPage] = currentPages.splice(sourceIndex, 1);
+        currentPages.splice(destinationIndex, 0, movedPage);
+        dispatch({ type: SET_PAGES, payload: currentPages });
+        
         dispatch({
           type: REORDER_PAGE_ELEMENTS,
           payload: { sourceIndex, destinationIndex }
@@ -609,7 +611,7 @@ const EditorLeftDrawer: React.FC = () => {
         </div>
 
         <div className={styles.thumbnailContainer}>
-          {pdfDoc && totalPages > 0 ? (
+          {(pages && pages.length > 0) || (pdfDoc && totalPages > 0) ? (
             <DragDropContext onDragEnd={onDragEnd}>
               <StrictModeDroppable droppableId="thumbnail-pages">
                 {(provided: any) => (
@@ -645,7 +647,7 @@ const EditorLeftDrawer: React.FC = () => {
                 )}
               </StrictModeDroppable>
             </DragDropContext>
-          ) : !isLoading && totalPages === 0 ? (
+          ) : !isLoading ? (
             <div className={styles.noPdfLoaded} >
               <EmptyMessageComponent className={styles.noPdfLoadedEmptyMessage} {...noPdfDocument} />
             </div>

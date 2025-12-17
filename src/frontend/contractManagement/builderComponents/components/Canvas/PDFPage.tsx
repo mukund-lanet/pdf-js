@@ -12,8 +12,8 @@ import MediaManagerList from "@trenchaant/common-component/dist/commonComponent/
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { PageDimension } from '../../../utils/interface';
-import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { Page, PageDimension } from '../../../utils/interface';
+import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, SET_PAGES } from '../../../store/action/contractManagement.actions';
 
 interface PDFPageProps {
   pdfDoc: any;
@@ -31,6 +31,7 @@ const PDFPage = React.memo((({
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
   const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages);
   // const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -54,17 +55,19 @@ const PDFPage = React.memo((({
     e.stopPropagation();
     handleMenuClose();
 
-    if (!pdfBytes) return;
-
     try {
       dispatch({ type: SET_IS_LOADING, payload: true })
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      pdfDoc.insertPage(pageNumber, [600, 800]);
-      const newPdfBytes = await pdfDoc.save();
+      
+      // Update pages array
+      const newPages = [...pages];
+      // Insert a new blank page after the current page
+      newPages.splice(pageNumber, 0, { fromPdf: false, imagePath: null });
+      dispatch({ type: SET_PAGES, payload: newPages });
+      
+      // Update total pages
+      dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length });
 
-      dispatch({ type: SET_PDF_BYTES, payload: newPdfBytes });
-      dispatch({ type: SET_TOTAL_PAGES, payload: pdfDoc.getPageCount() });
-
+      // Update canvas elements page numbers
       const updatedElements = canvasElements.map((el: { page: number; }) => {
         if (el.page > pageNumber) {
           return { ...el, page: el.page + 1 };
@@ -73,6 +76,7 @@ const PDFPage = React.memo((({
       });
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
 
+      // Update page dimensions
       const newPageDimensions: { [key: number]: PageDimension } = {};
       const newPageSize = { pageWidth: 600, pageHeight: 800 };
 
@@ -101,20 +105,24 @@ const PDFPage = React.memo((({
     e.stopPropagation();
     handleMenuClose();
 
-    if (!pdfBytes || totalPages <= 1) {
+    if (totalPages <= 1) {
       alert("Cannot delete the last page.");
       return;
     }
 
     try {
       dispatch({ type: SET_IS_LOADING, payload: true })
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      pdfDoc.removePage(pageNumber - 1);
-      const newPdfBytes = await pdfDoc.save();
-      dispatch({ type: SET_PDF_BYTES, payload: newPdfBytes });
-      dispatch({ type: SET_TOTAL_PAGES, payload: pdfDoc.getPageCount() })
-      if (currentPage > pdfDoc.getPageCount()) {
-        dispatch({ type: SET_CURRENT_PAGE, payload: pdfDoc.getPageCount() })
+      
+      // Update pages array
+      const newPages = [...pages];
+      newPages.splice(pageNumber - 1, 1); // Remove the page at the specified index (0-based)
+      dispatch({ type: SET_PAGES, payload: newPages });
+      
+      // Update total pages
+      dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length })
+      
+      if (currentPage > newPages.length) {
+        dispatch({ type: SET_CURRENT_PAGE, payload: newPages.length })
       } else if (currentPage > pageNumber) {
         dispatch({ type: SET_CURRENT_PAGE, payload: currentPage - 1 })
       }
@@ -137,7 +145,7 @@ const PDFPage = React.memo((({
   };
 
   const handleUpsert = async (fileToUpload: any) => {
-    if (!fileToUpload || !pdfBytes) return;
+    if (!fileToUpload) return;
 
     try {
       dispatch({ type: SET_IS_LOADING, payload: true });
@@ -161,21 +169,23 @@ const PDFPage = React.memo((({
         throw new Error('Invalid file format');
       }
 
-      const mainDoc = await PDFDocument.load(pdfBytes);
+      // Process the PDF to get page count
       const uploadedDoc = await PDFDocument.load(arrayBuffer);
+      const numNewPages = uploadedDoc.getPageCount();
 
-      const copiedPages = await mainDoc.copyPages(uploadedDoc, uploadedDoc.getPageIndices());
-      const numNewPages = copiedPages.length;
-
-      let lastInsertedIndex = pageNumber;
-      for (const copiedPage of copiedPages) {
-        mainDoc.insertPage(lastInsertedIndex, copiedPage);
-        lastInsertedIndex++;
+      // Update pages array - insert new pages after the current page
+      const newPages = [...pages];
+      const newPageObjects: Page[] = [];
+      for (let i = 0; i < numNewPages; i++) {
+        // For now, we'll just add placeholder pages
+        // In a real implementation, you would generate image paths for each page
+        newPageObjects.push({ fromPdf: true, originalPdfPageIndex: i });
       }
+      newPages.splice(pageNumber, 0, ...newPageObjects);
+      dispatch({ type: SET_PAGES, payload: newPages });
 
-      const newPdfBytes = await mainDoc.save();
-      dispatch({ type: SET_PDF_BYTES, payload: newPdfBytes });
-      dispatch({ type: SET_TOTAL_PAGES, payload: mainDoc.getPageCount() })
+      // Update total pages
+      dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length })
 
       // Update elements to shift page numbers
       const updatedElements = canvasElements.map((el: { page: number; }) => {
@@ -188,11 +198,14 @@ const PDFPage = React.memo((({
 
       // Regenerate all dimensions
       const dimensions: { [key: number]: PageDimension } = {};
-      mainDoc.getPages().forEach((page, i) => {
+      uploadedDoc.getPages().forEach((page, i) => {
         const { width, height } = page.getSize();
-        dimensions[i + 1] = { pageWidth: width, pageHeight: height };
+        dimensions[pageNumber + i + 1] = { pageWidth: width, pageHeight: height };
       });
-      dispatch({ type: SET_PAGE_DIMENSIONS, payload: dimensions })
+      
+      // Merge with existing dimensions
+      const newPageDimensions = { ...pageDimensions, ...dimensions };
+      dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions })
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 })
       dispatch({ type: SET_IS_LOADING, payload: false })
     } catch (error) {
@@ -215,6 +228,20 @@ const PDFPage = React.memo((({
   };
 
   useEffect(() => {
+    // Check if we have pages data with imagePath
+    if (pages && pages.length > 0 && pageNumber <= pages.length) {
+      const pageData = pages[pageNumber - 1]; // 0-based index
+      if (pageData && pageData.imagePath) {
+        // Use the imagePath directly
+        setImageSrc(pageData.imagePath);
+        // Set default page size or get from pageDimensions
+        const pageDim = pageDimensions[pageNumber] || { pageWidth: 600, pageHeight: 800 };
+        setPageSize(pageDim);
+        return;
+      }
+    }
+
+    // Fallback to original pdfDoc rendering if no imagePath is available
     let isMounted = true;
 
     const renderPage = async () => {
@@ -269,7 +296,7 @@ const PDFPage = React.memo((({
       isMounted = false;
       cleanupRenderTask();
     };
-  }, [pdfDoc, pageNumber]);
+  }, [pdfDoc, pageNumber, pages, pageDimensions]);
 
   const handlePageClick = (e: React.MouseEvent) => {
     e.stopPropagation();

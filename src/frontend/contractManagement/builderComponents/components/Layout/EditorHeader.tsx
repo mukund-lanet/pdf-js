@@ -10,13 +10,14 @@ import TextField from '@trenchaant/pkg-ui-component-library/build/Components/Tex
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { PageDimension } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument } from '../../../store/action/contractManagement.actions';
+import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PAGES, SET_PDF_BYTES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument } from '../../../store/action/contractManagement.actions';
 
 const EditorHeader = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const documentType = useSelector((state: RootState) => state?.contractManagement?.documentType);
   const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
 
   const uploadPdfUrl = useSelector((state: RootState) => state?.contractManagement?.uploadPdfUrl);
   const curDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
@@ -35,6 +36,13 @@ const EditorHeader = () => {
 
   // Handle initial document loading based on documentType
   useEffect(() => {
+    // If we have pages data, we don't need to initialize the document
+    if (pages && pages.length > 0) {
+      dispatch({ type: SET_TOTAL_PAGES, payload: pages.length })
+      dispatch({ type: SET_CURRENT_PAGE, payload: 1 })
+      return;
+    }
+
     const initializeDocument = async () => {
       if (documentType === 'new_document' && !pdfBytes) {
         // Create a new blank PDF
@@ -76,17 +84,18 @@ const EditorHeader = () => {
     };
 
     initializeDocument();
-  }, [documentType, uploadPdfUrl]);
+  }, [documentType, uploadPdfUrl, pages]);
 
   const createNewPdf = async () => {
     try {
       dispatch({ type: SET_IS_LOADING, payload: true })
-      const pdfDoc = await PDFDocument.create();
-      pdfDoc.addPage([600, 800]);
-      const bytes = await pdfDoc.save();
+      
+      // Update pages array
+      const newPages = [{ fromPdf: false }];
+      dispatch({ type: SET_PAGES, payload: newPages });
+      
       dispatch({ type: SET_TOTAL_PAGES, payload: 1 })
       dispatch({ type: SET_CURRENT_PAGE, payload: 1 })
-      dispatch({ type: SET_PDF_BYTES, payload: bytes })
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: [] })
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: { 1: { pageWidth: 600, pageHeight: 800 } } })
       dispatch({ type: SET_SELECTED_TEXT_ELEMENT, payload: null })
@@ -131,7 +140,8 @@ const EditorHeader = () => {
             pageDimensions: pageDimensions || {},
             totalPages: totalPages || 0,
             signers: curDocument?.signers || [],
-            signingOrder: curDocument?.signingOrder
+            signingOrder: curDocument?.signingOrder,
+            pages: pages || []
           }));
         }}
       >

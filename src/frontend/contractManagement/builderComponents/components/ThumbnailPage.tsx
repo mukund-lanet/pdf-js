@@ -22,6 +22,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
   const renderTaskRef = useRef<any>(null);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements || []);
   const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions || {});
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
   const dispatch = useDispatch();
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
 
@@ -235,6 +236,17 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
   };
 
   useEffect(() => {
+    // Check if we have pages data with imagePath
+    if (pages && pages.length > 0 && pageNumber <= pages.length) {
+      const pageData = pages[pageNumber - 1]; // 0-based index
+      if (pageData && pageData.imagePath) {
+        // Use the imagePath directly for thumbnail
+        setThumbnailUrl(pageData.imagePath);
+        return;
+      }
+    }
+
+    // Fallback to original pdfDoc rendering if no imagePath is available
     let isMounted = true;
 
     const renderThumbnail = async () => {
@@ -290,7 +302,7 @@ const ThumbnailPage = React.memo(({ pdfDoc, pageNumber, isLoading, dragHandlePro
       isMounted = false;
       cleanup();
     };
-  }, [pdfDoc, pageNumber, canvasElements]);
+  }, [pdfDoc, pageNumber, canvasElements, pages]);
 
   return (
     <div className={styles.thumbnailWrapper}>

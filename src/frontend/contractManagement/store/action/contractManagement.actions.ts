@@ -153,6 +153,7 @@ export interface UpdateDocumentAction {
     signingOrder?: boolean;
     canvasElements?: CanvasElement[];
     pageDimensions?: { [key: number]: PageDimension };
+    pages?: Page[];
   };
 }
 
@@ -579,6 +580,7 @@ export const updateDocument = (data: {
   canvasElements?: CanvasElement[];
   pageDimensions?: { [key: number]: PageDimension };
   totalPages?: number;
+  pages?: Page[];
 }): AppDispatch => {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
@@ -602,6 +604,7 @@ export const updateDocument = (data: {
           canvasElements: data.canvasElements,
           pageDimensions: data.pageDimensions,
           totalPages: data.totalPages,
+          pages: data.pages,
         },
       });
 
