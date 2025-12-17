@@ -971,6 +971,35 @@
   }
 }
 
+.dialogMainWHoleWrapper,
+.dialogContentWrapper {
+  display: flex;
+  flex-direction: column;
+
+  .dialogContent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .inputGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .typoLabel {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+
+        .required {
+          color: #d32f2f;
+          margin-left: 2px;
+        }
+      }
+    }
+  }
+}
+
 .settingsSidebar {
   display: flex;
   flex-direction: column;
@@ -1414,6 +1443,8 @@
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  // background-color: #ffffff;
 }
 
 .blockHeadingContent {
@@ -1677,16 +1708,117 @@
   overflow-y: auto;
   height: calc(100% - 73px);
   scrollbar-width: none;
-}
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  
+  .propertyGroup {
+    width: 100%;
 
-.propertyGroup {
-  margin-bottom: 24px;
-  width: 100%;
+    // &.propertyColorInput {
+    //   width: 100%;
+    //   display: flex;
+    //   gap: 8px;
 
-  .unitLabel {
-    font-size: 14px;
-    color: #6b7280;
+    //   .propertyColorTextField {
+    //     width: 100%;
+    //   }
+    // }
+  
+    .unitLabel {
+      font-size: 14px;
+      color: #6b7280;
+    }
   }
+
+  // Box Model Control Styles
+  .boxModelContainer {
+    padding: 12px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    .boxModelMarginBox {
+      position: relative;
+      padding: 24px 40px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fafafa;
+
+      .boxModelMarginLabel {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .boxModelPaddingBox {
+      position: relative;
+      padding: 24px 40px;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+      background: white;
+
+      .boxModelPaddingLabel {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .boxModelContentBox {
+      width: 100%;
+      height: 50px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+    }
+  }
+
+  .boxModelValue {
+    position: absolute;
+    padding: 2px 6px;
+    background: transparent;
+    border: none;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    min-width: 40px;
+    text-align: center;
+
+    &:hover {
+      color: #3b82f6;
+      font-weight: 600;
+    }
+
+    &.boxModelValueActive {
+      color: #3b82f6;
+      font-weight: 600;
+
+      &::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+      }
+    }
+  }
+
 }
 
 .buttonGroup {
@@ -1716,96 +1848,6 @@
       color: white;
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-  }
-}
-
-// Box Model Control Styles
-.boxModelContainer {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  padding: 12px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-
-  .boxModelMarginBox {
-    position: relative;
-    padding: 24px 40px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #fafafa;
-
-    .boxModelMarginLabel {
-      position: absolute;
-      top: 6px;
-      left: 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .boxModelPaddingBox {
-    position: relative;
-    padding: 24px 40px;
-    border: 1px dashed #d1d5db;
-    border-radius: 4px;
-    background: white;
-
-    .boxModelPaddingLabel {
-      position: absolute;
-      top: 6px;
-      left: 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .boxModelContentBox {
-    width: 100%;
-    height: 50px;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-  }
-}
-
-.boxModelValue {
-  position: absolute;
-  padding: 2px 6px;
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-  user-select: none;
-  min-width: 40px;
-  text-align: center;
-
-  &:hover {
-    color: #3b82f6;
-    font-weight: 600;
-  }
-
-  &.boxModelValueActive {
-    color: #3b82f6;
-    font-weight: 600;
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 0;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
     }
   }
 }
@@ -2282,28 +2324,6 @@
     height: 24px;
     width: 24px;
     border: 1px solid #e5e7eb;
-  }
-}
-
-.mediaBtnMenuWrap {
-  margin: 4px;
-  padding: 8px 16px;
-  width: 100%;
-
-  .mediaBtnMenu {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    justify-content: flex-start;
-    border: none;
-    background: transparent;
-    border-radius: 0;
-    height: auto;
-    min-width: unset;
-
-    &:hover {
-      background: #ffffff;
-    }
   }
 }
 

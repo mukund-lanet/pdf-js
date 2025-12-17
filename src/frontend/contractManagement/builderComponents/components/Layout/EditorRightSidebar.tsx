@@ -338,6 +338,7 @@ const EditorRightSidebar = () => {
         </div>
 
         <div className={styles.propertyGroup}>
+        {/* <div className={`${styles.propertyGroup} ${styles.propertyColorInput}`}> */}
           <TextField
             fullWidth
             variant="outlined"
@@ -356,7 +357,12 @@ const EditorRightSidebar = () => {
                 />  
               </InputAdornment>
             )}
+            className={styles.propertyColorTextField}
           />
+          {/* <ColorInput
+            value={localElement.subtitleColor || '#000000'}
+            onChange={(value) => updateElement({ subtitleColor: value })}
+          /> */}
         </div>
 
         <div className={styles.propertyGroup}>

@@ -28,8 +28,8 @@ const ColorInput: React.FC<ColorInputProps> = ({ value, onChange }) => {
       <div
         className={styles.colorPickerIcon}
         onClick={(event: React.MouseEvent<HTMLSpanElement>) => {
-        event.stopPropagation();
-        event.preventDefault();
+        // event.stopPropagation();
+        // event.preventDefault();
         
         setAnchorEl(event.currentTarget);
       }}

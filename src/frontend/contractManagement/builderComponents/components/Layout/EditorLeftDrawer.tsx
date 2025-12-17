@@ -11,6 +11,7 @@ import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch
 import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import Divider from "@trenchaant/pkg-ui-component-library/build/Components/Divider";
+import Dialog from "@trenchaant/pkg-ui-component-library/build/Components/Dialog";
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CATEGORY, Signer } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
@@ -389,7 +390,7 @@ const EditorLeftDrawer: React.FC = () => {
       });
     };
 
-    const CreateVariableDialog: React.FC = () => {
+    const CreateVariableDialog: React.FC<{ isDialogOpen: boolean }> = ({ isDialogOpen }) => {
       const [name, setName] = useState('');
       const [value, setValue] = useState('');
       const dispatch = useDispatch();
@@ -413,45 +414,38 @@ const EditorLeftDrawer: React.FC = () => {
       };
 
       return (
-        <div className={styles.dialogOverlay}>
-          <div className={styles.dialogContainer}>
-            <div className={styles.dialogHeader}>
-              <Typography variant="h6">Create Document variable</Typography>
-              <Button className={styles.closeButton} onClick={onClose}>
-                <CustomIcon iconName="x" width={20} height={20} />
-              </Button>
+        <Dialog
+            open={isDialogOpen}
+            label={"Create Document variable"}
+            description={"Create variable for your document"}
+            // icon={"plus"}
+            disableEscapeKeyDown
+            onClose={onClose}
+            submitBtn={{ onClick: handleSave, label: "Save" }}
+            cancelBtn={{ onClick: onClose, label: "Cancel" }}
+            className={styles.dialogMainWHoleWrapper}
+            classes={{ innerContent: styles.dialogContentWrapper }}
+          >
+          <div className={styles.dialogContent}>
+            <div className={styles.inputGroup}>
+              <Typography className={styles.typoLabel} >Variable name <span className={styles.required}>*</span></Typography>
+              <TextField
+                placeholder="Variable name"
+                value={name}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+              />
             </div>
-            <div className={styles.dialogContent}>
-              <Typography className={styles.dialogDescription}>Create variable for your document</Typography>
 
-              <div className={styles.inputGroup}>
-                <label>Variable name <span className={styles.required}>*</span></label>
-                <input
-                  type="text"
-                  placeholder="Variable name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={styles.dialogInput}
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>Variable value <span className={styles.required}>*</span></label>
-                <input
-                  type="text"
-                  placeholder="Variable value"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  className={styles.dialogInput}
-                />
-              </div>
-            </div>
-            <div className={styles.dialogFooter}>
-              <Button variant="outlined" onClick={onClose}>Cancel</Button>
-              <Button variant="contained" color="primary" onClick={handleSave}>Save</Button>
+            <div className={styles.inputGroup}>
+              <Typography className={styles.typoLabel} >Variable value <span className={styles.required}>*</span></Typography>
+              <TextField
+                placeholder="Variable value"
+                value={value}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
+              />
             </div>
           </div>
-        </div>
+        </Dialog>
       );
     };
 
@@ -501,9 +495,7 @@ const EditorLeftDrawer: React.FC = () => {
           </div>
         </div>
 
-        {isDialogOpen && (
-          <CreateVariableDialog />
-        )}
+        <CreateVariableDialog isDialogOpen={isDialogOpen}  />
       </div>
     );
   };
