@@ -16,12 +16,11 @@ import styles from 'app/(after-login)/(with-header)/contract-management/pdfEdito
 import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CATEGORY, Signer } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { PDFDocument } from 'pdf-lib';
-import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, SET_PDF_BYTES, TOOLBAR_ITEM, UPDATE_DOCUMENT } from '@/components/contractManagement/store/action/contractManagement.actions';
+
+import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, TOOLBAR_ITEM, UPDATE_DOCUMENT } from '@/components/contractManagement/store/action/contractManagement.actions';
 import ThumbnailPage from '../ThumbnailPage';
 import { blocks, fillableFields, noPdfDocument } from '../../../utils/utils';
 import { useDrag } from 'react-dnd';
-import { SET_PAGES } from '../../../store/action/contractManagement.actions';
 
 const EditorLeftDrawer: React.FC = () => {
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
@@ -503,11 +502,7 @@ const EditorLeftDrawer: React.FC = () => {
 
   const ThumbnailSidebar: React.FC = () => {
     const dispatch = useDispatch();
-    const [pdfjsLib, setPdfjsLib] = useState<any>(null);
-    const [pdfDoc, setPdfDoc] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
-    const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
     const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
     const [pageIds, setPageIds] = useState<string[]>([]);
 
@@ -526,46 +521,15 @@ const EditorLeftDrawer: React.FC = () => {
       }
       return <Droppable {...props}>{children}</Droppable>;
     };
-
-    useEffect(() => {
-      if (typeof window !== 'undefined') {
-        import('pdfjs-dist').then((pdfjs) => {
-          pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-          setPdfjsLib(pdfjs);
-        }).catch((error) => {
-          console.error('Failed to load PDF.js:', error);
-        });
-      }
-    }, []);
-
+    
     useEffect(() => {
       // Initialize pageIds based on pages array length
-      // If we have pages data, initialize pageIds based on that
       if (pages && pages.length > 0) {
         if (pageIds.length !== pages.length) {
           setPageIds(Array.from({ length: pages.length }, (_, i) => `page-${i + 1}-${Date.now()}`));
         }
-      } else if (pdfBytes && pdfjsLib) {
-        // Fallback to original pdfBytes loading if no pages data
-        const loadPdf = async () => {
-          try {
-            const pdfBytesCopy = new Uint8Array(pdfBytes);
-            const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
-            const pdf = await loadingTask.promise;
-            setPdfDoc(pdf);
-
-            // Initialize page IDs if not already set or if count mismatches
-            if (pageIds.length !== pdf.numPages) {
-              setPageIds(Array.from({ length: pdf.numPages }, (_, i) => `page-${i + 1}-${Date.now()}`));
-            }
-          } catch (error) {
-            console.error('Error loading PDF for thumbnails:', error);
-          }
-        };
-
-        loadPdf();
       }
-    }, [pdfBytes, pdfjsLib, pages]);
+    }, [pages]);
 
     const onDragEnd = async (result: DropResult) => {
       if (!result.destination) return;
@@ -611,7 +575,7 @@ const EditorLeftDrawer: React.FC = () => {
         </div>
 
         <div className={styles.thumbnailContainer}>
-          {(pages && pages.length > 0) || (pdfDoc && totalPages > 0) ? (
+          {pages && pages.length > 0 ? (
             <DragDropContext onDragEnd={onDragEnd}>
               <StrictModeDroppable droppableId="thumbnail-pages">
                 {(provided: any) => (
@@ -633,7 +597,6 @@ const EditorLeftDrawer: React.FC = () => {
                           >
                             <ThumbnailPage
                               key={`thumbnail_${pageId}`}
-                              pdfDoc={pdfDoc}
                               pageNumber={index + 1}
                               isLoading={isLoading}
                               dragHandleProps={provided.dragHandleProps}
