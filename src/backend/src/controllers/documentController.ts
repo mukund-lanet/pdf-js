@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Document from '../models/Document';
+import { extractImagesFromPdf } from '../helper/extractor';
+import { Page } from '../helper/interface';
 
 export const getDocuments = async (req: Request, res: Response) => {
   try {
@@ -125,7 +127,7 @@ export const uploadDocumentPdf = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'business_id is required' });
     }
     
-    // We expect the client to upload to Firebase first and send us the URL/Path
+    // expected to upload to Firebase first and send the URL/Path
     const { documentName, signers, uploadPath } = req.body;
     
     if (!uploadPath) {
@@ -140,6 +142,24 @@ export const uploadDocumentPdf = async (req: Request, res: Response) => {
       status: 'draft',
       business_id
     });
+
+    try {
+      // Extract images from the uploaded PDF
+      const imagePaths = await extractImagesFromPdf(uploadPath);
+
+      if (imagePaths && imagePaths.length > 0) {
+        newDocument.pages = imagePaths.map((path: string): Page => ({
+          pageSrc: path,
+          fromPdf: true,
+          imagePath: path,
+          layout: []
+        }));
+        newDocument.totalPages = imagePaths.length;
+      }
+    } catch (err) {
+      console.error("Failed to extract images from PDF:", err);
+      // We continue even if extraction fails, but document might be incomplete
+    }
 
     const savedDocument = await newDocument.save();
     res.status(201).json(savedDocument);
