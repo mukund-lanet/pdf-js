@@ -1,7 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { PDFDocument } from 'pdf-lib';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
@@ -13,20 +12,17 @@ import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { Page, PageDimension } from '../../../utils/interface';
-import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PDF_BYTES, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, SET_PAGES } from '../../../store/action/contractManagement.actions';
+import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, SET_PAGES } from '../../../store/action/contractManagement.actions';
 
 interface PDFPageProps {
-  pdfDoc: any;
   pageNumber: number;
 }
 
 const PDFPage = React.memo((({
-  pdfDoc,
   pageNumber,
 }: PDFPageProps) => {
   const dispatch = useDispatch();
 
-  const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
   const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
@@ -41,7 +37,6 @@ const PDFPage = React.memo((({
   const [mediaManagerSelection, setMediaManagerSelection] = useState<any[]>([]);
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const renderTaskRef = useRef<any>(null);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setActionMenuAnchorEl(event.currentTarget);
@@ -60,8 +55,8 @@ const PDFPage = React.memo((({
       
       // Update pages array
       const newPages = [...pages];
-      // Insert a new blank page after the current page
-      newPages.splice(pageNumber, 0, { fromPdf: false, imagePath: null });
+      // Insert a new blank page after the current page (no imagePath = white background)
+      newPages.splice(pageNumber, 0, {});
       dispatch({ type: SET_PAGES, payload: newPages });
       
       // Update total pages
@@ -150,153 +145,62 @@ const PDFPage = React.memo((({
     try {
       dispatch({ type: SET_IS_LOADING, payload: true });
 
-      let arrayBuffer: ArrayBuffer;
-
-      // Handle MediaButton media object (has original_url or url)
-      if (fileToUpload.original_url || fileToUpload.url) {
-        const fileUrl = fileToUpload.original_url || fileToUpload.url;
-        const response = await fetch(fileUrl);
-        if (!response.ok) {
-          throw new Error('Failed to fetch PDF from URL');
-        }
-        arrayBuffer = await response.arrayBuffer();
-      }
-      // Handle direct File object
-      else if (fileToUpload instanceof File) {
-        arrayBuffer = await fileToUpload.arrayBuffer();
-      }
-      else {
-        throw new Error('Invalid file format');
+      const fileUrl = fileToUpload.original_url || fileToUpload.url;
+      if (!fileUrl) {
+        throw new Error('No file URL provided');
       }
 
-      // Process the PDF to get page count
-      const uploadedDoc = await PDFDocument.load(arrayBuffer);
-      const numNewPages = uploadedDoc.getPageCount();
+      // TODO: Call backend API to process PDF and get pages with imagePath
+      // For now, this is a placeholder - you'll need to implement the backend endpoint
+      // Example:
+      // const response = await fetch('http://localhost:8080/api/documents/process-pdf', {
+      //   method: 'POST',
+      //   body: JSON.stringify({ pdfUrl: fileUrl }),
+      //   headers: { 'Content-Type': 'application/json' }
+      // });
+      // const { pages: processedPages } = await response.json();
 
-      // Update pages array - insert new pages after the current page
+      // Placeholder: For now, just add empty pages that will be processed by backend
+      console.warn('PDF upload: Backend processing not yet implemented. Add pages will be blank until backend API is ready.');
+      
+      // Insert a placeholder blank page (backend will process and add imagePath later)
       const newPages = [...pages];
-      const newPageObjects: Page[] = [];
-      for (let i = 0; i < numNewPages; i++) {
-        // For now, we'll just add placeholder pages
-        // In a real implementation, you would generate image paths for each page
-        newPageObjects.push({ fromPdf: true, originalPdfPageIndex: i });
-      }
-      newPages.splice(pageNumber, 0, ...newPageObjects);
+      newPages.splice(pageNumber, 0, { fromPdf: true });
       dispatch({ type: SET_PAGES, payload: newPages });
 
-      // Update total pages
-      dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length })
+      dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length });
+      dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
+      dispatch({ type: SET_IS_LOADING, payload: false });
 
-      // Update elements to shift page numbers
-      const updatedElements = canvasElements.map((el: { page: number; }) => {
-        if (el.page > pageNumber) {
-          return { ...el, page: el.page + numNewPages };
-        }
-        return el;
-      });
-      dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
-
-      // Regenerate all dimensions
-      const dimensions: { [key: number]: PageDimension } = {};
-      uploadedDoc.getPages().forEach((page, i) => {
-        const { width, height } = page.getSize();
-        dimensions[pageNumber + i + 1] = { pageWidth: width, pageHeight: height };
-      });
-      
-      // Merge with existing dimensions
-      const newPageDimensions = { ...pageDimensions, ...dimensions };
-      dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions })
-      dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 })
-      dispatch({ type: SET_IS_LOADING, payload: false })
+      alert('PDF upload added as placeholder. Backend processing needed to generate page images.');
     } catch (error) {
-      dispatch({ type: SET_IS_LOADING, payload: false })
+      dispatch({ type: SET_IS_LOADING, payload: false });
       console.error('Error inserting PDF pages:', error);
       alert('Failed to insert PDF pages.');
     }
   };
 
-  // Cleanup function to cancel any ongoing render tasks
-  const cleanupRenderTask = () => {
-    if (renderTaskRef.current) {
-      try {
-        renderTaskRef.current.cancel();
-      } catch (error) {
-        console.log("error: ", error)
-      }
-      renderTaskRef.current = null;
-    }
-  };
-
   useEffect(() => {
-    // Check if we have pages data with imagePath
+    // Render page based on pages[] array from backend
     if (pages && pages.length > 0 && pageNumber <= pages.length) {
       const pageData = pages[pageNumber - 1]; // 0-based index
-      if (pageData && pageData.imagePath) {
-        // Use the imagePath directly
-        setImageSrc(pageData.imagePath);
-        // Set default page size or get from pageDimensions
-        const pageDim = pageDimensions[pageNumber] || { pageWidth: 600, pageHeight: 800 };
-        setPageSize(pageDim);
-        return;
+      
+      // Check for imagePath or imageUrl (Firebase URL)
+      const imageUrl = pageData?.imagePath || pageData?.imageUrl;
+      
+      if (imageUrl) {
+        // Page has image - render as background
+        setImageSrc(imageUrl);
+      } else {
+        // Page has no image - render white background (blank page)
+        setImageSrc(null);
       }
+      
+      // Set page dimensions
+      const pageDim = pageDimensions[pageNumber] || { pageWidth: 600, pageHeight: 800 };
+      setPageSize(pageDim);
     }
-
-    // Fallback to original pdfDoc rendering if no imagePath is available
-    let isMounted = true;
-
-    const renderPage = async () => {
-      if (!pdfDoc) return;
-
-      cleanupRenderTask();
-
-      dispatch({ type: SET_IS_LOADING, payload: true })
-
-      try {
-        const page = await pdfDoc.getPage(pageNumber);
-        if (!isMounted) return;
-
-        const viewport = page.getViewport({ scale: 1.5 });
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        if (!context) throw new Error("Could not get canvas context");
-
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        const renderContext = { canvasContext: context, viewport };
-
-        const task = page.render(renderContext);
-        renderTaskRef.current = task;
-
-        await task.promise;
-
-        if (isMounted) {
-          setImageSrc(canvas.toDataURL('image/png'));
-          setPageSize({ pageWidth: viewport.width, pageHeight: viewport.height });
-          dispatch({ type: SET_IS_LOADING, payload: false })
-        }
-
-      } catch (error: any) {
-        if (
-          error?.name !== "RenderingCancelledException" &&
-          error?.message !== "Rendering cancelled"
-        ) {
-          console.error(`Error rendering page ${pageNumber}:`, error);
-        }
-      }
-    };
-
-    renderPage();
-
-    return () => {
-      isMounted = false;
-      cleanupRenderTask();
-    };
-  }, [pdfDoc, pageNumber, pages, pageDimensions]);
+  }, [pageNumber, pages, pageDimensions]);
 
   const handlePageClick = (e: React.MouseEvent) => {
     e.stopPropagation();

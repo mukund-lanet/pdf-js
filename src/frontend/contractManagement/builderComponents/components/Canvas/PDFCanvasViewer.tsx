@@ -13,60 +13,14 @@ import { noPdfDocument } from '../../../utils/utils';
 import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actions';
 
 const PDFCanvasViewer = () => {
-  const pdfBytes = useSelector((state: RootState) => state?.contractManagement?.pdfBytes);
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
   const dispatch = useDispatch();
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
-  const [pdfjsLib, setPdfjsLib] = useState<any>(null);
-  const [pdfDoc, setPdfDoc] = useState<any>(null);
-  const [renderKey, setRenderKey] = useState(0);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('pdfjs-dist').then((pdfjs) => {
-        const workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
-        setPdfjsLib(pdfjs);
-      }).catch((error) => {
-        console.error('Failed to load PDF.js:', error);
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    // If we have pages data, we don't need to load the PDF document
-    if (pages && pages.length > 0) {
-      setPdfDoc(null);
-      setRenderKey(prev => prev + 1); // force re-rendering of all pages
-      return;
-    }
-
-    // Fallback to original pdfBytes loading if no pages data
-    const loadPdfDocument = async () => {
-      if (!pdfBytes || !pdfjsLib) {
-        setPdfDoc(null);
-        return;
-      }
-
-      try {
-        const pdfBytesCopy = new Uint8Array(pdfBytes);
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytesCopy });
-        const pdf = await loadingTask.promise;
-
-        setPdfDoc(pdf);
-        setRenderKey(prev => prev + 1); // force hht re-rendering of all pages
-
-      } catch (error) {
-        console.error('Error loading PDF document:', error);
-        setPdfDoc(null);
-      }
-    };
-
-    loadPdfDocument();
-  }, [pdfBytes, pdfjsLib, pages]);
 
   const handleScrollToTop = () => {
     dispatch({ type: SET_CURRENT_PAGE, payload: 1 });
@@ -81,13 +35,12 @@ const PDFCanvasViewer = () => {
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
-      {(pdfBytes || (pages && pages.length > 0)) && totalPages > 0 ? (
+      {(pages && pages.length > 0) && totalPages > 0 ? (
         <CustomScrollbar ref={scrollContainerRef} className={styles.scrollPdfViewerContainer} >
-          <div className={styles.pdfViewerContainer} key={`viewer-${renderKey}`}>
+          <div className={styles.pdfViewerContainer}>
             {Array.from({ length: totalPages }, (_, index) => {
               return (<PDFPage
-                key={`page_${index + 1}_${renderKey}`}
-                pdfDoc={pdfDoc}
+                key={`page_${index + 1}`}
                 pageNumber={index + 1}
               />)
             })}

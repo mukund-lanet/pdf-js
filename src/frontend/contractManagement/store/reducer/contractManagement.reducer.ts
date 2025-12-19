@@ -82,7 +82,6 @@ export interface ContractManagementState {
   contracts: ContractItem[];
   activeDocument: DocumentItem;
   // PDF Editor State
-  pdfBytes: Uint8Array | null;
   totalPages: number;
   currentPage: number;
   canvasElements: CanvasElement[];
@@ -188,7 +187,6 @@ const initialState: ContractManagementState = {
   contracts: [],
   activeDocument: {},
   // PDF Editor State
-  pdfBytes: null,
   totalPages: 0,
   currentPage: 1,
   canvasElements: [],
@@ -401,11 +399,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         isLoading: action.payload
       };
 
-    case Actions.SET_PDF_BYTES:
-      return {
-        ...state,
-        pdfBytes: action.payload
-      };
+
 
     case Actions.SET_TOTAL_PAGES:
       return {
@@ -567,7 +561,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.RESET_EDITOR:
       return {
         ...state,
-        pdfBytes: null,
         totalPages: 0,
         currentPage: 1,
         canvasElements: [],

@@ -241,9 +241,7 @@ export interface DraggableToolbarItemProps {
 }
 
 export interface Page {
-  pageSrc?: string;
-  fromPdf: boolean;
-  imagePath?: string;
-  originalPdfPageIndex?: number; // 0-based index in the original PDF
-  layout?: CanvasElement[];
+  imagePath?: string;     // Firebase URL for page background image
+  imageUrl?: string;      // Alternative field name (for compatibility)
+  fromPdf?: boolean;      // Optional: track if page originated from PDF
 }

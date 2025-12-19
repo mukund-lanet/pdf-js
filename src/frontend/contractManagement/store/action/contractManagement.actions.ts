@@ -25,7 +25,6 @@ export const UPDATE_DOCUMENT = "UPDATE_DOCUMENT";
 export const SET_DOCUMENT_DRAWER_MODE = "SET_DOCUMENT_DRAWER_MODE";
 
 // PDF Editor Action Types
-export const SET_PDF_BYTES = 'SET_PDF_BYTES';
 export const SET_TOTAL_PAGES = 'SET_TOTAL_PAGES';
 export const SET_CURRENT_PAGE = 'SET_CURRENT_PAGE';
 export const SET_PAGE_DIMENSIONS = 'SET_PAGE_DIMENSIONS';
@@ -165,10 +164,7 @@ export interface SetDocumentDrawerModeAction {
 // PDF Editor Action Interfaces
 import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
 
-interface SetPdfBytesAction {
-  type: typeof SET_PDF_BYTES;
-  payload: Uint8Array | null;
-}
+
 
 interface SetPropertiesDrawerStateAction {
   type: typeof SET_PROPERTIES_DRAWER_STATE;
@@ -354,7 +350,6 @@ export type ContractManagementAction =
   | SetActiveDocumentAction
   | UpdateDocumentAction
   | SetDocumentDrawerModeAction
-  | SetPdfBytesAction
   | SetTotalPagesAction
   | SetCurrentPageAction
   | SetPageDimensionsAction
