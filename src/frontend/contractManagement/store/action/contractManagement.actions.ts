@@ -2,7 +2,7 @@ import { AppDispatch } from '..';
 import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES, PageDimension } from '../../utils/interface';
+import { DIALOG_DRAWER_NAMES, DocumentItem, PageDimension } from '../../utils/interface';
 import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
 
 // Action Types
@@ -431,7 +431,7 @@ export const setBrandingCustomizationSettings = (brandingCustomizationSettings: 
 };
 
 
-export const createNewDocument = (data: { documentName: string; signers: any[]; signingOrder?: boolean, business_id: string, company_id: string }): AppDispatch => {
+export const createNewDocument = (data: { documentName: string; signers: any[]; signingOrder?: boolean, business_id: string, pages: Page[] }): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     try {
       dispatch({
@@ -441,7 +441,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
 
       const response = await axiosInstance({
         method: 'post',
-        url: `http://localhost:8080/esign?business_id=${data.business_id}`,
+        url: `http://localhost:8080/create-esign-document?business_id=${data.business_id}`,
         isFromLocal: true,
         data: {
           name: data.documentName,
@@ -449,6 +449,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
           signingOrder: data.signingOrder || false,
           status: 'draft',
           documentType: 'new_document',
+          pages: data.pages,
         },
       });
 
@@ -495,7 +496,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
 
       const response = await axiosInstance({
         method: 'post',
-        url: `http://localhost:8080/esign/upload?business_id=${data.business_id}`,
+        url: `http://localhost:8080/upload-esign-document?business_id=${data.business_id}`,
         isFromLocal: true,
         data: {
           documentName: data.documentName,
@@ -545,15 +546,13 @@ export const setActiveDocument = (document: any | null): AppDispatch => {
 };
 
 export const updateDocument = (data: {
-  business_id: any;
-  documentId: string | undefined;
-  documentName: string;
+  id: string;
+  name: string;
   signers: any[];
-  signingOrder?: boolean;
-  canvasElements?: CanvasElement[];
-  pageDimensions?: { [key: number]: PageDimension };
-  totalPages?: number;
-  pages?: Page[];
+  signingOrder: boolean;
+  canvasElements: CanvasElement[];
+  pages: Page[];
+  business_id: string;
 }): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     try {
@@ -563,17 +562,17 @@ export const updateDocument = (data: {
       });
 
       const response = await axiosInstance({
-        method: 'put',
-        url: `http://localhost:8080/api/documents/${data.documentId}?business_id=${data.business_id}`,
+        method: 'post',
+        url: `http://localhost:8080/update-esign-document/`,
         isFromLocal: true,
         data: {
-          name: data.documentName,
+          id: data.id,
+          name: data.name,
           signers: data.signers,
           signingOrder: data.signingOrder,
           canvasElements: data.canvasElements,
-          pageDimensions: data.pageDimensions,
-          totalPages: data.totalPages,
           pages: data.pages,
+          business_id: data.business_id
         },
       });
 
@@ -584,7 +583,7 @@ export const updateDocument = (data: {
         });
 
         dispatch(showMessage({
-          message: `Document "${data.documentName}" updated successfully`,
+          message: `Document "${data.name}" updated successfully`,
           variant: 'success',
         }));
 
@@ -632,15 +631,15 @@ export const getDocuments = (business_id: string): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     try {
       const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/documents?business_id=${business_id}`,
+        method: 'POST',
+        url: `http://localhost:8080/fetch-esign-documents?business_id=${business_id}`,
         isFromLocal: true,
       });
 
       if (response.status === 200 && response.data) {
         dispatch({
           type: SET_DOCUMENTS_LIST,
-          payload: response.data,
+          payload: response.data.documents,
         });
       }
     } catch (error: any) {
@@ -657,19 +656,23 @@ export const getDocumentById = (id: string | undefined, business_id: string): Ap
         payload: true,
       });
 
+      console.log("busienssId, getDocById: ", business_id)
+
       const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/documents/${id}?business_id=${business_id}`,
+        method: 'POST',
+        url: `http://localhost:8080/fetch-esign-document-by-id?business_id=${business_id}`,
         isFromLocal: true,
+        data: { id }
       });
 
-      if (response.status === 200 && response.data) {
-        dispatch(setActiveDocument(response.data));
-        return response.data;
+      if (response.status === 200 && response.data && response.data.data) {
+        const document = response.data.data[0]; 
+        dispatch(setActiveDocument(document));
+        return document;
       }
     } catch (error: any) {
       dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to fetch document',
+        message: error.response?.data?.msg || 'Failed to fetch document',
         variant: 'error',
       }));
       return null;
@@ -694,28 +697,35 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         payload: true,
       });
 
+      console.log("busienssId, loadDocbyId: ", business_id)
+
       const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/documents/${id}?business_id=${business_id}`,
+        method: 'POST',
+        url: `http://localhost:8080/fetch-esign-document-by-id?business_id=${business_id}`,
         isFromLocal: true,
+        data: { id }
       });
 
-      if (!response.data) {
+      if (!response.data || !response.data.data || response.data.data.length === 0) {
         throw new Error('Document not found');
       }
 
-      const document = response.data;
+      const document = response.data.data[0];
 
       dispatch(setActiveDocument(document));
 
-      if (document.pages) {
+      if (document.pages && Array.isArray(document.pages)) {
         dispatch({
           type: SET_PAGES,
           payload: document.pages
         });
+        
+        dispatch({
+          type: SET_TOTAL_PAGES,
+          payload: document.pages.length,
+        });
       }
 
-      // Step 4: Load canvas elements
       if (document.canvasElements && Array.isArray(document.canvasElements)) {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
@@ -728,9 +738,7 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         });
       }
 
-      // Step 5: Load page dimensions
       if (document.pageDimensions) {
-        // Convert Map to plain object if needed
         const dimensionsObj = document.pageDimensions instanceof Map
           ? Object.fromEntries(document.pageDimensions)
           : document.pageDimensions;
@@ -741,7 +749,6 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         });
       }
 
-      // Step 6: Set document type
       if (document.documentType) {
         dispatch({
           type: SET_DOCUMENT_TYPE,
@@ -749,7 +756,9 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         });
       }
 
-      // Step 7: Set current page to 1
+      if (document.uploadPath) {
+        dispatch(setUploadPdfUrl(document.uploadPath));
+      }
       dispatch({
         type: SET_CURRENT_PAGE,
         payload: 1,
@@ -760,7 +769,6 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
     } catch (error: any) {
       console.error('Error loading document:', error);
 
-      // Provide user-friendly error messages based on error type
       let errorMessage = 'Failed to load document';
 
       if (error.response?.status === 404) {
@@ -771,8 +779,8 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         errorMessage = 'Invalid document ID format.';
       } else if (error.message === 'Network Error' || !navigator.onLine) {
         errorMessage = 'Network error. Please check your internet connection.';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.msg) {
+        errorMessage = error.response.data.msg;
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -784,7 +792,6 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
 
       // Redirect to dashboard on critical errors
       if (error.response?.status === 404 || error.message === 'Invalid document ID') {
-        // Give user time to see the error message before redirecting
         setTimeout(() => {
           const businessKey = window.location.pathname.split('/')[1];
           window.location.href = `/${businessKey}/contract-management`;
@@ -810,9 +817,10 @@ export const deleteDocument = (id: string, documentName: string, business_id: st
       });
 
       const response = await axiosInstance({
-        method: 'delete',
-        url: `http://localhost:8080/esign/${id}?business_id=${business_id}`,
+        method: 'POST',
+        url: `http://localhost:8080/delete-esign-document?business_id=${business_id}`,
         isFromLocal: true,
+        data: { id }
       });
 
       if (response.status === 200) {

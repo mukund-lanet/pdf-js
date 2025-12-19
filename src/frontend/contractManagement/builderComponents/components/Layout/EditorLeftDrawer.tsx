@@ -156,15 +156,18 @@ const EditorLeftDrawer: React.FC = () => {
         <div
           ref={drag}
           className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
-          style={{ opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}
           onClick={() => dispatch({ type: SET_ACTIVE_TOOL, payload: item.type })}
         >
           <div className={styles.dragHandle}>
             <CustomIcon iconName="grip-horizontal" width={16} height={16} />
           </div>
-          <div className={styles.elementIcon}>
-            <CustomIcon iconName={item.icon} width={20} height={20} />
+
+          <div className={styles.iconWrapper}>
+            <div className={styles.elementIcon}>
+              <CustomIcon iconName={item.icon} width={20} height={20} />
+            </div>
           </div>
+
           <Typography className={styles.elementLabel}>{item.label}</Typography>
         </div>
       );

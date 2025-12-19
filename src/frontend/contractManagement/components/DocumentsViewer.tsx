@@ -25,6 +25,7 @@ const DocumentsViewer = () => {
   const router = useRouter();
   const activeFilter = useSelector((state: RootState) => state.contractManagement?.documentActiveFilter);
   const documents = useSelector((state: RootState) => state.contractManagement?.documents);
+  const business = useSelector((state: any) => state?.auth?.business);
 
   const filteredDocuments = React.useMemo(() => {
     if (!documents) return [];
@@ -78,9 +79,9 @@ const DocumentsViewer = () => {
   };
 
   const handleDeleteClick = () => {
-    const doc = documents.find(d => d._id === selectedDocId);
+    const doc = documents?.find(d => d._id === selectedDocId);
     if (doc && doc._id) {
-      setDocumentToDelete({ id: doc._id, name: doc.name });
+      setDocumentToDelete({ id: doc._id, name: doc.name || '' });
       setDeleteDialogOpen(true);
     }
     handleMenuClose();
@@ -88,7 +89,7 @@ const DocumentsViewer = () => {
 
   const handleConfirmDelete = () => {
     if (documentToDelete) {
-      dispatch(deleteDocument(documentToDelete.id, documentToDelete.name));
+      dispatch(deleteDocument(documentToDelete.id, documentToDelete.name, business?.id));
     }
     setDeleteDialogOpen(false);
     setDocumentToDelete(null);
@@ -140,7 +141,7 @@ const DocumentsViewer = () => {
                       <div className={styles.docInfo}>
                         <Typography 
                           onClick={() => {
-                            router.push(`/relience-fresh/pdf-editor/document/${doc._id}`);
+                            router.push(`/${business?.url_key}/pdf-editor/builder/${doc._id}`);
                             dispatch(setActiveDocument(doc));
                           }}
                           className={styles.docName}
@@ -152,7 +153,7 @@ const DocumentsViewer = () => {
                   <TableCell className={`${styles.tableCellDocs} ${styles.widthApply}`} >
                     <div className={`${styles.statusChip} ${styles[doc.status]}`}>
                       <CustomIcon iconName="edit-2" width={12} height={12} />
-                      {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                      {doc.status.charAt(0).toUpperCase() + doc.status?.slice(1)}
                     </div>
                   </TableCell>
                   <TableCell className={styles.tableCellDocs} >
@@ -175,7 +176,9 @@ const DocumentsViewer = () => {
                   <TableCell className={styles.tableCellDocs} >
                     <div className={styles.dateWrapper}>
                       <CustomIcon iconName="calendar" width={14} height={14} />
-                      <Typography className={styles.docMeta}>{new Date(doc.date).toLocaleDateString()}</Typography>
+                      <Typography className={styles.docMeta}>
+                        {doc.date && new Date(doc.date).toLocaleDateString()}
+                      </Typography>
                     </div>
                   </TableCell>
                   <TableCell className={styles.tableCellDocs} >

@@ -185,7 +185,9 @@ const initialState: ContractManagementState = {
   },
   documents: [],
   contracts: [],
-  activeDocument: {},
+  activeDocument: {
+    status: 'draft'
+  },
   // PDF Editor State
   totalPages: 0,
   currentPage: 1,

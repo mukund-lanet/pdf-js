@@ -8,7 +8,7 @@ export interface Signer {
 export interface DocumentItem {
   _id?: string;
   name?: string;
-  status?: 'draft' | 'waiting' | 'completed' | 'archived';
+  status: 'draft' | 'waiting' | 'completed' | 'archived';
   date?: string;
   signers?: Signer[];
   progress?: number;

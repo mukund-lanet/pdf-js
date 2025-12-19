@@ -20,8 +20,8 @@ const EditorHeader = () => {
   const curDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
   // Access state for saving
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
-  const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
-  const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
+
+  const business_id = useSelector((state: any) => state?.auth?.business?.id);
 
   const [docName, setDocName] = useState(curDocument?.name || '');
 
@@ -102,14 +102,13 @@ const EditorHeader = () => {
           }
 
           dispatch(updateDocument({
-            documentId: curDocument._id,
-            documentName: docName,
-            canvasElements: canvasElements || [],
-            pageDimensions: pageDimensions || {},
-            totalPages: totalPages || 0,
+            id: curDocument._id,
+            name: docName,
             signers: curDocument?.signers || [],
-            signingOrder: curDocument?.signingOrder,
-            pages: pages || []
+            signingOrder: curDocument?.signingOrder || false,
+            canvasElements: canvasElements || [],
+            pages: pages || [],
+            business_id
           }));
         }}
       >

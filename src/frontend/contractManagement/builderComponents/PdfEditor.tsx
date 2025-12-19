@@ -22,6 +22,8 @@ import { tabItems } from '../utils/utils';
 const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   const dispatch = useDispatch();
 
+  const business_id = useSelector((state: any) => state?.auth?.business?.id);
+
   // Inject reducer to ensure state is available even on direct load
   React.useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
@@ -31,7 +33,7 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   React.useEffect(() => {
     if (documentId) {
       import('../store/action/contractManagement.actions').then(({ loadDocumentById }) => {
-        dispatch(loadDocumentById(documentId) as any);
+        dispatch(loadDocumentById(documentId, business_id) as any);
       });
     }
   }, [documentId, dispatch]);
