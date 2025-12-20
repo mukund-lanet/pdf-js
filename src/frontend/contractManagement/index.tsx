@@ -28,7 +28,7 @@ const ContractManagement = () => {
   const business_id = useSelector((state: any) => state?.auth?.business?.id);
 
   const callApi = () => {
-    dispatch(getDocuments(business_id));
+    dispatch(getDocuments({ business_id }));
   }
 
   useEffect(() => {
@@ -117,9 +117,9 @@ const ContractManagement = () => {
           <IdentityVerification />
           <GlobalDocumentSettings />
           <BrandingCustomization />
-        </div>
+        </div>  
       </div>
-      <div className={styles.scrollActionContractMainSection} >
+      <CustomScrollbar className={styles.scrollActionContractMainSection} >
         <div className={styles.contractManagementStatsGrid} >
           {displayCardList.map((stat, index) => (
             <Card
@@ -177,7 +177,7 @@ const ContractManagement = () => {
             <DocumentsViewer />
           </div>
         </div>
-      </div>
+      </CustomScrollbar>
     </div>
   );
 };

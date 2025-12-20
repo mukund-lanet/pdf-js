@@ -17,7 +17,7 @@ import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CA
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
-import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, TOOLBAR_ITEM, UPDATE_DOCUMENT } from '@/components/contractManagement/store/action/contractManagement.actions';
+import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, SET_PAGES, TOOLBAR_ITEM, UPDATE_DOCUMENT } from '@/components/contractManagement/store/action/contractManagement.actions';
 import ThumbnailPage from '../ThumbnailPage';
 import { blocks, fillableFields, noPdfDocument } from '../../../utils/utils';
 import { useDrag } from 'react-dnd';
@@ -155,11 +155,12 @@ const EditorLeftDrawer: React.FC = () => {
       return (
         <div
           ref={drag}
-          className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
+          className={styles.elementCard}
+          // className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
           onClick={() => dispatch({ type: SET_ACTIVE_TOOL, payload: item.type })}
         >
           <div className={styles.dragHandle}>
-            <CustomIcon iconName="grip-horizontal" width={16} height={16} />
+            <CustomIcon iconName="grip-vertical" width={12} height={12} variant="white" />
           </div>
 
           <div className={styles.iconWrapper}>
@@ -190,7 +191,7 @@ const EditorLeftDrawer: React.FC = () => {
           onClick={() => dispatch({ type: SET_ACTIVE_TOOL, payload: item.type })}
         >
           <div className={styles.dragHandle}>
-            <CustomIcon iconName="grip-horizontal" width={16} height={16} />
+            <CustomIcon iconName="grip-vertical" width={12} height={12} variant="white" />
           </div>
           <div className={styles.elementIcon}>
             <CustomIcon iconName={item.icon} width={20} height={20} />

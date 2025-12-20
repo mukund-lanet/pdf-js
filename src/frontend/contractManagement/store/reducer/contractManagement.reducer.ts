@@ -79,6 +79,13 @@ export interface ContractManagementState {
     contractValue: number;
   };
   documents: DocumentItem[];
+  documentCount: number;
+  filters: {
+    search: string;
+    status: string;
+    limit: number;
+    offset: number;
+  };
   contracts: ContractItem[];
   activeDocument: DocumentItem;
   // PDF Editor State
@@ -184,6 +191,13 @@ const initialState: ContractManagementState = {
     contractValue: 0,
   },
   documents: [],
+  documentCount: 0,
+  filters: {
+    search: '',
+    status: 'all',
+    limit: 25,
+    offset: 0
+  },
   contracts: [],
   activeDocument: {
     status: 'draft'
@@ -669,6 +683,26 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     }
 
     // API Data Actions
+    case Actions.SET_DOCUMENTS:
+      return {
+        ...state,
+        documents: action.payload.documents,
+        documentCount: action.payload.count,
+        documentsList: action.payload.documents // Keep for compatibility
+      };
+
+    case Actions.SET_DOCUMENT_FILTERS:
+      return {
+        ...state,
+        filters: { ...state.filters, ...action.payload }
+      };
+
+    case Actions.SET_FETCHING_DOCUMENTS:
+      return {
+        ...state,
+        isLoading: action.payload
+      };
+
     case Actions.SET_DOCUMENTS_LIST:
       return {
         ...state,

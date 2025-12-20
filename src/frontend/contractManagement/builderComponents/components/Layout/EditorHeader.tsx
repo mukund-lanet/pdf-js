@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
@@ -31,9 +32,7 @@ const EditorHeader = () => {
     }
   }, [curDocument?.name]);
 
-  // Handle initial document loading based on documentType
   useEffect(() => {
-    // If we have pages data, we don't need to initialize the document
     if (pages && pages.length > 0) {
       dispatch({ type: SET_TOTAL_PAGES, payload: pages.length })
       dispatch({ type: SET_CURRENT_PAGE, payload: 1 })
@@ -42,11 +41,8 @@ const EditorHeader = () => {
 
     const initializeDocument = () => {
       if (documentType === 'new_document') {
-        // Create a new blank page
         createNewDocument();
       } else if (documentType === 'upload-existing' && uploadPdfUrl) {
-        // For uploaded PDFs, backend should provide pages[] with imagePath
-        // No client-side processing needed
         console.log('PDF upload: Waiting for backend to process and provide pages[] with imagePath');
       }
     };
@@ -58,8 +54,8 @@ const EditorHeader = () => {
     try {
       dispatch({ type: SET_IS_LOADING, payload: true })
       
-      // Create initial blank page
-      const newPages = [{}];  // Empty object = blank white page
+      const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
+      const newPages = [{ _id: newPageId, fromPdf: false }];
       dispatch({ type: SET_PAGES, payload: newPages });
       
       dispatch({ type: SET_TOTAL_PAGES, payload: 1 })
@@ -73,6 +69,38 @@ const EditorHeader = () => {
       console.error('Error creating new document:', error);
     }
   };
+
+  const handleSaveDocument = () => {
+    if (!curDocument?._id) {
+      console.error('No document ID available for save');
+      return;
+    }
+
+    dispatch(updateDocument({
+      id: curDocument._id,
+      name: docName,
+      signers: curDocument?.signers || [],
+      signingOrder: curDocument?.signingOrder || false,
+      canvasElements: canvasElements || [],
+      pages: pages || [],
+      business_id
+    }));
+  };
+
+  // Keyboard shortcut: Ctrl+S / Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      console.log({event})
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        event.stopPropagation();
+        handleSaveDocument();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [curDocument, docName, canvasElements, pages, business_id]);
 
   return (
     <div className={styles.toolbarWrapper} >
@@ -95,22 +123,7 @@ const EditorHeader = () => {
         variant={"contained"}
         color={"primary"}
         startIcon={<CustomIcon iconName='save' height={16} width={16} variant={"white"} />}
-        onClick={() => {
-          if (!curDocument?._id) {
-            console.error('No document ID available for save');
-            return;
-          }
-
-          dispatch(updateDocument({
-            id: curDocument._id,
-            name: docName,
-            signers: curDocument?.signers || [],
-            signingOrder: curDocument?.signingOrder || false,
-            canvasElements: canvasElements || [],
-            pages: pages || [],
-            business_id
-          }));
-        }}
+        onClick={handleSaveDocument}
       >
         <Typography> Save </Typography>
       </Button>

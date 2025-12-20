@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
@@ -53,16 +54,14 @@ const PDFPage = React.memo((({
     try {
       dispatch({ type: SET_IS_LOADING, payload: true })
       
-      // Update pages array
       const newPages = [...pages];
-      // Insert a new blank page after the current page (no imagePath = white background)
-      newPages.splice(pageNumber, 0, {});
+      
+      const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
+      newPages.splice(pageNumber, 0, { _id: newPageId, fromPdf: false } as Page);
       dispatch({ type: SET_PAGES, payload: newPages });
       
-      // Update total pages
       dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length });
 
-      // Update canvas elements page numbers
       const updatedElements = canvasElements.map((el: { page: number; }) => {
         if (el.page > pageNumber) {
           return { ...el, page: el.page + 1 };
@@ -71,7 +70,6 @@ const PDFPage = React.memo((({
       });
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
 
-      // Update page dimensions
       const newPageDimensions: { [key: number]: PageDimension } = {};
       const newPageSize = { pageWidth: 600, pageHeight: 800 };
 
@@ -165,7 +163,9 @@ const PDFPage = React.memo((({
       
       // Insert a placeholder blank page (backend will process and add imagePath later)
       const newPages = [...pages];
-      newPages.splice(pageNumber, 0, { fromPdf: true });
+      // Generate MongoDB-like _id for the new page
+      const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
+      newPages.splice(pageNumber, 0, { _id: newPageId, fromPdf: true });
       dispatch({ type: SET_PAGES, payload: newPages });
 
       dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length });

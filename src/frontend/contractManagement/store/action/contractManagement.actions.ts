@@ -7,6 +7,7 @@ import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable
 
 // Action Types
 export const SET_DOCUMENTS_LIST = 'SET_DOCUMENTS_LIST';
+export const SET_DOCUMENTS = 'SET_DOCUMENTS';
 export const SET_CONTRACTS_LIST = 'SET_CONTRACTS_LIST';
 export const SET_SETTINGS_DATA = 'SET_SETTINGS_DATA';
 export const SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_DOCUMENT_ACTIVE_FILTER';
@@ -42,6 +43,8 @@ export const RESET_EDITOR = 'RESET_EDITOR';
 export const REORDER_PAGE_ELEMENTS = 'REORDER_PAGE_ELEMENTS';
 export const SET_IS_LOADING = 'SET_IS_LOADING';
 export const SET_DRAWER_COMPONENT_CATEGORY = 'SET_DRAWER_COMPONENT_CATEGORY';
+export const SET_DOCUMENT_FILTERS = 'SET_DOCUMENT_FILTERS';
+export const SET_FETCHING_DOCUMENTS = 'SET_FETCHING_DOCUMENTS';
 export const SET_ACTIVE_ELEMENT_ID = 'SET_ACTIVE_ELEMENT_ID';
 export const ADD_DOCUMENT_VARIABLE = 'ADD_DOCUMENT_VARIABLE';
 export const DELETE_DOCUMENT_VARIABLE = 'DELETE_DOCUMENT_VARIABLE';
@@ -314,6 +317,30 @@ interface ReorderPageElementsAction {
   };
 }
 
+// API Data Interfaces
+interface SetDocumentsAction {
+  type: typeof SET_DOCUMENTS;
+  payload: {
+    documents: any[];
+    count: number;
+  };
+}
+
+interface SetDocumentFiltersAction {
+  type: typeof SET_DOCUMENT_FILTERS;
+  payload: {
+    search?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  };
+}
+
+interface SetFetchingDocumentsAction {
+  type: typeof SET_FETCHING_DOCUMENTS;
+  payload: boolean;
+}
+
 interface SetDocumentsListAction {
   type: typeof SET_DOCUMENTS_LIST;
   payload: any[];
@@ -371,6 +398,9 @@ export type ContractManagementAction =
   | SetUploadPdfUrlAction
   | SetPagesAction
   | ReorderPageElementsAction
+  | SetDocumentsAction
+  | SetDocumentFiltersAction
+  | SetFetchingDocumentsAction
   | SetDocumentsListAction
   | SetContractsListAction
   | SetSettingsDataAction;
@@ -465,7 +495,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
         }));
 
         // Refresh documents list
-        dispatch(getDocuments(data.business_id));
+        dispatch(getDocuments({ business_id: data.business_id }));
 
         return response.data;
       }
@@ -517,7 +547,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
         }));
 
         // Refresh documents list
-        dispatch(getDocuments(data.business_id));
+        dispatch(getDocuments({ business_id: data.business_id }));
 
         return response.data;
       }
@@ -588,7 +618,7 @@ export const updateDocument = (data: {
         }));
 
         // Refresh documents list
-        dispatch(getDocuments(data.business_id));
+        dispatch(getDocuments({ business_id: data.business_id }));
 
         return response.data;
       }
@@ -625,25 +655,66 @@ export const setUploadPdfUrl = (url: string | null): AppDispatch => {
   };
 };
 
+export const setDocumentFilters = (filters: { search?: string; status?: string; limit?: number; offset?: number }): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_DOCUMENT_FILTERS,
+      payload: filters,
+    });
+  };
+};
+
 // ============ Document API Actions ============
 
-export const getDocuments = (business_id: string): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
+export const getDocuments = (filters?: { search?: string; status?: string; limit?: number; offset?: number; business_id?: string }): AppDispatch => {
+  return async (dispatch: AppDispatch, getState: () => any) => {
     try {
+      const state = getState();
+      const currentFilters = state?.contractManagement?.filters || { search: '', status: 'all', limit: 25, offset: 0 };
+      const business_id = filters?.business_id || state?.auth?.business?.id;
+      
+      const { search = '', status = 'all', limit = 25, offset = 0 } = { ...currentFilters, ...filters };
+
+      dispatch({
+        type: SET_FETCHING_DOCUMENTS,
+        payload: true,
+      });
+
       const response = await axiosInstance({
         method: 'POST',
         url: `http://localhost:8080/fetch-esign-documents?business_id=${business_id}`,
         isFromLocal: true,
+        data: {
+          limit,
+          offset,
+          ...(search ? { search } : {}),
+          ...(status !== 'all' ? { status } : {}),
+        },
       });
 
       if (response.status === 200 && response.data) {
         dispatch({
-          type: SET_DOCUMENTS_LIST,
-          payload: response.data.documents,
+          type: SET_DOCUMENTS,
+          payload: {
+            documents: response.data.documents || [],
+            count: response.data.totalCount || 0,
+          },
         });
       }
+
+      dispatch({
+        type: SET_FETCHING_DOCUMENTS,
+        payload: false,
+      });
     } catch (error: any) {
-      console.error('Failed to fetch documents:', error);
+      dispatch({
+        type: SET_FETCHING_DOCUMENTS,
+        payload: false,
+      });
+      dispatch(showMessage({
+        message: error.response?.data?.msg || 'Failed to fetch documents',
+        variant: 'error',
+      }));
     }
   };
 };
@@ -830,7 +901,7 @@ export const deleteDocument = (id: string, documentName: string, business_id: st
         }));
 
         // Refresh documents list
-        dispatch(getDocuments(business_id));
+        dispatch(getDocuments({ business_id }));
       }
     } catch (error: any) {
       dispatch(showMessage({

@@ -2,7 +2,7 @@ import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { setDocumentActiveFilter, setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, getDocumentById, deleteDocument } from '../store/action/contractManagement.actions';
+import { setDocumentActiveFilter, setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, getDocumentById, deleteDocument, getDocuments, setDocumentFilters } from '../store/action/contractManagement.actions';
 import { noDocument, actionsMenuItems, documentTableHeaders } from '../utils/utils';
 import { DIALOG_DRAWER_NAMES } from '../utils/interface';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
@@ -26,6 +26,11 @@ const DocumentsViewer = () => {
   const activeFilter = useSelector((state: RootState) => state.contractManagement?.documentActiveFilter);
   const documents = useSelector((state: RootState) => state.contractManagement?.documents);
   const business = useSelector((state: any) => state?.auth?.business);
+  const documentCount = useSelector((state: RootState) => state?.contractManagement?.documentCount) || 0;
+  const filters_state = useSelector((state: RootState) => state?.contractManagement?.filters) || { search: '', status: 'all', limit: 25, offset: 0 };
+
+  const { search = '', status = 'all', limit = 25, offset = 0 } = filters_state;
+  const currentPage = offset / limit;
 
   const filteredDocuments = React.useMemo(() => {
     if (!documents) return [];
@@ -100,6 +105,18 @@ const DocumentsViewer = () => {
     setDocumentToDelete(null);
   };
 
+  const handleChangePage = async (event: unknown, newPage: number) => {
+    const newOffset = newPage * limit;
+    dispatch(setDocumentFilters({ ...filters_state, offset: newOffset }));
+    await dispatch(getDocuments({ ...filters_state, offset: newOffset, business_id: business?.id }));
+  };
+
+  const handleChangeRowsPerPage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newLimit = parseInt(event.target.value, 10);
+    dispatch(setDocumentFilters({ ...filters_state, limit: newLimit, offset: 0 }));
+    await dispatch(getDocuments({ ...filters_state, limit: newLimit, offset: 0, business_id: business?.id }));
+  };
+
   return (
     <div className={styles.viewerArea}>
       <div className={styles.viewerHeader}>
@@ -129,6 +146,14 @@ const DocumentsViewer = () => {
             totalRecords={filteredDocuments.length}
             headerList={documentTableHeaders}
             totalLabel="Documents"
+            tablePagination={{
+              rowsPerPageOptions: [25, 50, 75, 100],
+              count: documentCount,
+              rowsPerPage: limit,
+              page: currentPage,
+              onChangePage: handleChangePage,
+              onChangeRowsPerPage: handleChangeRowsPerPage,
+            }}
           >
             <TableBody>
               {filteredDocuments.map((doc) => (

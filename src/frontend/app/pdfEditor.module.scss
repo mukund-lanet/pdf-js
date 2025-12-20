@@ -370,6 +370,21 @@
     padding: 12px 16px;
     justify-content: space-between;
 
+    .chipSaveSendBtnWrapper {
+      display: flex;
+      gap: 16px;
+      align-items: center;  
+      justify-content: center;
+
+      .chipWrapper {
+        border: 1px solid #ddd;
+      }
+    }
+
+    .btnTypography {
+      color: #000000;
+    }
+
     .toolbarDragDropBarWrapper {
       display: flex;
       gap: 16px;
@@ -424,7 +439,7 @@
       align-items: center;
 
       &.leftSideDrawerElement {
-        width: 440px;
+        width: 370px;
       }
     }
 
@@ -791,57 +806,69 @@
 
   .elementCard {
     position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 16px 12px;
+    width: 152px;
+    height: 94px;
+    padding: 16px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
-    background: white;
-    cursor: move;
-    transition: all 0.2s ease;
-    user-select: none;
-    min-height: 100px;
-    gap: 8px;
-    height: 120px;
-    width: 120px;
+    background: #fff;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+    cursor: grab;
+
+    &:hover {
+      background-color: #eff6ff;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1);
+      border-color: #93c5fd;
+    }
 
     .dragHandle {
-      opacity: 0.4;
+      position: absolute;
+      top: 36px;
+      left: -1px;
+      background: #3b82f6;
+      border-radius: 4px;
+      height: 20px;
+      width: 20px;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+
+      /* START STATE (hidden) */
+      opacity: 0;
+      transform: translateX(-12px);
+
+      transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
     }
 
     .elementIcon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #374151;
       width: 40px;
-      min-height: 40px;
+      height: 40px;
       background-color: #f3f4f6;
       border-radius: 8px;
       display: flex;
-      transition: background-color .2s ease;
-    }
-
-    .elementLabel {
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .elementDescription {
-      font-size: 12px;
-      color: #6b7280;
-      text-align: center;
-      font-weight: 400;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.25s ease;
     }
 
     &:hover {
-      border-color: #3b82f6;
       background: #eff6ff;
+      border-color: #3b82f6;
 
       .dragHandle {
-        opacity: 0.7;
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .elementIcon {
+        background-color: #dbeafe;
       }
     }
 
@@ -850,8 +877,13 @@
     }
 
     &.activeElement {
-      border-color: #3b82f6;
       background: #dbeafe;
+      border-color: #3b82f6;
+
+      .dragHandle {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
   }
 }
@@ -1444,7 +1476,7 @@
   height: 100%;
   position: relative;
   display: flex;
-  // background-color: #ffffff;
+  background-color: #ffffff;
 }
 
 .blockHeadingContent {
@@ -1608,7 +1640,7 @@
   // display: flex;
   // flex-direction: column;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   width: 100%;
 }
