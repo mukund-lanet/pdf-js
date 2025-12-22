@@ -2,13 +2,12 @@ import { AppDispatch } from '..';
 import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES, PageDimension } from '../../utils/interface';
-
-// API Constants
-export const API_URL_PREFIX = '/api';
+import { DIALOG_DRAWER_NAMES, DocumentItem, PageDimension } from '../../utils/interface';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
 
 // Action Types
 export const SET_DOCUMENTS_LIST = 'SET_DOCUMENTS_LIST';
+export const SET_DOCUMENTS = 'SET_DOCUMENTS';
 export const SET_CONTRACTS_LIST = 'SET_CONTRACTS_LIST';
 export const SET_SETTINGS_DATA = 'SET_SETTINGS_DATA';
 export const SET_DOCUMENT_ACTIVE_FILTER = 'CONTRACT_MANAGEMENT_SET_DOCUMENT_ACTIVE_FILTER';
@@ -25,7 +24,6 @@ export const UPDATE_DOCUMENT = "UPDATE_DOCUMENT";
 export const SET_DOCUMENT_DRAWER_MODE = "SET_DOCUMENT_DRAWER_MODE";
 
 // PDF Editor Action Types
-export const SET_PDF_BYTES = 'SET_PDF_BYTES';
 export const SET_TOTAL_PAGES = 'SET_TOTAL_PAGES';
 export const SET_CURRENT_PAGE = 'SET_CURRENT_PAGE';
 export const SET_PAGE_DIMENSIONS = 'SET_PAGE_DIMENSIONS';
@@ -45,6 +43,8 @@ export const RESET_EDITOR = 'RESET_EDITOR';
 export const REORDER_PAGE_ELEMENTS = 'REORDER_PAGE_ELEMENTS';
 export const SET_IS_LOADING = 'SET_IS_LOADING';
 export const SET_DRAWER_COMPONENT_CATEGORY = 'SET_DRAWER_COMPONENT_CATEGORY';
+export const SET_DOCUMENT_FILTERS = 'SET_DOCUMENT_FILTERS';
+export const SET_FETCHING_DOCUMENTS = 'SET_FETCHING_DOCUMENTS';
 export const SET_ACTIVE_ELEMENT_ID = 'SET_ACTIVE_ELEMENT_ID';
 export const ADD_DOCUMENT_VARIABLE = 'ADD_DOCUMENT_VARIABLE';
 export const DELETE_DOCUMENT_VARIABLE = 'DELETE_DOCUMENT_VARIABLE';
@@ -55,6 +55,8 @@ export const FILLABLE_ELEMENT = 'FILLABLE_ELEMENT';
 export const TOOLBAR_ITEM = 'TOOLBAR_ITEM';
 export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
+export const SET_PAGES = 'SET_PAGES';
+export const SET_IS_UNSAVED = 'SET_IS_UNSAVED';
 
 // Dialog/Drawer Names Type
 export type DialogName = DIALOG_DRAWER_NAMES;
@@ -152,20 +154,13 @@ export interface UpdateDocumentAction {
     signingOrder?: boolean;
     canvasElements?: CanvasElement[];
     pageDimensions?: { [key: number]: PageDimension };
+    pages?: Page[];
   };
 }
 
 export interface SetDocumentDrawerModeAction {
   type: typeof SET_DOCUMENT_DRAWER_MODE;
   payload: 'create' | 'upload' | 'edit' | null;
-}
-
-// PDF Editor Action Interfaces
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
-
-interface SetPdfBytesAction {
-  type: typeof SET_PDF_BYTES;
-  payload: Uint8Array | null;
 }
 
 interface SetPropertiesDrawerStateAction {
@@ -189,6 +184,16 @@ interface SetDocumentTypeAction {
 interface SetUploadPdfUrlAction {
   type: typeof SET_UPLOAD_PDF_URL;
   payload: string | null;
+}
+
+interface SetPagesAction {
+  type: typeof SET_PAGES;
+  payload: Page[];
+}
+
+interface SetIsUnsavedAction {
+  type: typeof SET_IS_UNSAVED;
+  payload: boolean;
 }
 
 interface SetDrawerComponentCategoryAction {
@@ -313,9 +318,33 @@ interface ResetEditorAction {
 interface ReorderPageElementsAction {
   type: typeof REORDER_PAGE_ELEMENTS;
   payload: {
-    sourceIndex: number; 
-    destinationIndex: number; 
+    sourceIndex: number;
+    destinationIndex: number;
   };
+}
+
+// API Data Interfaces
+interface SetDocumentsAction {
+  type: typeof SET_DOCUMENTS;
+  payload: {
+    documents: any[];
+    count: number;
+  };
+}
+
+interface SetDocumentFiltersAction {
+  type: typeof SET_DOCUMENT_FILTERS;
+  payload: {
+    search?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  };
+}
+
+interface SetFetchingDocumentsAction {
+  type: typeof SET_FETCHING_DOCUMENTS;
+  payload: boolean;
 }
 
 interface SetDocumentsListAction {
@@ -347,7 +376,6 @@ export type ContractManagementAction =
   | SetActiveDocumentAction
   | UpdateDocumentAction
   | SetDocumentDrawerModeAction
-  | SetPdfBytesAction
   | SetTotalPagesAction
   | SetCurrentPageAction
   | SetPageDimensionsAction
@@ -374,7 +402,12 @@ export type ContractManagementAction =
   | SetPdfMediaAction
   | SetDocumentTypeAction
   | SetUploadPdfUrlAction
+  | SetPagesAction
   | ReorderPageElementsAction
+  | SetIsUnsavedAction
+  | SetDocumentsAction
+  | SetDocumentFiltersAction
+  | SetFetchingDocumentsAction
   | SetDocumentsListAction
   | SetContractsListAction
   | SetSettingsDataAction;
@@ -435,12 +468,9 @@ export const setBrandingCustomizationSettings = (brandingCustomizationSettings: 
 };
 
 
-export const createNewDocument = (data: { documentName: string; signers: any[]; signingOrder?: boolean }): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+export const createNewDocument = (data: { documentName: string; signers: any[]; signingOrder?: boolean, business_id: string, pages: Page[] }): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
@@ -448,8 +478,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
 
       const response = await axiosInstance({
         method: 'post',
-        // url: `${API_URL_PREFIX}/documents?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/create-esign-document?business_id=${data.business_id}`,
         isFromLocal: true,
         data: {
           name: data.documentName,
@@ -457,6 +486,7 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
           signingOrder: data.signingOrder || false,
           status: 'draft',
           documentType: 'new_document',
+          pages: data.pages,
         },
       });
 
@@ -465,15 +495,15 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
           type: CREATE_NEW_DOCUMENT,
           payload: response.data,
         });
-        
+
         dispatch(showMessage({
           message: `Document "${data.documentName}" created successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
-        dispatch(getDocuments());
-        
+        dispatch(getDocuments({ business_id: data.business_id }));
+
         return response.data;
       }
     } catch (error: any) {
@@ -493,23 +523,17 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
   };
 };
 
-export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string; signers: any[]; pdfBytes?: Uint8Array }): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string; signers: any[]; business_id: string }): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
     try {
-      // const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
       });
 
-      console.log("in upload Document ation")
-
       const response = await axiosInstance({
         method: 'post',
-        // url: `${API_URL_PREFIX}/documents/upload?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents/upload?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/upload-esign-document?business_id=${data.business_id}`,
         isFromLocal: true,
         data: {
           documentName: data.documentName,
@@ -523,22 +547,15 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
           type: UPLOAD_DOCUMENT_PDF,
           payload: response.data,
         });
-        
-        if (data.pdfBytes) {
-          dispatch({
-            type: SET_PDF_BYTES,
-            payload: data.pdfBytes,
-          });
-        }
-        
+
         dispatch(showMessage({
           message: `Document "${data.documentName}" uploaded successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
-        dispatch(getDocuments());
-        
+        dispatch(getDocuments({ business_id: data.business_id }));
+
         return response.data;
       }
     } catch (error: any) {
@@ -565,37 +582,34 @@ export const setActiveDocument = (document: any | null): AppDispatch => {
   };
 };
 
-export const updateDocument = (data: { 
-  documentId: string | undefined; 
-  documentName: string; 
-  signers: any[]; 
-  signingOrder?: boolean;
-  canvasElements?: CanvasElement[];
-  pageDimensions?: { [key: number]: PageDimension };
-  totalPages?: number;
+export const updateDocument = (data: {
+  id: string;
+  name: string;
+  signers: any[];
+  signingOrder: boolean;
+  canvasElements: CanvasElement[];
+  pages: Page[];
+  business_id: string;
 }): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      // const currentState = getState();
-      // const currentBusiness = currentState?.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
       });
 
       const response = await axiosInstance({
-        method: 'put',
-        // url: `${API_URL_PREFIX}/documents/${data.documentId}?business_id=${currentBusiness?.id}`,
-        url: `http://localhost:5000/api/documents/${data.documentId}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        method: 'post',
+        url: `http://localhost:8080/update-esign-document/`,
         isFromLocal: true,
         data: {
-          name: data.documentName,
+          id: data.id,
+          name: data.name,
           signers: data.signers,
           signingOrder: data.signingOrder,
           canvasElements: data.canvasElements,
-          pageDimensions: data.pageDimensions,
-          totalPages: data.totalPages,
+          pages: data.pages,
+          business_id: data.business_id
         },
       });
 
@@ -604,15 +618,17 @@ export const updateDocument = (data: {
           type: UPDATE_DOCUMENT,
           payload: response.data,
         });
-        
+
+        dispatch(setIsUnsaved(false));
+
         dispatch(showMessage({
-          message: `Document "${data.documentName}" updated successfully`,
+          message: `Document "${data.name}" updated successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
-        dispatch(getDocuments());
-        
+        dispatch(getDocuments({ business_id: data.business_id }));
+
         return response.data;
       }
     } catch (error: any) {
@@ -645,59 +661,107 @@ export const setUploadPdfUrl = (url: string | null): AppDispatch => {
       type: SET_UPLOAD_PDF_URL,
       payload: url,
     });
-  }; 
+  };
+};
+
+export const setDocumentFilters = (filters: { search?: string; status?: string; limit?: number; offset?: number }): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_DOCUMENT_FILTERS,
+      payload: filters,
+    });
+  };
+};
+
+export const setIsUnsaved = (isUnsaved: boolean): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_IS_UNSAVED,
+      payload: isUnsaved,
+    });
+  };
 };
 
 // ============ Document API Actions ============
 
-export const getDocuments = (): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+export const getDocuments = (filters?: { search?: string; status?: string; limit?: number; offset?: number; business_id?: string }): AppDispatch => {
+  return async (dispatch: AppDispatch, getState: () => any) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
+      const state = getState();
+      const currentFilters = state?.contractManagement?.filters || { search: '', status: 'all', limit: 25, offset: 0 };
+      const business_id = filters?.business_id || state?.auth?.business?.id;
+      
+      const { search = '', status = 'all', limit = 25, offset = 0 } = { ...currentFilters, ...filters };
+
+      dispatch({
+        type: SET_FETCHING_DOCUMENTS,
+        payload: true,
+      });
 
       const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:5000/api/documents?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        method: 'POST',
+        url: `http://localhost:8080/fetch-esign-documents?business_id=${business_id}`,
         isFromLocal: true,
+        data: {
+          limit,
+          offset,
+          ...(search ? { search } : {}),
+          ...(status !== 'all' ? { status } : {}),
+        },
       });
 
       if (response.status === 200 && response.data) {
         dispatch({
-          type: SET_DOCUMENTS_LIST,
-          payload: response.data,
+          type: SET_DOCUMENTS,
+          payload: {
+            documents: response.data.documents || [],
+            count: response.data.totalCount || 0,
+          },
         });
       }
+
+      dispatch({
+        type: SET_FETCHING_DOCUMENTS,
+        payload: false,
+      });
     } catch (error: any) {
-      console.error('Failed to fetch documents:', error);
+      dispatch({
+        type: SET_FETCHING_DOCUMENTS,
+        payload: false,
+      });
+      dispatch(showMessage({
+        message: error.response?.data?.msg || 'Failed to fetch documents',
+        variant: 'error',
+      }));
     }
   };
 };
 
-export const getDocumentById = (id: string | undefined): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+export const getDocumentById = (id: string | undefined, business_id: string): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business; 
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
       });
 
+      console.log("busienssId, getDocById: ", business_id)
+
       const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        method: 'POST',
+        url: `http://localhost:8080/fetch-esign-document-by-id?business_id=${business_id}`,
         isFromLocal: true,
+        data: { id }
       });
 
-      if (response.status === 200 && response.data) {
-        dispatch(setActiveDocument(response.data));
-        return response.data;
+      if (response.status === 200 && response.data && response.data.data) {
+        const document = response.data.data[0]; 
+        dispatch(setActiveDocument(document));
+        return document;
       }
     } catch (error: any) {
       dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to fetch document',
+        message: error.response?.data?.msg || 'Failed to fetch document',
         variant: 'error',
       }));
       return null;
@@ -710,84 +774,52 @@ export const getDocumentById = (id: string | undefined): AppDispatch => {
   };
 };
 
-export const loadDocumentById = (id: string): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+export const loadDocumentById = (id: string, business_id: string): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
     try {
-      console.log('Loading document with ID:', id);
-      
       if (!id || id.trim() === '') {
         throw new Error('Invalid document ID');
       }
-      
+
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
       });
 
+      console.log("busienssId, loadDocbyId: ", business_id)
+
       const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        method: 'POST',
+        url: `http://localhost:8080/fetch-esign-document-by-id?business_id=${business_id}`,
         isFromLocal: true,
+        data: { id }
       });
 
-      if (!response.data) {
+      if (!response.data || !response.data.data || response.data.data.length === 0) {
         throw new Error('Document not found');
       }
 
-      const document = response.data;
-      console.log('Document loaded from backend:', document);
+      const document = response.data.data[0];
 
       dispatch(setActiveDocument(document));
 
-      if (document.uploadPath) {
-        console.log('Loading PDF from:', document.uploadPath);
+      if (document.pages && Array.isArray(document.pages)) {
+        dispatch({
+          type: SET_PAGES,
+          payload: document.pages
+        });
         
-        try {
-          const pdfResponse = await fetch(document.uploadPath);
-          if (!pdfResponse.ok) {
-            throw new Error(`Failed to fetch PDF: ${pdfResponse.status} ${pdfResponse.statusText}`);
-          }
-          
-          const arrayBuffer = await pdfResponse.arrayBuffer();
-          
-          if (arrayBuffer.byteLength === 0) {
-            throw new Error('PDF file is empty');
-          }
-          
-          const pdfBytes = new Uint8Array(arrayBuffer);
-          
-          const { PDFDocument } = await import('pdf-lib');
-          const pdfDoc = await PDFDocument.load(arrayBuffer);
-          const pageCount = pdfDoc.getPageCount();
-          
-          dispatch({
-            type: SET_PDF_BYTES,
-           payload: pdfBytes,
-          });
-          
-          dispatch({
-            type: SET_TOTAL_PAGES,
-            payload: pageCount,
-          });
-          
-          console.log(`PDF loaded: ${pageCount} pages`);
-        } catch (pdfError: any) {
-          console.error('Error loading PDF:', pdfError);
-          dispatch(showMessage({
-            message: `Failed to load PDF file: ${pdfError.message || 'Unknown error'}`,
-            variant: 'warning',
-          }));
-          // Continue loading other document data even if PDF fails
-        }
+        dispatch({
+          type: SET_TOTAL_PAGES,
+          payload: document.pages.length,
+        });
       }
 
-      // Step 4: Load canvas elements
       if (document.canvasElements && Array.isArray(document.canvasElements)) {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
           payload: document.canvasElements,
         });
-        console.log(`Loaded ${document.canvasElements.length} canvas elements`);
       } else {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
@@ -795,21 +827,17 @@ export const loadDocumentById = (id: string): AppDispatch => {
         });
       }
 
-      // Step 5: Load page dimensions
       if (document.pageDimensions) {
-        // Convert Map to plain object if needed
-        const dimensionsObj = document.pageDimensions instanceof Map 
+        const dimensionsObj = document.pageDimensions instanceof Map
           ? Object.fromEntries(document.pageDimensions)
           : document.pageDimensions;
-        
+
         dispatch({
           type: SET_PAGE_DIMENSIONS,
           payload: dimensionsObj,
         });
-        console.log('Loaded page dimensions');
       }
 
-      // Step 6: Set document type
       if (document.documentType) {
         dispatch({
           type: SET_DOCUMENT_TYPE,
@@ -817,21 +845,23 @@ export const loadDocumentById = (id: string): AppDispatch => {
         });
       }
 
-      // Step 7: Set current page to 1
+      if (document.uploadPath) {
+        dispatch(setUploadPdfUrl(document.uploadPath));
+      }
       dispatch({
         type: SET_CURRENT_PAGE,
         payload: 1,
       });
 
-      console.log('Document loading complete');
+      dispatch(setIsUnsaved(false));
+
       return document;
-      
+
     } catch (error: any) {
       console.error('Error loading document:', error);
-      
-      // Provide user-friendly error messages based on error type
+
       let errorMessage = 'Failed to load document';
-      
+
       if (error.response?.status === 404) {
         errorMessage = 'Document not found. It may have been deleted.';
       } else if (error.response?.status === 403) {
@@ -840,26 +870,24 @@ export const loadDocumentById = (id: string): AppDispatch => {
         errorMessage = 'Invalid document ID format.';
       } else if (error.message === 'Network Error' || !navigator.onLine) {
         errorMessage = 'Network error. Please check your internet connection.';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.msg) {
+        errorMessage = error.response.data.msg;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       dispatch(showMessage({
         message: errorMessage,
         variant: 'error',
       }));
-      
-      // Redirect to dashboard on critical errors
+
       if (error.response?.status === 404 || error.message === 'Invalid document ID') {
-        // Give user time to see the error message before redirecting
         setTimeout(() => {
           const businessKey = window.location.pathname.split('/')[1];
           window.location.href = `/${businessKey}/contract-management`;
         }, 2000);
       }
-      
+
       return null;
     } finally {
       dispatch({
@@ -870,21 +898,19 @@ export const loadDocumentById = (id: string): AppDispatch => {
   };
 };
 
-export const deleteDocument = (id: string, documentName: string): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+export const deleteDocument = (id: string, documentName: string, business_id: string): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
       });
 
       const response = await axiosInstance({
-        method: 'delete',
-        url: `http://localhost:5000/api/documents/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        method: 'POST',
+        url: `http://localhost:8080/delete-esign-document?business_id=${business_id}`,
         isFromLocal: true,
+        data: { id }
       });
 
       if (response.status === 200) {
@@ -892,9 +918,9 @@ export const deleteDocument = (id: string, documentName: string): AppDispatch =>
           message: `Document "${documentName}" deleted successfully`,
           variant: 'success',
         }));
-        
+
         // Refresh documents list
-        dispatch(getDocuments());
+        dispatch(getDocuments({ business_id }));
       }
     } catch (error: any) {
       dispatch(showMessage({
@@ -913,14 +939,11 @@ export const deleteDocument = (id: string, documentName: string): AppDispatch =>
 // ============ Contract API Actions ============
 
 export const getContracts = (): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -937,11 +960,8 @@ export const getContracts = (): AppDispatch => {
 };
 
 export const createContract = (contractData: any): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
@@ -949,7 +969,7 @@ export const createContract = (contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'post',
-        url: `http://localhost:5000/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: contractData,
       });
@@ -959,7 +979,7 @@ export const createContract = (contractData: any): AppDispatch => {
           message: `Contract "${contractData.name}" created successfully`,
           variant: 'success',
         }));
-        
+
         dispatch(getContracts());
         return response.data;
       }
@@ -979,11 +999,8 @@ export const createContract = (contractData: any): AppDispatch => {
 };
 
 export const updateContract = (id: string, contractData: any): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
@@ -991,7 +1008,7 @@ export const updateContract = (id: string, contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'put',
-        url: `http://localhost:5000/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: contractData,
       });
@@ -1001,7 +1018,7 @@ export const updateContract = (id: string, contractData: any): AppDispatch => {
           message: `Contract "${contractData.name}" updated successfully`,
           variant: 'success',
         }));
-        
+
         dispatch(getContracts());
         return response.data;
       }
@@ -1021,11 +1038,8 @@ export const updateContract = (id: string, contractData: any): AppDispatch => {
 };
 
 export const deleteContract = (id: string, contractName: string): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
@@ -1033,7 +1047,7 @@ export const deleteContract = (id: string, contractName: string): AppDispatch =>
 
       const response = await axiosInstance({
         method: 'delete',
-        url: `http://localhost:5000/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1042,7 +1056,7 @@ export const deleteContract = (id: string, contractName: string): AppDispatch =>
           message: `Contract "${contractName}" deleted successfully`,
           variant: 'success',
         }));
-        
+
         dispatch(getContracts());
       }
     } catch (error: any) {
@@ -1062,14 +1076,11 @@ export const deleteContract = (id: string, contractName: string): AppDispatch =>
 // ============ Settings API Actions ============
 
 export const getSettings = (): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       const response = await axiosInstance({
         method: 'get',
-        url: `http://localhost:5000/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
       });
 
@@ -1078,7 +1089,7 @@ export const getSettings = (): AppDispatch => {
           type: SET_SETTINGS_DATA,
           payload: response.data,
         });
-        
+
         // Also update individual settings in Redux
         if (response.data.identityVerification) {
           dispatch(setIdentityVerificationSettings(response.data.identityVerification));
@@ -1097,11 +1108,8 @@ export const getSettings = (): AppDispatch => {
 };
 
 export const updateSettings = (settingsData: any): AppDispatch => {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch) => {
     try {
-      const currentState = getState();
-      // const currentBusiness = currentState.auth?.business;
-
       dispatch({
         type: SET_IS_LOADING,
         payload: true,
@@ -1109,7 +1117,7 @@ export const updateSettings = (settingsData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'put',
-        url: `http://localhost:5000/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
         isFromLocal: true,
         data: settingsData,
       });
@@ -1119,7 +1127,7 @@ export const updateSettings = (settingsData: any): AppDispatch => {
           message: 'Settings updated successfully',
           variant: 'success',
         }));
-        
+
         dispatch(getSettings());
         return response.data;
       }

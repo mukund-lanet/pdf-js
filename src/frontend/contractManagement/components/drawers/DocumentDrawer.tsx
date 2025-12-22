@@ -25,6 +25,7 @@ const DocumentDrawer = () => {
   const documentDrawerOpen = useSelector((state: RootState) => state?.contractManagement?.documentDrawerOpen);
   const documentDrawerMode = useSelector((state: RootState) => state?.contractManagement?.documentDrawerMode);
   const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
+  const business_id = useSelector((state: any) => state?.auth?.business?.id);
   
   const isEditMode = documentDrawerMode === 'edit';
   const isUploadMode = documentDrawerMode === 'upload';
@@ -73,7 +74,8 @@ const DocumentDrawer = () => {
           documentId: activeDocument._id,
           documentName: values.documentName,
           signers: values.signers,
-          signingOrder: signingOrderEnabled
+          signingOrder: signingOrderEnabled,
+          business_id,
         }));
         handleClose();
         resetForm();
@@ -86,7 +88,8 @@ const DocumentDrawer = () => {
         const result = await dispatch(uploadDocumentPdf({
           documentName: values.documentName,
           fileUrl: values.file.original_url,
-          signers: values.signers
+          signers: values.signers,
+          business_id,
         }));
  
         console.log({result})
@@ -96,9 +99,6 @@ const DocumentDrawer = () => {
           
           handleClose();
           resetForm();
-          
-          const businessKey = window.location.pathname.split('/')[1];
-          router.push(`/${businessKey}/pdf-editor/builder/${result._id}`);
         } else {
           console.error('Failed to get document ID from upload response');
         }
@@ -108,7 +108,13 @@ const DocumentDrawer = () => {
         const result = await dispatch(createNewDocument({
           documentName: values.documentName,
           signers: values.signers,
-          signingOrder: signingOrderEnabled
+          signingOrder: signingOrderEnabled,
+          business_id,
+          pages: [{
+            imagePath: '',
+            imageUrl: '',
+            fromPdf: false,
+          }]
         }));
         
         if (result && result._id) {
@@ -116,9 +122,6 @@ const DocumentDrawer = () => {
           
           handleClose();
           resetForm();
-          
-          const businessKey = window.location.pathname.split('/')[1];
-          router.push(`/${businessKey}/pdf-editor/builder/${result._id}`);
         } else {
           console.error('Failed to get document ID from create response');
         }

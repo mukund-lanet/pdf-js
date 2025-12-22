@@ -3,6 +3,7 @@ import mongoose, { Document as MongoDocument, Schema } from 'mongoose';
 export interface IContractManagement extends MongoDocument {
   documents: mongoose.Types.ObjectId[];
   contracts: mongoose.Types.ObjectId[];
+  business_id: string;
   
   documentsFilters: {
     all: number;
@@ -59,6 +60,7 @@ export interface IContractManagement extends MongoDocument {
 const ContractManagementSchema = new Schema<IContractManagement>({
   documents: [{ type: Schema.Types.ObjectId, ref: 'Document' }],
   contracts: [{ type: Schema.Types.ObjectId, ref: 'Contract' }],
+  business_id: { type: String, required: true },
   
   documentsFilters: {
     all: { type: Number, default: 0 },

@@ -29,7 +29,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/contract-management', contractManagementRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

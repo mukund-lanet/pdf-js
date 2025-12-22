@@ -183,8 +183,6 @@ export const actionsMenuItems = [
   { icon: "trash-2", label: "Delete", key: "delete" },
 ];
 
-
-// pdf-editor
 export const noPdfDocument = {
   message: "No documents found",
   description: "There are no documents to display.",

@@ -8,7 +8,7 @@ interface ColorInputProps {
 }
 
 const ColorInput: React.FC<ColorInputProps> = ({ value, onChange }) => {
-  const [localValue, setLocalValue] = useState(value || '#ffffff');
+  const [localValue, setLocalValue] = useState(value);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   // yync the localValue when value prop changes
@@ -17,16 +17,6 @@ const ColorInput: React.FC<ColorInputProps> = ({ value, onChange }) => {
       setLocalValue(value);
     }
   }, [value]);
-
-  const handleOpenColorPicker = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    event.preventDefault();
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseColorPicker = () => {
-    setAnchorEl(null);
-  };
 
   const handleColorChange = (color: string) => {
     setLocalValue(color);
@@ -37,7 +27,12 @@ const ColorInput: React.FC<ColorInputProps> = ({ value, onChange }) => {
     <>
       <div
         className={styles.colorPickerIcon}
-        onClick={handleOpenColorPicker}
+        onClick={(event: React.MouseEvent<HTMLSpanElement>) => {
+        // event.stopPropagation();
+        // event.preventDefault();
+        
+        setAnchorEl(event.currentTarget);
+      }}
       >
         <span className={styles.colorViewer} style={{ backgroundColor: localValue }}></span>
       </div>
@@ -45,7 +40,7 @@ const ColorInput: React.FC<ColorInputProps> = ({ value, onChange }) => {
         <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
           <ColorPickerComponent
             showDialog={true}
-            closeDialogAction={() => handleCloseColorPicker()}
+            closeDialogAction={() => setAnchorEl(null)}
             handleColorChange={(color: string) => handleColorChange(color)}
             defaultHexCode={localValue}
             anchorEl={anchorEl}

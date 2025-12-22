@@ -1,8 +1,9 @@
 import * as Actions from '../action/contractManagement.actions';
 import { v4 as uuidv4 } from 'uuid';
-import { 
+import {
   DocumentItem,
-  ContractItem
+  ContractItem,
+  Page
 } from '../../utils/interface';
 import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
 
@@ -78,10 +79,16 @@ export interface ContractManagementState {
     contractValue: number;
   };
   documents: DocumentItem[];
+  documentCount: number;
+  filters: {
+    search: string;
+    status: string;
+    limit: number;
+    offset: number;
+  };
   contracts: ContractItem[];
-  activeDocument: DocumentItem | null;
+  activeDocument: DocumentItem;
   // PDF Editor State
-  pdfBytes: Uint8Array | null;
   totalPages: number;
   currentPage: number;
   canvasElements: CanvasElement[];
@@ -105,6 +112,8 @@ export interface ContractManagementState {
   documentsList: any[];
   contractsList: any[];
   settingsData: any | null;
+  pages: Page[];
+  isUnsaved: boolean;
 }
 
 export interface RootState {
@@ -183,10 +192,18 @@ const initialState: ContractManagementState = {
     contractValue: 0,
   },
   documents: [],
+  documentCount: 0,
+  filters: {
+    search: '',
+    status: 'all',
+    limit: 25,
+    offset: 0
+  },
   contracts: [],
-  activeDocument: null,
+  activeDocument: {
+    status: 'draft'
+  },
   // PDF Editor State
-  pdfBytes: null,
   totalPages: 0,
   currentPage: 1,
   canvasElements: [],
@@ -197,25 +214,9 @@ const initialState: ContractManagementState = {
   isSignaturePadOpen: false,
   signatureForElement: null,
   isLoading: false,
-  drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
+  drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS,
   activeElementId: null,
-  documentVariables: [
-    {
-      name: 'document.createdDate',
-      value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      isSystem: true
-    },
-    {
-      name: 'document.refNumber',
-      value: `P${Math.floor(10000 + Math.random() * 90000)} `,
-      isSystem: true
-    },
-    {
-      name: 'document.subAccountName',
-      value: "CRMOne",
-      isSystem: true
-    },
-  ],
+  documentVariables: [],
   propertiesDrawerState: {
     anchorEl: null,
     isOpen: false
@@ -225,17 +226,18 @@ const initialState: ContractManagementState = {
   // API Data
   documentsList: [],
   contractsList: [],
-  settingsData: null
+  settingsData: null,
+  pages: [],
+  isUnsaved: false,
 };
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
-  // console.log('ContractManagement Reducer Action:', action.type);
   switch (action.type) {
     case Actions.SET_ACTIVE_DOCUMENT:
-      console.log('SET_ACTIVE_DOCUMENT payload:', action.payload);
       return {
         ...state,
         activeDocument: action.payload,
+        isUnsaved: false,
       };
     case Actions.SET_DIALOG_STATE:
       return {
@@ -279,7 +281,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         createdBy: 'Current User', // Replace with actual user info if available
         signingOrder: action.payload.signingOrder || false,
       };
-      
+
       return {
         ...state,
         documents: [newDoc, ...state.documents],
@@ -320,32 +322,33 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         }
       };
     }
-    
+
     // case Actions.SET_ACTIVE_DOCUMENT: {
     //   return {
     //     ...state,
     //     activeDocument: action.payload,
     //   };
     // }
-    
+
     case Actions.UPDATE_DOCUMENT: {
       const { documentId, documentName, signers, signingOrder, canvasElements, pageDimensions } = action.payload;
-      const updatedDocuments = state.documents.map(doc => 
-        doc._id === documentId 
+      const updatedDocuments = state.documents.map(doc =>
+        doc._id === documentId
           ? { ...doc, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : doc
       );
-      
+
       return {
         ...state,
         documents: updatedDocuments,
         // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
-        activeDocument: state.activeDocument && state.activeDocument._id === documentId 
+        activeDocument: state.activeDocument && state.activeDocument._id === documentId
           ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : state.activeDocument,
+        isUnsaved: true,
       };
     }
-    
+
     case Actions.SET_DOCUMENT_DRAWER_MODE: {
       return {
         ...state,
@@ -393,13 +396,15 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.ADD_DOCUMENT_VARIABLE:
       return {
         ...state,
-        documentVariables: [...state.documentVariables, action.payload]
+        documentVariables: [...state.documentVariables, action.payload],
+        isUnsaved: true,
       };
 
     case Actions.DELETE_DOCUMENT_VARIABLE:
       return {
         ...state,
-        documentVariables: state.documentVariables.filter(v => v.name !== action.payload)
+        documentVariables: state.documentVariables.filter(v => v.name !== action.payload),
+        isUnsaved: true,
       };
 
     case Actions.UPDATE_DOCUMENT_VARIABLE:
@@ -407,7 +412,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         documentVariables: state.documentVariables.map(v =>
           v.name === action.payload.name ? action.payload : v
-        )
+        ),
+        isUnsaved: true,
       };
 
     case Actions.SET_IS_LOADING:
@@ -416,11 +422,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         isLoading: action.payload
       };
 
-    case Actions.SET_PDF_BYTES:
-      return {
-        ...state,
-        pdfBytes: action.payload
-      };
+
 
     case Actions.SET_TOTAL_PAGES:
       return {
@@ -437,19 +439,22 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.SET_PAGE_DIMENSIONS:
       return {
         ...state,
-        pageDimensions: action.payload
+        pageDimensions: action.payload,
+        isUnsaved: true,
       };
 
     case Actions.SET_CANVAS_ELEMENTS:
       return {
         ...state,
-        canvasElements: action.payload
+        canvasElements: action.payload,
+        isUnsaved: true,
       };
 
     case Actions.ADD_CANVAS_ELEMENT:
       return {
         ...state,
-        canvasElements: [...state.canvasElements, action.payload]
+        canvasElements: [...state.canvasElements, action.payload],
+        isUnsaved: true,
       };
 
     case Actions.UPDATE_CANVAS_ELEMENT:
@@ -462,7 +467,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text-field'
             ? (action.payload as TextElement)
-            : state.selectedTextElement
+            : state.selectedTextElement,
+        isUnsaved: true,
       };
 
     case Actions.DELETE_CANVAS_ELEMENT:
@@ -475,7 +481,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
           state.selectedTextElement && state.selectedTextElement.id === action.payload
             ? null
             : state.selectedTextElement,
-        activeElementId: state.activeElementId === action.payload ? null : state.activeElementId
+        activeElementId: state.activeElementId === action.payload ? null : state.activeElementId,
+        isUnsaved: true,
       };
 
     case Actions.ADD_BLOCK_ELEMENT: {
@@ -495,7 +502,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: [...state.canvasElements, blockWithOrder]
+        canvasElements: [...state.canvasElements, blockWithOrder],
+        isUnsaved: true,
       };
     }
 
@@ -524,7 +532,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: [...otherElements, ...updatedBlocks]
+        canvasElements: [...otherElements, ...updatedBlocks],
+        isUnsaved: true,
       };
     }
 
@@ -542,7 +551,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
             };
           }
           return el;
-        })
+        }),
+        isUnsaved: true,
       };
     }
 
@@ -576,13 +586,13 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el)
+        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el),
+        isUnsaved: true,
       };
 
     case Actions.RESET_EDITOR:
       return {
         ...state,
-        pdfBytes: null,
         totalPages: 0,
         currentPage: 1,
         canvasElements: [],
@@ -615,7 +625,15 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         propertiesDrawerState: {
           anchorEl: null,
           isOpen: false
-        }
+        },
+        isUnsaved: false,
+      };
+
+    case Actions.SET_PAGES:
+      return {
+        ...state,
+        pages: action.payload,
+        isUnsaved: true,
       };
 
     case Actions.REORDER_PAGE_ELEMENTS: {
@@ -678,31 +696,58 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         canvasElements: updatedElements,
         pageDimensions: newPageDimensions,
-        currentPage: newCurrentPage
+        currentPage: newCurrentPage,
+        isUnsaved: true,
       };
     }
-    
+
+    case Actions.SET_IS_UNSAVED:
+      return {
+        ...state,
+        isUnsaved: action.payload,
+      };
+
     // API Data Actions
+    case Actions.SET_DOCUMENTS:
+      return {
+        ...state,
+        documents: action.payload.documents,
+        documentCount: action.payload.count,
+        documentsList: action.payload.documents // Keep for compatibility
+      };
+
+    case Actions.SET_DOCUMENT_FILTERS:
+      return {
+        ...state,
+        filters: { ...state.filters, ...action.payload }
+      };
+
+    case Actions.SET_FETCHING_DOCUMENTS:
+      return {
+        ...state,
+        isLoading: action.payload
+      };
+
     case Actions.SET_DOCUMENTS_LIST:
       return {
         ...state,
         documentsList: action.payload,
         documents: action.payload // Also update documents for compatibility
       };
-    
+
     case Actions.SET_CONTRACTS_LIST:
       return {
         ...state,
         contractsList: action.payload,
         contracts: action.payload // Also update contracts for compatibility
       };
-    
+
     case Actions.SET_SETTINGS_DATA:
       return {
         ...state,
         settingsData: action.payload
       };
-    
+
     default:
       return state;
   }

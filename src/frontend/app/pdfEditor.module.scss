@@ -188,7 +188,7 @@
   .scrollPdfViewerContainer {
     height: 100%;
     width: 100%;
-  
+
     .pdfViewerContainer {
       height: 100%;
       width: 100%;
@@ -370,6 +370,21 @@
     padding: 12px 16px;
     justify-content: space-between;
 
+    .chipSaveSendBtnWrapper {
+      display: flex;
+      gap: 16px;
+      align-items: center;  
+      justify-content: center;
+
+      .chipWrapper {
+        border: 1px solid #ddd;
+      }
+    }
+
+    .btnTypography {
+      color: #000000;
+    }
+
     .toolbarDragDropBarWrapper {
       display: flex;
       gap: 16px;
@@ -424,7 +439,7 @@
       align-items: center;
 
       &.leftSideDrawerElement {
-        width: 440px;
+        width: 370px;
       }
     }
 
@@ -785,63 +800,74 @@
     font-weight: 600;
     color: #6b7280;
     letter-spacing: 0.05em;
-    margin-bottom: 16px;
     text-transform: uppercase;
   }
 
   .elementCard {
     position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 16px 12px;
+    width: 152px;
+    height: 94px;
+    padding: 16px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
-    background: white;
-    cursor: move;
-    transition: all 0.2s ease;
-    user-select: none;
-    min-height: 100px;
-    gap: 8px;
-    height: 120px;
-    width: 120px;
+    background: #fff;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+    cursor: grab;
+
+    &:hover {
+      background-color: #eff6ff;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1);
+      border-color: #93c5fd;
+    }
 
     .dragHandle {
-      opacity: 0.4;
+      position: absolute;
+      top: 36px;
+      left: -1px;
+      background: #3b82f6;
+      border-radius: 4px;
+      height: 20px;
+      width: 20px;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+
+      /* START STATE (hidden) */
+      opacity: 0;
+      transform: translateX(-12px);
+
+      transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
     }
 
     .elementIcon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #374151;
       width: 40px;
-      min-height: 40px;
+      height: 40px;
       background-color: #f3f4f6;
       border-radius: 8px;
       display: flex;
-      transition: background-color .2s ease;
-    }
-
-    .elementLabel {
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .elementDescription {
-      font-size: 12px;
-      color: #6b7280;
-      text-align: center;
-      font-weight: 400;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.25s ease;
     }
 
     &:hover {
-      border-color: #3b82f6;
       background: #eff6ff;
+      border-color: #3b82f6;
 
       .dragHandle {
-        opacity: 0.7;
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .elementIcon {
+        background-color: #dbeafe;
       }
     }
 
@@ -850,8 +876,13 @@
     }
 
     &.activeElement {
-      border-color: #3b82f6;
       background: #dbeafe;
+      border-color: #3b82f6;
+
+      .dragHandle {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
   }
 }
@@ -965,6 +996,35 @@
               border-color: #3b82f6;
             }
           }
+        }
+      }
+    }
+  }
+}
+
+.dialogMainWHoleWrapper,
+.dialogContentWrapper {
+  display: flex;
+  flex-direction: column;
+
+  .dialogContent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .inputGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .typoLabel {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+
+        .required {
+          color: #d32f2f;
+          margin-left: 2px;
         }
       }
     }
@@ -1414,6 +1474,8 @@
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  background-color: #ffffff;
 }
 
 .blockHeadingContent {
@@ -1559,6 +1621,7 @@
   height: 100%;
   z-index: 4;
   max-height: calc(100% - 64px);
+  // pointer-events: auto;
   pointer-events: none;
 }
 
@@ -1576,7 +1639,7 @@
   // display: flex;
   // flex-direction: column;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   width: 100%;
 }
@@ -1676,16 +1739,117 @@
   overflow-y: auto;
   height: calc(100% - 73px);
   scrollbar-width: none;
-}
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  
+  .propertyGroup {
+    width: 100%;
 
-.propertyGroup {
-  margin-bottom: 24px;
-  width: 100%;
+    // &.propertyColorInput {
+    //   width: 100%;
+    //   display: flex;
+    //   gap: 8px;
 
-  .unitLabel {
-    font-size: 14px;
-    color: #6b7280;
+    //   .propertyColorTextField {
+    //     width: 100%;
+    //   }
+    // }
+  
+    .unitLabel {
+      font-size: 14px;
+      color: #6b7280;
+    }
   }
+
+  // Box Model Control Styles
+  .boxModelContainer {
+    padding: 12px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    .boxModelMarginBox {
+      position: relative;
+      padding: 24px 40px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fafafa;
+
+      .boxModelMarginLabel {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .boxModelPaddingBox {
+      position: relative;
+      padding: 24px 40px;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+      background: white;
+
+      .boxModelPaddingLabel {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .boxModelContentBox {
+      width: 100%;
+      height: 50px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+    }
+  }
+
+  .boxModelValue {
+    position: absolute;
+    padding: 2px 6px;
+    background: transparent;
+    border: none;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    min-width: 40px;
+    text-align: center;
+
+    &:hover {
+      color: #3b82f6;
+      font-weight: 600;
+    }
+
+    &.boxModelValueActive {
+      color: #3b82f6;
+      font-weight: 600;
+
+      &::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+      }
+    }
+  }
+
 }
 
 .buttonGroup {
@@ -1715,96 +1879,6 @@
       color: white;
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-  }
-}
-
-// Box Model Control Styles
-.boxModelContainer {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  padding: 12px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-
-  .boxModelMarginBox {
-    position: relative;
-    padding: 24px 40px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #fafafa;
-
-    .boxModelMarginLabel {
-      position: absolute;
-      top: 6px;
-      left: 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .boxModelPaddingBox {
-    position: relative;
-    padding: 24px 40px;
-    border: 1px dashed #d1d5db;
-    border-radius: 4px;
-    background: white;
-
-    .boxModelPaddingLabel {
-      position: absolute;
-      top: 6px;
-      left: 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .boxModelContentBox {
-    width: 100%;
-    height: 50px;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-  }
-}
-
-.boxModelValue {
-  position: absolute;
-  padding: 2px 6px;
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-  user-select: none;
-  min-width: 40px;
-  text-align: center;
-
-  &:hover {
-    color: #3b82f6;
-    font-weight: 600;
-  }
-
-  &.boxModelValueActive {
-    color: #3b82f6;
-    font-weight: 600;
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 0;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
     }
   }
 }
@@ -2284,28 +2358,6 @@
   }
 }
 
-.mediaBtnMenuWrap {
-  margin: 4px;
-  padding: 8px 16px;
-  width: 100%;
-  
-  .mediaBtnMenu {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    justify-content: flex-start;
-    border: none;
-    background: transparent;
-    border-radius: 0;
-    height: auto;
-    min-width: unset;
-    
-    &:hover {
-      background: #ffffff;
-    }
-  }
-}
-
 // Recipients Sidebar Styles
 .recipientsSidebar {
   display: flex;
@@ -2439,7 +2491,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       span {
         font-size: 10px;
         font-weight: 600;

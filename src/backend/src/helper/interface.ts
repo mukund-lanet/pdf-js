@@ -1,54 +1,14 @@
-export interface Signer {
+export interface ISigner {
   name: string;
   email: string;
   type: 'signer' | 'approver' | 'cc';
   order?: number;
 }
 
-export interface DocumentItem {
-  _id?: string;
-  name?: string;
-  status: 'draft' | 'waiting' | 'completed' | 'archived';
-  date?: string;
-  signers?: Signer[];
-  progress?: number;
-  dueDate?: string;
-  createdBy?: string;
-  signingOrder?: boolean;
-  canvasElements?: CanvasElement[];
-  pageDimensions?: { [key: number]: PageDimension };
-}
-
-export interface ContractItem {
-  id: string;
+export interface IDocumentVariable {
   name: string;
-  status: 'active' | 'draft' | 'expired';
-  value: number;
-  date: string;
-}
-
-export enum CONTRACT_MANAGEMENT_TAB {
-  DOCUMENTS = 'documents',
-  CONTRACTS = 'contracts'
-}
-
-export enum DIALOG_DRAWER_NAMES {
-  PDF_BUILDER_DRAWER = 'pdfBuilderDrawerOpen',
-  DOCUMENT_DRAWER = 'documentDrawerOpen',
-  IDENTITY_VERIFICATION_DIALOG = 'identityVerificationDialogOpen',
-  GLOBAL_DOCUMENT_SETTINGS_DIALOG = 'globalDocumentSettingsDialogOpen',
-  BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen'
-}
-
-
-// pdf-editor
-export enum DRAWER_COMPONENT_CATEGORY {
-  ADD_ELEMENTS = "add_elements",
-  PAGES = "Pages",
-  DOCUMENT_VARIABLES = "Document variables",
-  CONTENT_LIBRARY = "Content Library",
-  SETTINGS = "Settings",
-  RECIPIENTS = "Recipients"
+  value: string;
+  isSystem?: boolean;
 }
 
 export interface TextElement {
@@ -201,48 +161,11 @@ export type BlockElement = HeadingElement | ImageElement | VideoElement | TableE
 
 export type FillableFieldElement = TextElement | SignatureElement | DateElement | InitialsElement | CheckboxElement;
 
-export type CanvasElement = BlockElement | FillableFieldElement;
-
-export interface PageInfo {
-  pageWidth: number;
-  pageHeight: number;
-  scale: number;
-}
-
-export interface PageDimension {
-  pageWidth: number;
-  pageHeight: number;
-}
-
-export interface DocumentVariable {
-  name: string;
-  value: string;
-  isSystem?: boolean;
-}
-
-export const isBlockElement = (element: CanvasElement): element is HeadingElement | ImageElement | VideoElement | TableElement => {
-  return ['heading', 'image', 'video', 'table'].includes(element.type);
-};
-
-export function isFillableElement(element: CanvasElement): element is FillableFieldElement {
-  return ['text-field', 'signature', 'date', 'initials', 'checkbox'].includes(element.type);
-}
-
-export interface DraggableBlockItemProps {
-  item: { type: string; label: string; icon: string };
-  activeTool: string | null;
-  dispatch: any;
-}
-
-export interface DraggableToolbarItemProps {
-  item: { type: string; label: string; icon: string };
-  activeTool: string | null;
-  dispatch: any;
-}
+export type ICanvasElement = BlockElement | FillableFieldElement;
 
 export interface Page {
-  _id?: string;
-  imagePath?: string;
-  imageUrl?: string;
-  fromPdf?: boolean;
+  pageSrc: String;
+  fromPdf: Boolean;
+  imagePath: String;
+  layout: ICanvasElement[];
 }

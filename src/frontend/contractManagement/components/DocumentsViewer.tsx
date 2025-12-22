@@ -2,7 +2,7 @@ import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { setDocumentActiveFilter, setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, getDocumentById, deleteDocument } from '../store/action/contractManagement.actions';
+import { setDocumentActiveFilter, setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, getDocumentById, deleteDocument, getDocuments, setDocumentFilters } from '../store/action/contractManagement.actions';
 import { noDocument, actionsMenuItems, documentTableHeaders } from '../utils/utils';
 import { DIALOG_DRAWER_NAMES } from '../utils/interface';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
@@ -25,6 +25,12 @@ const DocumentsViewer = () => {
   const router = useRouter();
   const activeFilter = useSelector((state: RootState) => state.contractManagement?.documentActiveFilter);
   const documents = useSelector((state: RootState) => state.contractManagement?.documents);
+  const business = useSelector((state: any) => state?.auth?.business);
+  const documentCount = useSelector((state: RootState) => state?.contractManagement?.documentCount) || 0;
+  const filters_state = useSelector((state: RootState) => state?.contractManagement?.filters) || { search: '', status: 'all', limit: 25, offset: 0 };
+
+  const { search = '', status = 'all', limit = 25, offset = 0 } = filters_state;
+  const currentPage = offset / limit;
 
   const filteredDocuments = React.useMemo(() => {
     if (!documents) return [];
@@ -78,9 +84,9 @@ const DocumentsViewer = () => {
   };
 
   const handleDeleteClick = () => {
-    const doc = documents.find(d => d._id === selectedDocId);
+    const doc = documents?.find(d => d._id === selectedDocId);
     if (doc && doc._id) {
-      setDocumentToDelete({ id: doc._id, name: doc.name });
+      setDocumentToDelete({ id: doc._id, name: doc.name || '' });
       setDeleteDialogOpen(true);
     }
     handleMenuClose();
@@ -88,7 +94,7 @@ const DocumentsViewer = () => {
 
   const handleConfirmDelete = () => {
     if (documentToDelete) {
-      dispatch(deleteDocument(documentToDelete.id, documentToDelete.name));
+      dispatch(deleteDocument(documentToDelete.id, documentToDelete.name, business?.id));
     }
     setDeleteDialogOpen(false);
     setDocumentToDelete(null);
@@ -97,6 +103,18 @@ const DocumentsViewer = () => {
   const handleCancelDelete = () => {
     setDeleteDialogOpen(false);
     setDocumentToDelete(null);
+  };
+
+  const handleChangePage = async (event: unknown, newPage: number) => {
+    const newOffset = newPage * limit;
+    dispatch(setDocumentFilters({ ...filters_state, offset: newOffset }));
+    await dispatch(getDocuments({ ...filters_state, offset: newOffset, business_id: business?.id }));
+  };
+
+  const handleChangeRowsPerPage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newLimit = parseInt(event.target.value, 10);
+    dispatch(setDocumentFilters({ ...filters_state, limit: newLimit, offset: 0 }));
+    await dispatch(getDocuments({ ...filters_state, limit: newLimit, offset: 0, business_id: business?.id }));
   };
 
   return (
@@ -128,6 +146,14 @@ const DocumentsViewer = () => {
             totalRecords={filteredDocuments.length}
             headerList={documentTableHeaders}
             totalLabel="Documents"
+            tablePagination={{
+              rowsPerPageOptions: [25, 50, 75, 100],
+              count: documentCount,
+              rowsPerPage: limit,
+              page: currentPage,
+              onChangePage: handleChangePage,
+              onChangeRowsPerPage: handleChangeRowsPerPage,
+            }}
           >
             <TableBody>
               {filteredDocuments.map((doc) => (
@@ -140,7 +166,7 @@ const DocumentsViewer = () => {
                       <div className={styles.docInfo}>
                         <Typography 
                           onClick={() => {
-                            router.push(`/relience-fresh/pdf-editor/document/${doc._id}?business_id=HY7IAUl86AUMMqVbzGKn`);
+                            router.push(`/${business?.url_key}/pdf-editor/builder/${doc._id}`);
                             dispatch(setActiveDocument(doc));
                           }}
                           className={styles.docName}
@@ -152,7 +178,7 @@ const DocumentsViewer = () => {
                   <TableCell className={`${styles.tableCellDocs} ${styles.widthApply}`} >
                     <div className={`${styles.statusChip} ${styles[doc.status]}`}>
                       <CustomIcon iconName="edit-2" width={12} height={12} />
-                      {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                      {doc.status.charAt(0).toUpperCase() + doc.status?.slice(1)}
                     </div>
                   </TableCell>
                   <TableCell className={styles.tableCellDocs} >
@@ -175,7 +201,9 @@ const DocumentsViewer = () => {
                   <TableCell className={styles.tableCellDocs} >
                     <div className={styles.dateWrapper}>
                       <CustomIcon iconName="calendar" width={14} height={14} />
-                      <Typography className={styles.docMeta}>{new Date(doc.date).toLocaleDateString()}</Typography>
+                      <Typography className={styles.docMeta}>
+                        {doc.date && new Date(doc.date).toLocaleDateString()}
+                      </Typography>
                     </div>
                   </TableCell>
                   <TableCell className={styles.tableCellDocs} >

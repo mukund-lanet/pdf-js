@@ -9,7 +9,7 @@ import EditorHeader from './components/Layout/EditorHeader';
 import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
 import EditorMainArea from './components/Layout/EditorMainArea';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
-import TextFormattingToolbar from './components/Toolbar/TextFormattingToolbar';
+import TextFormattingToolbar from './components/TextFormattingToolbar';
 import { RootState, contractManagementReducer } from '../store/reducer/contractManagement.reducer';
 import { injectReducer } from '@/components/store';
 import { SET_DRAWER_COMPONENT_CATEGORY, UPDATE_MULTIPLE_ELEMENTS } from '../store/action/contractManagement.actions';
@@ -21,7 +21,9 @@ import { tabItems } from '../utils/utils';
 
 const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   const dispatch = useDispatch();
-  
+
+  const business_id = useSelector((state: any) => state?.auth?.business?.id);
+
   // Inject reducer to ensure state is available even on direct load
   React.useEffect(() => {
     injectReducer('contractManagement', contractManagementReducer);
@@ -31,31 +33,51 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   React.useEffect(() => {
     if (documentId) {
       import('../store/action/contractManagement.actions').then(({ loadDocumentById }) => {
-        dispatch(loadDocumentById(documentId) as any);
+        dispatch(loadDocumentById(documentId, business_id) as any);
       });
     }
   }, [documentId, dispatch]);
 
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
+  const isUnsaved = useSelector((state: RootState) => state?.contractManagement?.isUnsaved);
+
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isUnsaved) {
+        e.preventDefault();
+        e.returnValue = ''; // Standard way to trigger browser confirmation
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isUnsaved]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const { source, destination, draggableId } = result;
 
+    // only handle block reordering in the same page
     if (source.droppableId === destination.droppableId && source.droppableId.startsWith('blocks-page-')) {
       if (source.index === destination.index) return;
 
+      // extract the page number from droppableId
       const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
 
+      // get all blocks for this page and sorted by order
       const pageBlocks = canvasElements
         .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 
+      // reorder of the blocks
       const [movedBlock] = pageBlocks.splice(source.index, 1);
       pageBlocks.splice(destination.index, 0, movedBlock);
 
+      // opdate orders
       const updatedBlocks = pageBlocks.map((block, index) => ({
         ...block,
         order: index
@@ -78,7 +100,7 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
               value={drawerComponentType}
               className={styles.leftSideTabs}
               onChange={(event: React.SyntheticEvent, newValue: string) => dispatch({ type: SET_DRAWER_COMPONENT_CATEGORY, payload: newValue as DRAWER_COMPONENT_CATEGORY })}
-            > 
+            >
               {Object.entries(tabItems).map(([value, item]) => (
                 <Tab
                   key={value}

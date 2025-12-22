@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
@@ -34,15 +34,62 @@ const BlockElement = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleContentChange = (newContent: string) => {
-    if (element.type === 'heading') {
-      dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, content: newContent }
-      });
-    }
-  };
+  const debounce = useCallback((func: Function, delay: number) => {
+    return (...args: any[]) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  }, []);
+
+  const debouncedContentUpdate = useCallback(
+    debounce((newContent: string) => {
+      if (element.type === 'heading') {
+        dispatch({
+          type: UPDATE_CANVAS_ELEMENT,
+          payload: { ...element, content: newContent }
+        });
+      }
+    }, 500),
+    [element, dispatch]
+  );
+
+  const debouncedSubtitleUpdate = useCallback(
+    debounce((subtitle: string) => {
+      if (element.type === 'heading') {
+        dispatch({
+          type: UPDATE_CANVAS_ELEMENT,
+          payload: { ...element, subtitle }
+        });
+      }
+    }, 500),
+    [element, dispatch]
+  );
+
+  const debouncedTableCellUpdate = useCallback(
+    debounce((rowIndex: number, colIndex: number, value: string) => {
+      if (element.type === 'table') {
+        const newData = element.data ? [...element.data] : [];
+        if (!newData[rowIndex]) {
+          newData[rowIndex] = [];
+        }
+        newData[rowIndex][colIndex] = value;
+        
+        dispatch({
+          type: UPDATE_CANVAS_ELEMENT,
+          payload: { ...element, data: newData }
+        });
+      }
+    }, 500),
+    [element, dispatch]
+  );
+
+
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -59,29 +106,13 @@ const BlockElement = ({
     };
   }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageData = event.target?.result as string;
-      dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, imageData }
-      });
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
-    reader.readAsDataURL(file);
-  };
-
-  const handleVideoUrlChange = (url: string) => {
-    if (element.type === 'video') {
-      dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, videoUrl: url }
-      });
-    }
-  };
+  }, []);
 
   const handleBlockClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -92,34 +123,20 @@ const BlockElement = ({
     });
   };
 
-  const handleSubtitleChange = (subtitle: string) => {
-    if (element.type === 'heading') {
-      dispatch({
-        type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, subtitle }
-      });
-    }
-  };
-
-  // function to convert video URLs to embed format
   const getEmbedUrl = (url: string): string | null => {
     if (!url) return null;
 
     try {
       const urlObj = new URL(url);
 
-      // YouTube
       if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
         let videoId = '';
 
         if (urlObj.hostname.includes('youtu.be')) {
-          // Short URL format: https://youtu.be/VIDEO_ID
           videoId = urlObj.pathname.slice(1);
         } else if (urlObj.searchParams.has('v')) {
-          // Standard format: https://www.youtube.com/watch?v=VIDEO_ID
           videoId = urlObj.searchParams.get('v') || '';
         } else if (urlObj.pathname.includes('/embed/')) {
-          // Already embed format
           return url;
         }
 
@@ -128,18 +145,16 @@ const BlockElement = ({
         }
       }
 
-      // Vimeo
       if (urlObj.hostname.includes('vimeo.com')) {
         const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
         if (videoId && urlObj.pathname.includes('/video/')) {
-          return url; // Already embed format
-        }
-        if (videoId) {
-          return `https://player.vimeo.com/video/${videoId}`;
+          if (videoId) {
+            return `https://player.vimeo.com/video/${videoId}`;
+          }
+          return url;
         }
       }
 
-      // Dailymotion
       if (urlObj.hostname.includes('dailymotion.com') || urlObj.hostname.includes('dai.ly')) {
         let videoId = '';
         if (urlObj.hostname.includes('dai.ly')) {
@@ -152,7 +167,6 @@ const BlockElement = ({
         }
       }
 
-      // Wistia
       if (urlObj.hostname.includes('wistia.com')) {
         const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
         if (videoId) {
@@ -160,7 +174,6 @@ const BlockElement = ({
         }
       }
 
-      // Vidyard
       if (urlObj.hostname.includes('vidyard.com')) {
         const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
         if (videoId) {
@@ -168,7 +181,6 @@ const BlockElement = ({
         }
       }
 
-      // Loom
       if (urlObj.hostname.includes('loom.com')) {
         const pathParts = urlObj.pathname.split('/').filter(Boolean);
         const videoId = pathParts[pathParts.length - 1];
@@ -213,7 +225,7 @@ const BlockElement = ({
             <div
               contentEditable
               suppressContentEditableWarning
-              onBlur={(e) => handleContentChange(e.currentTarget.innerText || '')}
+              onBlur={(e) => debouncedContentUpdate(e.currentTarget.innerText || '')}
               className={styles.blockHeadingText}
               style={{
                 fontSize: element.fontSize || 32,
@@ -231,7 +243,7 @@ const BlockElement = ({
             <div
               contentEditable
               suppressContentEditableWarning
-              onBlur={(e) => handleSubtitleChange(e.currentTarget.innerText || '')}
+              onBlur={(e) => debouncedSubtitleUpdate(e.currentTarget.innerText || '')}
               className={styles.blockSubtitleText}
               style={{
                 fontSize: element.subtitleFontSize || 16,
@@ -264,7 +276,7 @@ const BlockElement = ({
                 marginBottom: element.margin?.bottom,
                 marginLeft: element.margin?.left,
               }),
-              backgroundColor: element.backgroundColor,
+              backgroundColor: element.backgroundColor || (element.imageUrl ? 'transparent' : '#fff'),
               display: 'flex',
               justifyContent: 'center',
               minHeight: "120px"
@@ -378,6 +390,10 @@ const BlockElement = ({
                           textDecoration: element.textDecoration,
                           fontFamily: element.fontFamily || 'Open Sans, sans-serif',
                         }}
+                        onBlur={(e) => {
+                          const value = e.currentTarget.innerText || '';
+                          debouncedTableCellUpdate(rowIndex, colIndex, value);
+                        }}
                       >
                         {element.data?.[rowIndex]?.[colIndex] || ''}
                       </td>
@@ -465,8 +481,7 @@ const BlockElement = ({
         </div>
       )}
 
-      {/* rendering content */}
-      <div className={styles.blockContent}>
+      <div className={styles.blockContent} style={element.type === 'heading' ? {background: "transparent"} : {}} >
         {renderContent()}
       </div>
 

@@ -7,72 +7,33 @@
   flex-direction: column;
   background-color: #f8fafc; 
   font-family: 'Inter', sans-serif;
-  padding: 24px;
   box-sizing: border-box;
-  gap: 24px;
+  overflow: hidden;
 
   .headerSection {
     display: flex;
     width: 100%;
     justify-content: space-between;
     align-items: center;
+    padding: 24px;
 
     .actionsBlock {
       display: flex;
       gap: 12px;
     }
-
-    .statsRow {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-
-      .statCard {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .statInfo {
-          span {
-            display: block;
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 4px;
-          }
-          h3 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #0f172a;
-            margin: 0;
-          }
-        }
-
-        .statIcon {
-          width: 40px;
-          height: 40px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          &.blue { background: #eff6ff; color: #3b82f6; }
-          &.green { background: #f0fdf4; color: #22c55e; }
-          &.orange { background: #fff7ed; color: #f97316; }
-          &.gray { background: #f8fafc; color: #64748b; }
-        }
-      }
-    }
   }
+}
+
+.scrollActionContractMainSection {
+  padding: 0 24px 24px;
+  max-height: calc(100% - 48px);
 
   .contractManagementStatsGrid {
     display: grid;
     gap: 1.5rem;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-
+    margin-bottom: 24px;
+  
     .cardContentWrapper {
         position: relative;
     }
@@ -84,18 +45,18 @@
         z-index: 1;
     }
   }
-
+  
   .mainContentSection {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 16px;
-
+  
     .contentBody {
       display: flex;
       gap: 24px;
       flex: 1;
-
+  
       .viewerArea {
         flex: 1;
         background: #fff;
@@ -106,13 +67,13 @@
         display: flex;
         flex-direction: column;
         gap: 24px;
-
+  
         .viewerHeader {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 24px;
-
+  
           .tabElementTitle {
             font-size: 24px;
             color: #0f172a;
@@ -130,7 +91,7 @@
             gap: 6px;
           }
         }
-
+  
         .emptyMsgComponentWrapper {
           display: flex;
           flex-direction: column;
@@ -140,15 +101,15 @@
           text-align: center;
         }
       }
-
+  
       .documentsTableWrapper {
         width: 100%;
         overflow-x: auto;
-
+  
         .documentsTable {
           width: 100%;
           border-collapse: collapse;
-
+  
           .tableCellDocs {
             padding: 16px;
             border-bottom: 1px solid #f1f5f9;
@@ -157,27 +118,27 @@
             vertical-align: middle;
             min-width: 120px !important;
             width: auto !important;
-
+  
             &.widthApply {
               width: 120px;
               min-width: 120px;
               max-width: 120px;
             }
-
+  
             .docNameWrapper {
               display: flex;
               align-items: center;
               gap: 12px;
-
+  
               .docIcon {
                 color: #94a3b8;
               }
-
+  
               .docInfo {
                 display: flex;
                 flex-direction: column;
                 gap: 2px;
-
+  
                 .docName {
                   font-weight: 500;
                   color: #0f172a;
@@ -186,14 +147,14 @@
                     text-decoration: underline;
                   }
                 }
-
+  
                 .docMeta {
                   font-size: 12px;
                   color: #64748b;
                 }
               }
             }
-
+  
             .statusChip {
               display: inline-flex;
               align-items: center;
@@ -202,7 +163,7 @@
               border-radius: 16px;
               font-size: 12px;
               font-weight: 500;
-
+  
               &.draft {
                 background: #f1f5f9;
                 color: #475569;
@@ -214,14 +175,14 @@
                 color: #c2410c;
                 border: 1px solid #ffedd5;
               }
-
+  
               &.completed {
                 background: #f0fdf4;
                 color: #15803d;
                 border: 1px solid #dcfce7;
               }
             }
-
+  
             .signersWrapper {
               display: flex;
               align-items: center;
@@ -229,34 +190,34 @@
               color: #64748b;
               font-size: 13px;
             }
-
+  
             .progressWrapper {
               display: flex;
               align-items: center;
               gap: 8px;
               width: 140px;
-
+  
               .progressBar {
                 flex: 1;
                 height: 6px;
                 background: #f1f5f9;
                 border-radius: 3px;
                 overflow: hidden;
-
+  
                 .progressFill {
                   height: 100%;
                   background: #cbd5e1;
                   border-radius: 3px;
                 }
               }
-
+  
               .progressText {
                 font-size: 12px;
                 color: #64748b;
                 width: 32px;
               }
             }
-
+  
             .dateWrapper {
               display: flex;
               align-items: center;
@@ -265,7 +226,7 @@
               font-size: 13px;
             }
           }
-
+  
           tr:last-child td {
             border-bottom: none;
           }
