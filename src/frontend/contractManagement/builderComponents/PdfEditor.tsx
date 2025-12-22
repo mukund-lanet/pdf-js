@@ -40,6 +40,21 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
 
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
+  const isUnsaved = useSelector((state: RootState) => state?.contractManagement?.isUnsaved);
+
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isUnsaved) {
+        e.preventDefault();
+        e.returnValue = ''; // Standard way to trigger browser confirmation
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isUnsaved]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;

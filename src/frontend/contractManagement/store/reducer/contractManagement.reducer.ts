@@ -113,6 +113,7 @@ export interface ContractManagementState {
   contractsList: any[];
   settingsData: any | null;
   pages: Page[];
+  isUnsaved: boolean;
 }
 
 export interface RootState {
@@ -227,6 +228,7 @@ const initialState: ContractManagementState = {
   contractsList: [],
   settingsData: null,
   pages: [],
+  isUnsaved: false,
 };
 
 export const contractManagementReducer = (state = initialState, action: Actions.ContractManagementAction): ContractManagementState => {
@@ -235,6 +237,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         activeDocument: action.payload,
+        isUnsaved: false,
       };
     case Actions.SET_DIALOG_STATE:
       return {
@@ -342,6 +345,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         activeDocument: state.activeDocument && state.activeDocument._id === documentId
           ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
           : state.activeDocument,
+        isUnsaved: true,
       };
     }
 
@@ -392,13 +396,15 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.ADD_DOCUMENT_VARIABLE:
       return {
         ...state,
-        documentVariables: [...state.documentVariables, action.payload]
+        documentVariables: [...state.documentVariables, action.payload],
+        isUnsaved: true,
       };
 
     case Actions.DELETE_DOCUMENT_VARIABLE:
       return {
         ...state,
-        documentVariables: state.documentVariables.filter(v => v.name !== action.payload)
+        documentVariables: state.documentVariables.filter(v => v.name !== action.payload),
+        isUnsaved: true,
       };
 
     case Actions.UPDATE_DOCUMENT_VARIABLE:
@@ -406,7 +412,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         documentVariables: state.documentVariables.map(v =>
           v.name === action.payload.name ? action.payload : v
-        )
+        ),
+        isUnsaved: true,
       };
 
     case Actions.SET_IS_LOADING:
@@ -432,19 +439,22 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.SET_PAGE_DIMENSIONS:
       return {
         ...state,
-        pageDimensions: action.payload
+        pageDimensions: action.payload,
+        isUnsaved: true,
       };
 
     case Actions.SET_CANVAS_ELEMENTS:
       return {
         ...state,
-        canvasElements: action.payload
+        canvasElements: action.payload,
+        isUnsaved: true,
       };
 
     case Actions.ADD_CANVAS_ELEMENT:
       return {
         ...state,
-        canvasElements: [...state.canvasElements, action.payload]
+        canvasElements: [...state.canvasElements, action.payload],
+        isUnsaved: true,
       };
 
     case Actions.UPDATE_CANVAS_ELEMENT:
@@ -457,7 +467,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text-field'
             ? (action.payload as TextElement)
-            : state.selectedTextElement
+            : state.selectedTextElement,
+        isUnsaved: true,
       };
 
     case Actions.DELETE_CANVAS_ELEMENT:
@@ -470,7 +481,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
           state.selectedTextElement && state.selectedTextElement.id === action.payload
             ? null
             : state.selectedTextElement,
-        activeElementId: state.activeElementId === action.payload ? null : state.activeElementId
+        activeElementId: state.activeElementId === action.payload ? null : state.activeElementId,
+        isUnsaved: true,
       };
 
     case Actions.ADD_BLOCK_ELEMENT: {
@@ -490,7 +502,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: [...state.canvasElements, blockWithOrder]
+        canvasElements: [...state.canvasElements, blockWithOrder],
+        isUnsaved: true,
       };
     }
 
@@ -519,7 +532,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: [...otherElements, ...updatedBlocks]
+        canvasElements: [...otherElements, ...updatedBlocks],
+        isUnsaved: true,
       };
     }
 
@@ -537,7 +551,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
             };
           }
           return el;
-        })
+        }),
+        isUnsaved: true,
       };
     }
 
@@ -571,7 +586,8 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el)
+        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el),
+        isUnsaved: true,
       };
 
     case Actions.RESET_EDITOR:
@@ -609,13 +625,15 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         propertiesDrawerState: {
           anchorEl: null,
           isOpen: false
-        }
+        },
+        isUnsaved: false,
       };
 
     case Actions.SET_PAGES:
       return {
         ...state,
-        pages: action.payload
+        pages: action.payload,
+        isUnsaved: true,
       };
 
     case Actions.REORDER_PAGE_ELEMENTS: {
@@ -678,9 +696,16 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         canvasElements: updatedElements,
         pageDimensions: newPageDimensions,
-        currentPage: newCurrentPage
+        currentPage: newCurrentPage,
+        isUnsaved: true,
       };
     }
+
+    case Actions.SET_IS_UNSAVED:
+      return {
+        ...state,
+        isUnsaved: action.payload,
+      };
 
     // API Data Actions
     case Actions.SET_DOCUMENTS:

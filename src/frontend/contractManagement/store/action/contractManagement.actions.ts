@@ -56,6 +56,7 @@ export const TOOLBAR_ITEM = 'TOOLBAR_ITEM';
 export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
 export const SET_PAGES = 'SET_PAGES';
+export const SET_IS_UNSAVED = 'SET_IS_UNSAVED';
 
 // Dialog/Drawer Names Type
 export type DialogName = DIALOG_DRAWER_NAMES;
@@ -188,6 +189,11 @@ interface SetUploadPdfUrlAction {
 interface SetPagesAction {
   type: typeof SET_PAGES;
   payload: Page[];
+}
+
+interface SetIsUnsavedAction {
+  type: typeof SET_IS_UNSAVED;
+  payload: boolean;
 }
 
 interface SetDrawerComponentCategoryAction {
@@ -398,6 +404,7 @@ export type ContractManagementAction =
   | SetUploadPdfUrlAction
   | SetPagesAction
   | ReorderPageElementsAction
+  | SetIsUnsavedAction
   | SetDocumentsAction
   | SetDocumentFiltersAction
   | SetFetchingDocumentsAction
@@ -612,6 +619,8 @@ export const updateDocument = (data: {
           payload: response.data,
         });
 
+        dispatch(setIsUnsaved(false));
+
         dispatch(showMessage({
           message: `Document "${data.name}" updated successfully`,
           variant: 'success',
@@ -660,6 +669,15 @@ export const setDocumentFilters = (filters: { search?: string; status?: string; 
     dispatch({
       type: SET_DOCUMENT_FILTERS,
       payload: filters,
+    });
+  };
+};
+
+export const setIsUnsaved = (isUnsaved: boolean): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_IS_UNSAVED,
+      payload: isUnsaved,
     });
   };
 };
@@ -835,6 +853,8 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         payload: 1,
       });
 
+      dispatch(setIsUnsaved(false));
+
       return document;
 
     } catch (error: any) {
@@ -861,7 +881,6 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         variant: 'error',
       }));
 
-      // Redirect to dashboard on critical errors
       if (error.response?.status === 404 || error.message === 'Invalid document ID') {
         setTimeout(() => {
           const businessKey = window.location.pathname.split('/')[1];

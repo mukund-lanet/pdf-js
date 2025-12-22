@@ -8,11 +8,10 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import TextField from '@trenchaant/pkg-ui-component-library/build/Components/TextField';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
-import { PageDimension } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PAGES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument } from '../../../store/action/contractManagement.actions';
+import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PAGES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument, setIsUnsaved } from '../../../store/action/contractManagement.actions';
 
-const EditorHeader = () => {
+const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousClick }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const documentType = useSelector((state: RootState) => state?.contractManagement?.documentType);
@@ -34,8 +33,6 @@ const EditorHeader = () => {
 
   useEffect(() => {
     if (pages && pages.length > 0) {
-      dispatch({ type: SET_TOTAL_PAGES, payload: pages.length })
-      dispatch({ type: SET_CURRENT_PAGE, payload: 1 })
       return;
     }
 
@@ -63,6 +60,7 @@ const EditorHeader = () => {
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: [] })
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: { 1: { pageWidth: 600, pageHeight: 800 } } })
       dispatch({ type: SET_SELECTED_TEXT_ELEMENT, payload: null })
+      dispatch(setIsUnsaved(false))
       dispatch({ type: SET_IS_LOADING, payload: false })
     } catch (error) {
       dispatch({ type: SET_IS_LOADING, payload: false })
@@ -108,7 +106,7 @@ const EditorHeader = () => {
         variant={"outlined"}
         color={"secondary"}
         startIcon={<CustomIcon iconName='arrow-left' height={16} width={16} />}
-        onClick={() => router.back()}
+        onClick={() => onPreviousClick ? onPreviousClick() : router.back()}
       >
         <Typography> Previous </Typography>
       </Button>

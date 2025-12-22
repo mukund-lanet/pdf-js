@@ -15,13 +15,7 @@ import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { Page, PageDimension } from '../../../utils/interface';
 import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, SET_PAGES } from '../../../store/action/contractManagement.actions';
 
-interface PDFPageProps {
-  pageNumber: number;
-}
-
-const PDFPage = React.memo((({
-  pageNumber,
-}: PDFPageProps) => {
+const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
   const dispatch = useDispatch();
 
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
@@ -48,12 +42,11 @@ const PDFPage = React.memo((({
   };
 
   const handleAddBlankPage = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     handleMenuClose();
 
     try {
-      dispatch({ type: SET_IS_LOADING, payload: true })
-      
       const newPages = [...pages];
       
       const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
@@ -86,15 +79,14 @@ const PDFPage = React.memo((({
 
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions });
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
-      dispatch({ type: SET_IS_LOADING, payload: false })
     } catch (error) {
-      dispatch({ type: SET_IS_LOADING, payload: false })
       console.error('Error adding blank page:', error);
-      alert('Failed to add a blank page.');
+      console.warn('Failed to add a blank page.');
     }
   };
 
   const handleDeletePage = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     handleMenuClose();
 
@@ -104,8 +96,6 @@ const PDFPage = React.memo((({
     }
 
     try {
-      dispatch({ type: SET_IS_LOADING, payload: true })
-      
       // Update pages array
       const newPages = [...pages];
       newPages.splice(pageNumber - 1, 1); // Remove the page at the specified index (0-based)
@@ -121,7 +111,11 @@ const PDFPage = React.memo((({
       }
 
       // Update element page numbers and filter out deleted page elements
-      dispatch({ type: UPDATE_MULTIPLE_ELEMENTS, payload: canvasElements.filter((el: { page: number; }) => el.page !== pageNumber).map((el: { page: number; }) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el) });
+      const updatedElements = canvasElements
+        .filter((el: { page: number; }) => el.page !== pageNumber)
+        .map((el: { page: number; }) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el);
+        
+      dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
 
       // Update page dimensions keys
       const newPageDimensions: { [key: number]: PageDimension } = {};
@@ -129,11 +123,9 @@ const PDFPage = React.memo((({
         newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
       });
       dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions })
-      dispatch({ type: SET_IS_LOADING, payload: false })
     } catch (error) {
-      dispatch({ type: SET_IS_LOADING, payload: false })
       console.error('Error deleting page:', error);
-      alert('Failed to delete the page.');
+      console.warn('Failed to delete the page.');
     }
   };
 
@@ -172,11 +164,10 @@ const PDFPage = React.memo((({
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
       dispatch({ type: SET_IS_LOADING, payload: false });
 
-      alert('PDF upload added as placeholder. Backend processing needed to generate page images.');
+      console.warn('PDF upload added as placeholder. Backend processing needed to generate page images.');
     } catch (error) {
       dispatch({ type: SET_IS_LOADING, payload: false });
       console.error('Error inserting PDF pages:', error);
-      alert('Failed to insert PDF pages.');
     }
   };
 
@@ -316,7 +307,7 @@ const PDFPage = React.memo((({
       </div>
     </div>
   );
-}));
+});
 
 PDFPage.displayName = 'PDFPage';
 
