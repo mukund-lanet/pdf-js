@@ -16,7 +16,6 @@ export interface DocumentItem {
   createdBy?: string;
   signingOrder?: boolean;
   canvasElements?: CanvasElement[];
-  pageDimensions?: { [key: number]: PageDimension };
 }
 
 export interface ContractItem {
@@ -207,11 +206,6 @@ export interface PageInfo {
   pageWidth: number;
   pageHeight: number;
   scale: number;
-}
-
-export interface PageDimension {
-  pageWidth: number;
-  pageHeight: number;
 }
 
 export interface DocumentVariable {

@@ -92,7 +92,6 @@ export interface ContractManagementState {
   totalPages: number;
   currentPage: number;
   canvasElements: CanvasElement[];
-  pageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } };
   activeTool: null | 'text' | 'image' | 'signature';
   media: any;
   selectedTextElement: TextElement | null;
@@ -207,7 +206,6 @@ const initialState: ContractManagementState = {
   totalPages: 0,
   currentPage: 1,
   canvasElements: [],
-  pageDimensions: {},
   activeTool: null,
   media: null,
   selectedTextElement: null,
@@ -331,10 +329,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     // }
 
     case Actions.UPDATE_DOCUMENT: {
-      const { documentId, documentName, signers, signingOrder, canvasElements, pageDimensions } = action.payload;
+      const { documentId, documentName, signers, signingOrder, canvasElements } = action.payload;
       const updatedDocuments = state.documents.map(doc =>
         doc._id === documentId
-          ? { ...doc, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
+          ? { ...doc, name: documentName, signers, signingOrder, canvasElements }
           : doc
       );
 
@@ -343,7 +341,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         documents: updatedDocuments,
         // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
         activeDocument: state.activeDocument && state.activeDocument._id === documentId
-          ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements, pageDimensions }
+          ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements }
           : state.activeDocument,
         isUnsaved: true,
       };
@@ -416,6 +414,13 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         isUnsaved: true,
       };
 
+    case Actions.SET_DOCUMENT_VARIABLES:
+      return {
+        ...state,
+        documentVariables: action.payload,
+        isUnsaved: true,
+      };
+
     case Actions.SET_IS_LOADING:
       return {
         ...state,
@@ -434,13 +439,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         currentPage: action.payload
-      };
-
-    case Actions.SET_PAGE_DIMENSIONS:
-      return {
-        ...state,
-        pageDimensions: action.payload,
-        isUnsaved: true,
       };
 
     case Actions.SET_CANVAS_ELEMENTS:
@@ -596,7 +594,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         totalPages: 0,
         currentPage: 1,
         canvasElements: [],
-        pageDimensions: {},
         activeTool: null,
         media: null,
         selectedTextElement: null,
@@ -660,25 +657,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         return el;
       });
 
-      const newPageDimensions: { [key: number]: { pageWidth: number; pageHeight: number } } = {};
-      Object.entries(state.pageDimensions).forEach(([key, value]) => {
-        const pageNum = parseInt(key);
-        let newPageNum = pageNum;
-
-        if (pageNum === sourcePage) {
-          newPageNum = destPage;
-        } else if (sourcePage < destPage) {
-          if (pageNum > sourcePage && pageNum <= destPage) {
-            newPageNum = pageNum - 1;
-          }
-        } else {
-          if (pageNum >= destPage && pageNum < sourcePage) {
-            newPageNum = pageNum + 1;
-          }
-        }
-        newPageDimensions[newPageNum] = value;
-      });
-
       let newCurrentPage = state.currentPage;
       if (state.currentPage === sourcePage) {
         newCurrentPage = destPage;
@@ -695,7 +673,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         canvasElements: updatedElements,
-        pageDimensions: newPageDimensions,
         currentPage: newCurrentPage,
         isUnsaved: true,
       };

@@ -2,7 +2,7 @@ import { AppDispatch } from '..';
 import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES, DocumentItem, PageDimension } from '../../utils/interface';
+import { DIALOG_DRAWER_NAMES, DocumentItem } from '../../utils/interface';
 import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
 
 // Action Types
@@ -26,7 +26,6 @@ export const SET_DOCUMENT_DRAWER_MODE = "SET_DOCUMENT_DRAWER_MODE";
 // PDF Editor Action Types
 export const SET_TOTAL_PAGES = 'SET_TOTAL_PAGES';
 export const SET_CURRENT_PAGE = 'SET_CURRENT_PAGE';
-export const SET_PAGE_DIMENSIONS = 'SET_PAGE_DIMENSIONS';
 export const SET_CANVAS_ELEMENTS = 'SET_CANVAS_ELEMENTS';
 export const ADD_CANVAS_ELEMENT = 'ADD_CANVAS_ELEMENT';
 export const UPDATE_CANVAS_ELEMENT = 'UPDATE_CANVAS_ELEMENT';
@@ -57,6 +56,8 @@ export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
 export const SET_PAGES = 'SET_PAGES';
 export const SET_IS_UNSAVED = 'SET_IS_UNSAVED';
+export const SET_DOCUMENT_VARIABLES = 'SET_DOCUMENT_VARIABLES';
+
 
 // Dialog/Drawer Names Type
 export type DialogName = DIALOG_DRAWER_NAMES;
@@ -153,7 +154,6 @@ export interface UpdateDocumentAction {
     signers: any[];
     signingOrder?: boolean;
     canvasElements?: CanvasElement[];
-    pageDimensions?: { [key: number]: PageDimension };
     pages?: Page[];
   };
 }
@@ -221,6 +221,12 @@ interface UpdateDocumentVariableAction {
   payload: DocumentVariable;
 }
 
+interface SetDocumentVariablesAction {
+  type: typeof SET_DOCUMENT_VARIABLES;
+  payload: DocumentVariable[];
+}
+
+
 interface SetIsLoadingAction {
   type: typeof SET_IS_LOADING;
   payload: boolean;
@@ -234,11 +240,6 @@ interface SetTotalPagesAction {
 interface SetCurrentPageAction {
   type: typeof SET_CURRENT_PAGE;
   payload: number;
-}
-
-interface SetPageDimensionsAction {
-  type: typeof SET_PAGE_DIMENSIONS;
-  payload: { [key: number]: { pageWidth: number; pageHeight: number } };
 }
 
 interface SetCanvasElementsAction {
@@ -378,7 +379,6 @@ export type ContractManagementAction =
   | SetDocumentDrawerModeAction
   | SetTotalPagesAction
   | SetCurrentPageAction
-  | SetPageDimensionsAction
   | SetCanvasElementsAction
   | AddCanvasElementAction
   | UpdateCanvasElementAction
@@ -410,7 +410,9 @@ export type ContractManagementAction =
   | SetFetchingDocumentsAction
   | SetDocumentsListAction
   | SetContractsListAction
-  | SetSettingsDataAction;
+  | SetSettingsDataAction
+  | SetDocumentVariablesAction;
+
 
 // Action Creators
 export const setDocumentActiveFilter = (filter: string): AppDispatch => {
@@ -682,6 +684,16 @@ export const setIsUnsaved = (isUnsaved: boolean): AppDispatch => {
   };
 };
 
+export const setDocumentVariables = (variables: DocumentVariable[]): AppDispatch => {
+  return async (dispatch: AppDispatch) => {
+    dispatch({
+      type: SET_DOCUMENT_VARIABLES,
+      payload: variables,
+    });
+  };
+};
+
+
 // ============ Document API Actions ============
 
 export const getDocuments = (filters?: { search?: string; status?: string; limit?: number; offset?: number; business_id?: string }): AppDispatch => {
@@ -824,17 +836,6 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         dispatch({
           type: SET_CANVAS_ELEMENTS,
           payload: [],
-        });
-      }
-
-      if (document.pageDimensions) {
-        const dimensionsObj = document.pageDimensions instanceof Map
-          ? Object.fromEntries(document.pageDimensions)
-          : document.pageDimensions;
-
-        dispatch({
-          type: SET_PAGE_DIMENSIONS,
-          payload: dimensionsObj,
         });
       }
 

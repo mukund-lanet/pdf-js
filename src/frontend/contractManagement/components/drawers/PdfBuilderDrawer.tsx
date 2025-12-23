@@ -39,7 +39,7 @@ const PdfBuilderDrawer = () => {
       className={styles.createDocumentDrawer}
     >
       <div className={styles.createNewDocumentOptionsWrapper}>
-        <Card
+        {/* <Card
           commonselection
           iconName={"sparkles"}
           variant="primary"
@@ -53,7 +53,7 @@ const PdfBuilderDrawer = () => {
           classes={{
             iconBox: styles.createWithAiCard,
           }}
-        />
+        /> */}
         <Card
           commonselection
           iconName={"mouse-pointer"}
@@ -81,7 +81,7 @@ const PdfBuilderDrawer = () => {
             iconBox: styles.uploadPdfCard,
           }}
         />
-        <Card
+        {/* <Card
           commonselection
           iconName="file-text"
           color="#EA580C"
@@ -94,7 +94,7 @@ const PdfBuilderDrawer = () => {
           classes={{
             iconBox: styles.importTemplateCard,
           }}
-        />
+        /> */}
       </div>
     </Drawer>
   );

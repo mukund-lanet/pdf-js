@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import { useSelector, useDispatch } from 'react-redux';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
@@ -12,15 +13,18 @@ import TextField from "@trenchaant/pkg-ui-component-library/build/Components/Tex
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import Divider from "@trenchaant/pkg-ui-component-library/build/Components/Divider";
 import Dialog from "@trenchaant/pkg-ui-component-library/build/Components/Dialog";
+import TeamUserComponent from "@trenchaant/common-component/dist/commonComponent/commonTeamUserComponent/commonTeamUserComponent"
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CATEGORY, Signer } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
-import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, SET_PAGES, TOOLBAR_ITEM, UPDATE_DOCUMENT } from '@/components/contractManagement/store/action/contractManagement.actions';
+import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, SET_PAGES, TOOLBAR_ITEM, UPDATE_DOCUMENT, setDocumentVariables } from '@/components/contractManagement/store/action/contractManagement.actions';
 import ThumbnailPage from '../ThumbnailPage';
 import { blocks, fillableFields, noPdfDocument } from '../../../utils/utils';
 import { useDrag } from 'react-dnd';
+import { showMessage } from '@/components/store/actions';
+import SearchBar from "@trenchaant/pkg-ui-component-library/build/Components/SearchBar";
 
 const EditorLeftDrawer: React.FC = () => {
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
@@ -186,7 +190,7 @@ const EditorLeftDrawer: React.FC = () => {
       return (
         <div
           ref={drag}
-          className={`${styles.elementCard} ${activeTool === item.type ? styles.activeElement : ''}`}
+          className={styles.elementCard}
           style={{ opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}
           onClick={() => dispatch({ type: SET_ACTIVE_TOOL, payload: item.type })}
         >
@@ -249,6 +253,7 @@ const EditorLeftDrawer: React.FC = () => {
     const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
     const [isAddingRecipient, setIsAddingRecipient] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [users, setUsers] = useState([]);
 
     const handleSigningOrderChange = (checked: boolean) => {
       if (activeDocument) {
@@ -300,6 +305,18 @@ const EditorLeftDrawer: React.FC = () => {
             <Typography variant="caption" className={styles.signingOrderDescription}>
               Emails are sent sequentially: Next recipient can sign only after the previous one completes their action.
             </Typography>
+            <TeamUserComponent
+              value={users || []}
+              onChange={(selectedUsers: any) => {
+                setUsers(selectedUsers.map((user: any) => user?.id))
+              }}
+              label={`Select Users`}
+              twoStepAssign={false}
+              isMultiple
+              componentName={"user"}
+              isCountPreview={true}
+              // isPreview={true}
+            />
           </div>
 
           <div className={styles.recipientsList}>
@@ -374,65 +391,91 @@ const EditorLeftDrawer: React.FC = () => {
 
   const VariablesSidebar: React.FC = () => {
     const dispatch = useDispatch();
-    const variables = useSelector((state: RootState) => state?.contractManagement?.documentVariables);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const variables = useSelector((state: RootState) => state?.contractManagement?.documentVariables) || [];
+    const [variableState, setVariableState] = useState({
+      documentVariables: variables,
+      searchText: '',
+      isDialogOpen: false,
+    });
 
-    const filteredVariables = variables.filter(v =>
-      v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.value.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Update local state when Redux variables change (e.g., initial load)
+    useEffect(() => {
+      setVariableState(prev => ({ ...prev, documentVariables: variables }));
+    }, [variables]);
+
+    const debouncedSyncToRedux = useDebouncedCallback((updatedVariables) => {
+      dispatch(setDocumentVariables(updatedVariables));
+    }, 500);
+
+    const filteredVariables = useMemo(() => {
+      const search = variableState.searchText.toLowerCase();
+      return variableState.documentVariables.filter(v =>
+        v.name.toLowerCase().includes(search) ||
+        String(v.value).toLowerCase().includes(search)
+      );
+    }, [variableState.documentVariables, variableState.searchText]);
 
     const handleCopy = (text: string) => {
       navigator.clipboard.writeText(text);
+      dispatch(showMessage({ message: "Variable copied to clipboard", variant: "success" }));
     };
 
-    const handleDelete = (name: string) => {
-      dispatch({
-        type: DELETE_DOCUMENT_VARIABLE,
-        payload: name
-      });
+    const handleDelete = (index: number) => {
+      // Find the actual variable to delete from the filtered list index
+      const variableToDelete = filteredVariables[index];
+      const updatedVariables = variableState.documentVariables.filter(v => v.name !== variableToDelete.name);
+      
+      setVariableState(prev => ({ ...prev, documentVariables: updatedVariables }));
+      dispatch(setDocumentVariables(updatedVariables));
+      dispatch(showMessage({ message: "Variable deleted successfully", variant: "success" }));
+    };
+
+    const handleValueChange = (name: string, newValue: string) => {
+      const updatedVariables = variableState.documentVariables.map(v => 
+        v.name === name ? { ...v, value: newValue } : v
+      );
+      setVariableState(prev => ({ ...prev, documentVariables: updatedVariables }));
+      debouncedSyncToRedux(updatedVariables);
     };
 
     const CreateVariableDialog: React.FC<{ isDialogOpen: boolean }> = ({ isDialogOpen }) => {
       const [name, setName] = useState('');
       const [value, setValue] = useState('');
-      const dispatch = useDispatch();
 
-      const handleSaveVariable = (name: string, value: string) => {
-        const finalName = name.startsWith('document.') ? name : `document.${name}`;
-
-        dispatch({
-          type: ADD_DOCUMENT_VARIABLE,
-          payload: { name: finalName, value, isSystem: false }
-        });
-      };
-
-      const onClose = () => setIsDialogOpen(false);
+      const onClose = () => setVariableState(prev => ({ ...prev, isDialogOpen: false }));
 
       const handleSave = () => {
         if (name && value) {
-          handleSaveVariable(name, value);
+          const finalName = name.startsWith('document.') ? name : `document.${name}`;
+          const newVariable = { name: finalName, value, isSystem: false };
+          const updatedVariables = [...variableState.documentVariables, newVariable];
+          
+          setVariableState(prev => ({ 
+            ...prev, 
+            documentVariables: updatedVariables, 
+            isDialogOpen: false 
+          }));
+          dispatch(setDocumentVariables(updatedVariables));
+          dispatch(showMessage({ message: "Variable created successfully", variant: "success" }));
           onClose();
         }
       };
 
       return (
         <Dialog
-            open={isDialogOpen}
-            label={"Create Document variable"}
-            description={"Create variable for your document"}
-            // icon={"plus"}
-            disableEscapeKeyDown
-            onClose={onClose}
-            submitBtn={{ onClick: handleSave, label: "Save" }}
-            cancelBtn={{ onClick: onClose, label: "Cancel" }}
-            className={styles.dialogMainWHoleWrapper}
-            classes={{ innerContent: styles.dialogContentWrapper }}
-          >
+          open={isDialogOpen}
+          label={"Create Document variable"}
+          description={"Create variable for your document"}
+          disableEscapeKeyDown
+          onClose={onClose}
+          submitBtn={{ onClick: handleSave, label: "Save" }}
+          cancelBtn={{ onClick: onClose, label: "Cancel" }}
+          className={styles.dialogMainWHoleWrapper}
+          classes={{ innerContent: styles.dialogContentWrapper }}
+        >
           <div className={styles.dialogContent}>
             <div className={styles.inputGroup}>
-              <Typography className={styles.typoLabel} >Variable name <span className={styles.required}>*</span></Typography>
+              <Typography className={styles.typoLabel}>Variable name <span className={styles.required}>*</span></Typography>
               <TextField
                 placeholder="Variable name"
                 value={name}
@@ -441,7 +484,7 @@ const EditorLeftDrawer: React.FC = () => {
             </div>
 
             <div className={styles.inputGroup}>
-              <Typography className={styles.typoLabel} >Variable value <span className={styles.required}>*</span></Typography>
+              <Typography className={styles.typoLabel}>Variable value <span className={styles.required}>*</span></Typography>
               <TextField
                 placeholder="Variable value"
                 value={value}
@@ -460,35 +503,37 @@ const EditorLeftDrawer: React.FC = () => {
         </div>
 
         <div className={styles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Search"
-            className={styles.searchInput}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+          <SearchBar
+            value={variableState.searchText}
+            placeholder={`Search variable`}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVariableState({ ...variableState, searchText: e.target.value })}
           />
           <Button
             className={styles.addButton}
             variant="outlined"
-            onClick={() => setIsDialogOpen(true)}
+            onClick={() => setVariableState({ ...variableState, isDialogOpen: true })}
           >
             <CustomIcon iconName="plus" width={20} height={20} />
           </Button>
         </div>
 
         <div className={styles.variablesList}>
-          <div className={styles.variableItemsWrapper} >
-            {filteredVariables.map((variable) => (
+          <div className={styles.variableItemsWrapper}>
+            {filteredVariables.map((variable, index) => (
               <div key={variable.name} className={styles.variableItem}>
                 <Typography className={styles.variableKey}>{variable.name}</Typography>
                 <div className={styles.variableValueContainer}>
-                  <div className={styles.variableValue}>{variable.value}</div>
+                  <TextField
+                    className={styles.inputField}
+                    value={variable.value}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleValueChange(variable.name, e.target.value)}
+                  />
                   <div className={styles.variableActions}>
-                    <Button className={styles.copyButton} onClick={() => handleCopy(variable.value)}>
+                    <Button className={styles.copyDeleteButton} onClick={() => handleCopy(variable.value)}>
                       <CustomIcon iconName="copy" width={16} height={16} />
                     </Button>
                     {!variable.isSystem && (
-                      <Button className={styles.deleteButton} onClick={() => handleDelete(variable.name)}>
+                      <Button className={styles.copyDeleteButton} onClick={() => handleDelete(index)}>
                         <CustomIcon iconName="trash2" width={16} height={16} />
                       </Button>
                     )}
@@ -499,7 +544,7 @@ const EditorLeftDrawer: React.FC = () => {
           </div>
         </div>
 
-        <CreateVariableDialog isDialogOpen={isDialogOpen}  />
+        <CreateVariableDialog isDialogOpen={variableState.isDialogOpen} />
       </div>
     );
   };

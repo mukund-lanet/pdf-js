@@ -9,7 +9,7 @@ import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/Cu
 import TextField from '@trenchaant/pkg-ui-component-library/build/Components/TextField';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_PAGES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument, setIsUnsaved } from '../../../store/action/contractManagement.actions';
+import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, updateDocument, setIsUnsaved } from '../../../store/action/contractManagement.actions';
 
 const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousClick }) => {
   const dispatch = useDispatch();
@@ -58,7 +58,6 @@ const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousCl
       dispatch({ type: SET_TOTAL_PAGES, payload: 1 })
       dispatch({ type: SET_CURRENT_PAGE, payload: 1 })
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: [] })
-      dispatch({ type: SET_PAGE_DIMENSIONS, payload: { 1: { pageWidth: 600, pageHeight: 800 } } })
       dispatch({ type: SET_SELECTED_TEXT_ELEMENT, payload: null })
       dispatch(setIsUnsaved(false))
       dispatch({ type: SET_IS_LOADING, payload: false })

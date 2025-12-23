@@ -12,15 +12,14 @@ import MediaManagerList from "@trenchaant/common-component/dist/commonComponent/
 import BlockContainer from './BlockContainer';
 import FillableContainer from './FillableContainer';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
-import { Page, PageDimension } from '../../../utils/interface';
-import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGE_DIMENSIONS, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, SET_PAGES } from '../../../store/action/contractManagement.actions';
+import { Page } from '../../../utils/interface';
+import { SET_CURRENT_PAGE, SET_IS_LOADING, SET_TOTAL_PAGES, UPDATE_MULTIPLE_ELEMENTS, SET_CANVAS_ELEMENTS, SET_SELECTED_TEXT_ELEMENT, SET_PAGES } from '../../../store/action/contractManagement.actions';
 
 const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
   const dispatch = useDispatch();
 
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
-  const pageDimensions = useSelector((state: RootState) => state?.contractManagement?.pageDimensions);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
   const pages = useSelector((state: RootState) => state?.contractManagement?.pages);
   // const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
@@ -62,23 +61,8 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
         return el;
       });
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
-
-      const newPageDimensions: { [key: number]: PageDimension } = {};
-      const newPageSize = { pageWidth: 600, pageHeight: 800 };
-
-      Object.keys(pageDimensions).forEach(key => {
-        const pageNum = parseInt(key);
-        if (pageNum <= pageNumber) {
-          newPageDimensions[pageNum] = pageDimensions[pageNum];
-        } else {
-          newPageDimensions[pageNum + 1] = pageDimensions[pageNum];
-        }
-      });
-
-      newPageDimensions[pageNumber + 1] = newPageSize;
-
-      dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions });
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
+
     } catch (error) {
       console.error('Error adding blank page:', error);
       console.warn('Failed to add a blank page.');
@@ -117,12 +101,6 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
         
       dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
 
-      // Update page dimensions keys
-      const newPageDimensions: { [key: number]: PageDimension } = {};
-      Object.keys(pageDimensions).filter(key => parseInt(key) !== pageNumber).forEach(key => {
-        newPageDimensions[parseInt(key) > pageNumber ? parseInt(key) - 1 : parseInt(key)] = pageDimensions[parseInt(key)];
-      });
-      dispatch({ type: SET_PAGE_DIMENSIONS, payload: newPageDimensions })
     } catch (error) {
       console.error('Error deleting page:', error);
       console.warn('Failed to delete the page.');
@@ -188,10 +166,10 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
       }
       
       // Set page dimensions
-      const pageDim = pageDimensions[pageNumber] || { pageWidth: 600, pageHeight: 800 };
+      const pageDim = { pageWidth: 600, pageHeight: 800 };
       setPageSize(pageDim);
     }
-  }, [pageNumber, pages, pageDimensions]);
+  }, [pageNumber, pages]);
 
   const handlePageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
