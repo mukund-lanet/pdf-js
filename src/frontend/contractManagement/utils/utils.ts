@@ -280,3 +280,20 @@ export const tabItems = {
     description: "Add and manage document signers",
   },
 };
+
+export function convertObjectToList(pagesObj: Record<string, any> = {}): any[] {
+  return Object.entries(pagesObj).map(([id, page]) => ({
+    id,
+    ...(page as object)
+  }));
+}
+
+export function convertListToObject(pagesList: any[] = []): Record<string, any> {
+  return pagesList.reduce((acc, { id, ...page }) => {
+    if (!id) {
+      throw new Error("list item is missing 'id'");
+    }
+    acc[id] = page;
+    return acc;
+  }, {} as Record<string, any>);
+}

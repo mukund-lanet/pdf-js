@@ -87,7 +87,7 @@ export interface ContractManagementState {
     offset: number;
   };
   contracts: ContractItem[];
-  activeDocument: DocumentItem;
+  activeDocument: DocumentItem | null;
   // PDF Editor State
   totalPages: number;
   currentPage: number;
@@ -199,9 +199,7 @@ const initialState: ContractManagementState = {
     offset: 0
   },
   contracts: [],
-  activeDocument: {
-    status: 'draft'
-  },
+  activeDocument: null,
   // PDF Editor State
   totalPages: 0,
   currentPage: 1,

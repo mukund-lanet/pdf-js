@@ -235,7 +235,7 @@ export interface DraggableToolbarItemProps {
 }
 
 export interface Page {
-  _id?: string;
+  id?: string;
   imagePath?: string;
   imageUrl?: string;
   fromPdf?: boolean;

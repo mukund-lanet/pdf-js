@@ -2,8 +2,8 @@ import { AppDispatch } from '..';
 import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES, DocumentItem } from '../../utils/interface';
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
+import { DIALOG_DRAWER_NAMES, CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
+import { convertObjectToList, convertListToObject } from '../../utils/utils';
 
 // Action Types
 export const SET_DOCUMENTS_LIST = 'SET_DOCUMENTS_LIST';
@@ -488,11 +488,11 @@ export const createNewDocument = (data: { documentName: string; signers: any[]; 
           signingOrder: data.signingOrder || false,
           status: 'draft',
           documentType: 'new_document',
-          pages: data.pages,
+          pages: convertListToObject(data.pages),
         },
       });
 
-      if (response.status === 201 && response.data) {
+      if (response.status === 200 && response.data) {
         dispatch({
           type: CREATE_NEW_DOCUMENT,
           payload: response.data,
@@ -544,7 +544,7 @@ export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string;
         },
       });
 
-      if (response.status === 201 && response.data) {
+      if (response.status === 200 && response.data) {
         dispatch({
           type: UPLOAD_DOCUMENT_PDF,
           payload: response.data,
@@ -609,8 +609,8 @@ export const updateDocument = (data: {
           name: data.name,
           signers: data.signers,
           signingOrder: data.signingOrder,
-          canvasElements: data.canvasElements,
-          pages: data.pages,
+          canvasElements: convertListToObject(data.canvasElements),
+          pages: convertListToObject(data.pages),
           business_id: data.business_id
         },
       });
@@ -815,22 +815,26 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
 
       dispatch(setActiveDocument(document));
 
-      if (document.pages && Array.isArray(document.pages)) {
+      if (document.pages) {
+        const pagesArray = typeof document.pages === 'object' && !Array.isArray(document.pages)
+          ? convertObjectToList(document.pages)
+          : document.pages;
+        
         dispatch({
           type: SET_PAGES,
-          payload: document.pages
+          payload: pagesArray
         });
         
         dispatch({
           type: SET_TOTAL_PAGES,
-          payload: document.pages.length,
+          payload: pagesArray.length,
         });
       }
 
-      if (document.canvasElements && Array.isArray(document.canvasElements)) {
+      if (document.canvasElements && typeof document.canvasElements === 'object' && !Array.isArray(document.canvasElements)) {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
-          payload: document.canvasElements,
+          payload: convertObjectToList(document.canvasElements),
         });
       } else {
         dispatch({
@@ -975,7 +979,7 @@ export const createContract = (contractData: any): AppDispatch => {
         data: contractData,
       });
 
-      if (response.status === 201 && response.data) {
+      if (response.status === 200 && response.data) {
         dispatch(showMessage({
           message: `Contract "${contractData.name}" created successfully`,
           variant: 'success',

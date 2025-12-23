@@ -111,6 +111,7 @@ const DocumentDrawer = () => {
           signingOrder: signingOrderEnabled,
           business_id,
           pages: [{
+            id: `page_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
             imagePath: '',
             imageUrl: '',
             fromPdf: false,
