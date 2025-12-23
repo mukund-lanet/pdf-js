@@ -14,13 +14,11 @@ import { SET_CURRENT_PAGE } from '../../../store/action/contractManagement.actio
 
 const PDFCanvasViewer = () => {
   const totalPages = useSelector((state: RootState) => state?.contractManagement?.totalPages);
-  const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages || {});
   const dispatch = useDispatch();
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
-
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
 
   const handleScrollToTop = () => {
     dispatch({ type: SET_CURRENT_PAGE, payload: 1 });
@@ -35,7 +33,7 @@ const PDFCanvasViewer = () => {
 
   return (
     <div className={styles.mainPdfContainerWrapperDiv} >
-      {(pages && pages.length > 0) && totalPages > 0 ? (
+      {(pages && Object.values(pages).length > 0) && totalPages > 0 ? (
         <CustomScrollbar ref={scrollContainerRef} className={styles.scrollPdfViewerContainer} >
           <div className={styles.pdfViewerContainer}>
             {Array.from({ length: totalPages }, (_, index) => {

@@ -154,7 +154,7 @@ const useSpacingUpdate = <T extends CanvasElement>(
 const EditorRightSidebar = () => {
   const activeElementId = useSelector((state: RootState) => state?.contractManagement?.activeElementId);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
-  const activeElement = canvasElements?.find(el => el.id === activeElementId);
+  const activeElement = activeElementId ? canvasElements?.[activeElementId] : undefined;
 
   const BoxModelControl: React.FC<BoxModelControlProps> = ({
     margin = { top: 0, right: 0, bottom: 0, left: 0 },

@@ -19,7 +19,7 @@ const FillableContainer = ({
 }: FillableContainerProps) => {
   const dispatch = useDispatch();
   const allElements = useSelector((state: RootState) =>
-    state?.contractManagement.canvasElements.filter(el => el.page === pageNumber)
+    Object.values(state?.contractManagement?.canvasElements || {})?.filter(el => el.page === pageNumber)
   );
   const fillableElements = allElements.filter(el => isFillableElement(el)) as FillableFieldElement[];
 
@@ -39,7 +39,10 @@ const FillableContainer = ({
 
       // handle the existing element move
       if (monitor.getItemType() === 'FILLABLE_ELEMENT' && delta && item.id && item.x !== undefined && item.y !== undefined) {
-        const element = fillableElements.find(el => el.id === item.id);
+        // Access element directly from Redux canvasElements Record
+        const canvasElementsRecord = (monitor as any).getSourceClientOffset ? 
+          fillableElements.find(el => el.id === item.id) : undefined;
+        const element = canvasElementsRecord;
         if (!element) return;
 
         const newX = Math.round(item.x + delta.x);

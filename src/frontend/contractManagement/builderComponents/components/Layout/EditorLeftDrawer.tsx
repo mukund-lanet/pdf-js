@@ -15,7 +15,7 @@ import Divider from "@trenchaant/pkg-ui-component-library/build/Components/Divid
 import Dialog from "@trenchaant/pkg-ui-component-library/build/Components/Dialog";
 import TeamUserComponent from "@trenchaant/common-component/dist/commonComponent/commonTeamUserComponent/commonTeamUserComponent"
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
-import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CATEGORY, Signer } from '../../../utils/interface';
+import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CATEGORY, Signer, Page } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
@@ -270,17 +270,16 @@ const EditorLeftDrawer: React.FC = () => {
       }
     };
 
-    const handleDeleteSigner = (index: number) => {
-      if (activeDocument) {
-        const newSigners = activeDocument.signers ? [...activeDocument.signers] : [];
-        newSigners.splice(index, 1);
+    const handleDeleteSigner = (signerId: string) => {
+      if (activeDocument && activeDocument.signers) {
+        const { [signerId]: deleted, ...remainingSigners } = activeDocument.signers;
         dispatch({
           type: UPDATE_DOCUMENT,
           payload: {
             ...activeDocument,
             documentId: activeDocument._id,
             documentName: activeDocument.name,
-            signers: newSigners,
+            signers: remainingSigners,
             signingOrder: activeDocument.signingOrder
           }
         });
@@ -320,8 +319,8 @@ const EditorLeftDrawer: React.FC = () => {
           </div>
 
           <div className={styles.recipientsList}>
-            {activeDocument?.signers?.map((signer: Signer, index: number) => (
-              <div key={index} className={styles.recipientItem}>
+            {Object.entries(activeDocument?.signers || {})?.map(([signerId, signer]) => (
+              <div key={signerId} className={styles.recipientItem}>
                 <div className={styles.recipientAvatar}>
                   <Avatar>{signer.name.charAt(0).toUpperCase()}</Avatar>
                 </div>
@@ -337,7 +336,7 @@ const EditorLeftDrawer: React.FC = () => {
                   <IconButton size="small">
                     <CustomIcon iconName="edit-2" height={14} width={14} />
                   </IconButton>
-                  <IconButton size="small" onClick={() => handleDeleteSigner(index)}>
+                  <IconButton size="small" onClick={() => handleDeleteSigner(signerId)}>
                     <CustomIcon iconName="trash-2" height={14} width={14} />
                   </IconButton>
                 </div>
@@ -549,6 +548,7 @@ const EditorLeftDrawer: React.FC = () => {
     );
   };
 
+
   const ThumbnailSidebar: React.FC = () => {
     const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
@@ -572,10 +572,11 @@ const EditorLeftDrawer: React.FC = () => {
     };
     
     useEffect(() => {
-      // Initialize pageIds based on pages array length
-      if (pages && pages.length > 0) {
-        if (pageIds.length !== pages.length) {
-          setPageIds(Array.from({ length: pages.length }, (_, i) => `page-${i + 1}-${Date.now()}`));
+      // Initialize pageIds based on pages Record length
+      const pagesArray = Object.values(pages || {});
+      if (pagesArray && pagesArray.length > 0) {
+        if (pageIds.length !== pagesArray.length) {
+          setPageIds(Array.from({ length: pagesArray.length }, (_, i) => `page-${i + 1}-${Date.now()}`));
         }
       }
     }, [pages]);
@@ -597,11 +598,20 @@ const EditorLeftDrawer: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Update pages array
-        const currentPages = [...pages];
+        // Update pages Record
+        const pagesArray = Object.values(pages || {});
+        const currentPages = [...pagesArray];
         const [movedPage] = currentPages.splice(sourceIndex, 1);
         currentPages.splice(destinationIndex, 0, movedPage);
-        dispatch({ type: SET_PAGES, payload: currentPages });
+        
+        // Convert back to Record
+        const pagesRecord = currentPages.reduce((acc, page, index) => {
+          const id = page._id || `page-${index}`;
+          acc[id] = page;
+          return acc;
+        }, {} as Record<string, Page>);
+        
+        dispatch({ type: SET_PAGES, payload: pagesRecord });
         
         dispatch({
           type: REORDER_PAGE_ELEMENTS,
@@ -624,7 +634,7 @@ const EditorLeftDrawer: React.FC = () => {
         </div>
 
         <div className={styles.thumbnailContainer}>
-          {pages && pages.length > 0 ? (
+          {Object.keys(pages || {}).length > 0 ? (
             <DragDropContext onDragEnd={onDragEnd}>
               <StrictModeDroppable droppableId="thumbnail-pages">
                 {(provided: any) => (

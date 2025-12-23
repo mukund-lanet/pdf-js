@@ -91,7 +91,7 @@ export interface ContractManagementState {
   // PDF Editor State
   totalPages: number;
   currentPage: number;
-  canvasElements: CanvasElement[];
+  canvasElements: Record<string, CanvasElement>;
   activeTool: null | 'text' | 'image' | 'signature';
   media: any;
   selectedTextElement: TextElement | null;
@@ -111,7 +111,7 @@ export interface ContractManagementState {
   documentsList: any[];
   contractsList: any[];
   settingsData: any | null;
-  pages: Page[];
+  pages: Record<string, Page>;
   isUnsaved: boolean;
 }
 
@@ -205,7 +205,7 @@ const initialState: ContractManagementState = {
   // PDF Editor State
   totalPages: 0,
   currentPage: 1,
-  canvasElements: [],
+  canvasElements: {},
   activeTool: null,
   media: null,
   selectedTextElement: null,
@@ -225,7 +225,7 @@ const initialState: ContractManagementState = {
   documentsList: [],
   contractsList: [],
   settingsData: null,
-  pages: [],
+  pages: {},
   isUnsaved: false,
 };
 
@@ -451,16 +451,14 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.ADD_CANVAS_ELEMENT:
       return {
         ...state,
-        canvasElements: [...state.canvasElements, action.payload],
+        canvasElements: { ...state.canvasElements, [action.payload.id]: action.payload },
         isUnsaved: true,
       };
 
     case Actions.UPDATE_CANVAS_ELEMENT:
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el =>
-          el.id === action.payload.id ? action.payload : el
-        ),
+        canvasElements: { ...state.canvasElements, [action.payload.id]: action.payload },
         // also update the selectedTextElement if its the one being updated
         selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text-field'
@@ -470,10 +468,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       };
 
     case Actions.DELETE_CANVAS_ELEMENT:
-      const filteredElements = state.canvasElements.filter(el => el.id !== action.payload);
+      const { [action.payload]: deleted, ...remainingElements } = state.canvasElements;
       return {
         ...state,
-        canvasElements: filteredElements,
+        canvasElements: remainingElements,
         // clear the selected text element if it's the one being deleted
         selectedTextElement:
           state.selectedTextElement && state.selectedTextElement.id === action.payload
@@ -486,11 +484,11 @@ export const contractManagementReducer = (state = initialState, action: Actions.
     case Actions.ADD_BLOCK_ELEMENT: {
       const { element, pageNumber } = action.payload;
       // calculate the next order for this page
-      const pageBlocks = state.canvasElements.filter(
+      const pageBlocks = Object.values(state.canvasElements).filter(
         el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type)
-      );
+      ) as any[];
       const maxOrder = pageBlocks.length > 0
-        ? Math.max(...pageBlocks.map((el: any) => el.order || 0))
+        ? Math.max(...pageBlocks.map((el) => el.order || 0))
         : -1;
 
       const blockWithOrder = {
@@ -500,7 +498,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
       return {
         ...state,
-        canvasElements: [...state.canvasElements, blockWithOrder],
+        canvasElements: { ...state.canvasElements, [blockWithOrder.id]: blockWithOrder },
         isUnsaved: true,
       };
     }
@@ -509,28 +507,29 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       const { pageNumber, sourceIndex, destinationIndex } = action.payload;
 
       // get all blocks for this page and sorted by order
-      const pageBlocks = state.canvasElements
+      const pageBlocks = Object.values(state.canvasElements)
         .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 
       // get non-block elements
-      const otherElements = state.canvasElements.filter(
-        el => !(el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
-      );
+      const otherElements = Object.entries(state.canvasElements)
+        .filter(([_, el]) => !(el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type)))
+        .reduce((acc, [id, el]) => ({ ...acc, [id]: el }), {} as Record<string, CanvasElement>);
 
       // reorder the blocks
       const [movedBlock] = pageBlocks.splice(sourceIndex, 1);
       pageBlocks.splice(destinationIndex, 0, movedBlock);
 
       // update the orders
-      const updatedBlocks = pageBlocks.map((block, index) => ({
-        ...block,
-        order: index
-      }));
+      const updatedBlocks = pageBlocks.reduce((acc, block, index) => {
+        const updated = { ...block, order: index };
+        acc[block.id] = updated;
+        return acc;
+      }, {} as Record<string, CanvasElement>);
 
       return {
         ...state,
-        canvasElements: [...otherElements, ...updatedBlocks],
+        canvasElements: { ...otherElements, ...updatedBlocks },
         isUnsaved: true,
       };
     }
@@ -539,17 +538,18 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       const { pageNumber, blockOrders } = action.payload;
       const orderMap = new Map(blockOrders.map(item => [item.id, item.order]));
 
+      const updatedElements = Object.entries(state.canvasElements).reduce((acc, [id, el]) => {
+        if (el.page === pageNumber && orderMap.has(el.id)) {
+          acc[id] = { ...el, order: orderMap.get(el.id)! };
+        } else {
+          acc[id] = el;
+        }
+        return acc;
+      }, {} as Record<string, CanvasElement>);
+
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el => {
-          if (el.page === pageNumber && orderMap.has(el.id)) {
-            return {
-              ...el,
-              order: orderMap.get(el.id)!
-            };
-          }
-          return el;
-        }),
+        canvasElements: updatedElements,
         isUnsaved: true,
       };
     }
@@ -580,11 +580,11 @@ export const contractManagementReducer = (state = initialState, action: Actions.
 
     case Actions.UPDATE_MULTIPLE_ELEMENTS:
       const updates = action.payload;
-      const updateMap = new Map(updates.map((el: CanvasElement) => [el.id, el]));
+      const updateMap = updates.reduce((acc, el) => ({ ...acc, [el.id]: el }), {} as Record<string, CanvasElement>);
 
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el),
+        canvasElements: { ...state.canvasElements, ...updateMap },
         isUnsaved: true,
       };
 
@@ -593,7 +593,7 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         ...state,
         totalPages: 0,
         currentPage: 1,
-        canvasElements: [],
+        canvasElements: {},
         activeTool: null,
         media: null,
         selectedTextElement: null,
@@ -639,23 +639,24 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       const destPage = destinationIndex + 1;
 
       // Update Canvas Elements
-      const updatedElements = state.canvasElements.map(el => {
+      const updatedElements = Object.entries(state.canvasElements).reduce((acc, [id, el]) => {
         if (el.page === sourcePage) {
-          return { ...el, page: destPage };
-        }
-
-        if (sourcePage < destPage) {
+          acc[id] = { ...el, page: destPage };
+        } else if (sourcePage < destPage) {
           if (el.page > sourcePage && el.page <= destPage) {
-            return { ...el, page: el.page - 1 };
+            acc[id] = { ...el, page: el.page - 1 };
+          } else {
+            acc[id] = el;
           }
         } else {
           if (el.page >= destPage && el.page < sourcePage) {
-            return { ...el, page: el.page + 1 };
+            acc[id] = { ...el, page: el.page + 1 };
+          } else {
+            acc[id] = el;
           }
         }
-
-        return el;
-      });
+        return acc;
+      }, {} as Record<string, CanvasElement>);
 
       let newCurrentPage = state.currentPage;
       if (state.currentPage === sourcePage) {

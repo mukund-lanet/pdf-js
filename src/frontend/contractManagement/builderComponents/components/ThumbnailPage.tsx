@@ -34,8 +34,9 @@ const ThumbnailPage = React.memo(({ pageNumber, isLoading, dragHandleProps }: Th
 
   useEffect(() => {
     // Check if we have pages data with imagePath
-    if (pages && pages.length > 0 && pageNumber <= pages.length) {
-      const pageData = pages[pageNumber - 1]; // 0-based index
+    const pagesArray = Object.values(pages || {});
+    if (pagesArray && pagesArray.length > 0 && pageNumber <= pagesArray.length) {
+      const pageData = pagesArray[pageNumber - 1]; // 0-based index
       if (pageData && pageData.imagePath) {
         // Use the imagePath directly for thumbnail
         setThumbnailUrl(pageData.imagePath);

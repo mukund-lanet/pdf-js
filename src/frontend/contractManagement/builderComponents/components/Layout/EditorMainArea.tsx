@@ -28,8 +28,8 @@ const EditorMainArea = () => {
   return (
     <div className={styles.editorPanel} ref={editorPanelRef}>
       <div className={styles.pdfViewerWrapper} >
-        <div className={` ${(pages && pages.length > 0) ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
-          {(pages && pages.length > 0) && totalPages > 0 ? (
+        <div className={` ${(Object.keys(pages || {}).length > 0) ? styles.pdfViewer : styles.noPdfLoadedWrapper}`}>
+          {(Object.keys(pages || {}).length > 0) && totalPages > 0 ? (
             <PDFCanvasViewer />
           ) : isLoading ? <div className={styles.simpleLoadingWrapper} > <SimpleLoading /> </div>
             : (

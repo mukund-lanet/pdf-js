@@ -10,12 +10,17 @@ export interface DocumentItem {
   name?: string;
   status: 'draft' | 'waiting' | 'completed' | 'archived';
   date?: string;
-  signers?: Signer[];
+  signers?: Record<string, Signer>;
   progress?: number;
   dueDate?: string;
   createdBy?: string;
   signingOrder?: boolean;
-  canvasElements?: CanvasElement[];
+  canvasElements?: Record<string, CanvasElement>;
+  variables?: DocumentVariable[];
+  business_id?: string;
+  pages?: Record<string, Page>;
+  uploadPath?: string;
+  documentType?: 'upload-existing' | 'new_document' | null;
 }
 
 export interface ContractItem {

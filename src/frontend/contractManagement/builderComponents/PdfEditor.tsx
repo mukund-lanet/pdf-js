@@ -69,7 +69,7 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
       const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
 
       // get all blocks for this page and sorted by order
-      const pageBlocks = canvasElements
+      const pageBlocks = Object.values(canvasElements)
         .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 

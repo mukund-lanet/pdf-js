@@ -46,21 +46,38 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
     handleMenuClose();
 
     try {
-      const newPages = [...pages];
+      const pagesArray = Object.values(pages || {});
+      const newPages = [...pagesArray];
       
       const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
       newPages.splice(pageNumber, 0, { _id: newPageId, fromPdf: false } as Page);
-      dispatch({ type: SET_PAGES, payload: newPages });
       
+      // Convert array back to Record
+      const pagesRecord = newPages.reduce((acc, page, index) => {
+        const id = page._id || `page-${index}`;
+        acc[id] = page;
+        return acc;
+      }, {} as Record<string, Page>);
+      
+      dispatch({ type: SET_PAGES, payload: pagesRecord });
       dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length });
 
-      const updatedElements = canvasElements.map((el: { page: number; }) => {
+      // Update canvasElements with page number shifts
+      const elementsArray = Object.values(canvasElements || {});
+      const updatedElements = elementsArray.map((el: any) => {
         if (el.page > pageNumber) {
           return { ...el, page: el.page + 1 };
         }
         return el;
       });
-      dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
+      
+      // Convert back to Record
+      const elementsRecord = updatedElements.reduce((acc, el) => {
+        acc[el.id] = el;
+        return acc;
+      }, {} as Record<string, any>);
+      
+      dispatch({ type: SET_CANVAS_ELEMENTS, payload: elementsRecord });
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
 
     } catch (error) {
@@ -81,9 +98,18 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
 
     try {
       // Update pages array
-      const newPages = [...pages];
+      const pagesArray = Object.values(pages || {});
+      const newPages = [...pagesArray];
       newPages.splice(pageNumber - 1, 1); // Remove the page at the specified index (0-based)
-      dispatch({ type: SET_PAGES, payload: newPages });
+      
+      // Convert array back to Record
+      const pagesRecord = newPages.reduce((acc, page, index) => {
+        const id = page._id || `page-${index}`;
+        acc[id] = page;
+        return acc;
+      }, {} as Record<string, Page>);
+      
+      dispatch({ type: SET_PAGES, payload: pagesRecord });
       
       // Update total pages
       dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length })
@@ -95,11 +121,18 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
       }
 
       // Update element page numbers and filter out deleted page elements
-      const updatedElements = canvasElements
-        .filter((el: { page: number; }) => el.page !== pageNumber)
-        .map((el: { page: number; }) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el);
+      const elementsArray = Object.values(canvasElements || {});
+      const updatedElements = elementsArray
+        .filter((el: any) => el.page !== pageNumber)
+        .map((el: any) => el.page > pageNumber ? { ...el, page: el.page - 1 } : el);
+      
+      // Convert back to Record
+      const elementsRecord = updatedElements.reduce((acc, el: any) => {
+        acc[el.id] = el;
+        return acc;
+      }, {} as Record<string, any>);
         
-      dispatch({ type: SET_CANVAS_ELEMENTS, payload: updatedElements });
+      dispatch({ type: SET_CANVAS_ELEMENTS, payload: elementsRecord });
 
     } catch (error) {
       console.error('Error deleting page:', error);
@@ -118,25 +151,21 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
         throw new Error('No file URL provided');
       }
 
-      // TODO: Call backend API to process PDF and get pages with imagePath
-      // For now, this is a placeholder - you'll need to implement the backend endpoint
-      // Example:
-      // const response = await fetch('http://localhost:8080/api/documents/process-pdf', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ pdfUrl: fileUrl }),
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
-      // const { pages: processedPages } = await response.json();
-
-      // Placeholder: For now, just add empty pages that will be processed by backend
-      console.warn('PDF upload: Backend processing not yet implemented. Add pages will be blank until backend API is ready.');
-      
       // Insert a placeholder blank page (backend will process and add imagePath later)
-      const newPages = [...pages];
+      const pagesArray = Object.values(pages || {});
+      const newPages = [...pagesArray];
       // Generate MongoDB-like _id for the new page
       const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
       newPages.splice(pageNumber, 0, { _id: newPageId, fromPdf: true });
-      dispatch({ type: SET_PAGES, payload: newPages });
+      
+      // Convert array back to Record
+      const pagesRecord = newPages.reduce((acc, page, index) => {
+        const id = page._id || `page-${index}`;
+        acc[id] = page;
+        return acc;
+      }, {} as Record<string, Page>);
+      
+      dispatch({ type: SET_PAGES, payload: pagesRecord });
 
       dispatch({ type: SET_TOTAL_PAGES, payload: newPages.length });
       dispatch({ type: SET_CURRENT_PAGE, payload: pageNumber + 1 });
@@ -150,9 +179,10 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
   };
 
   useEffect(() => {
-    // Render page based on pages[] array from backend
-    if (pages && pages.length > 0 && pageNumber <= pages.length) {
-      const pageData = pages[pageNumber - 1]; // 0-based index
+    // Render page based on pages[] Record from backend
+    const pagesArray = Object.values(pages || {});
+    if (pagesArray && pagesArray.length > 0 && pageNumber <= pagesArray.length) {
+      const pageData = pagesArray[pageNumber - 1]; // 0-based index
       
       // Check for imagePath or imageUrl (Firebase URL)
       const imageUrl = pageData?.imagePath || pageData?.imageUrl;

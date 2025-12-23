@@ -32,7 +32,7 @@ const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousCl
   }, [curDocument?.name]);
 
   useEffect(() => {
-    if (pages && pages.length > 0) {
+    if (Object.keys(pages || {}).length > 0) {
       return;
     }
 
@@ -52,12 +52,13 @@ const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousCl
       dispatch({ type: SET_IS_LOADING, payload: true })
       
       const newPageId = uuidv4().replace(/-/g, '').substring(0, 24);
-      const newPages = [{ _id: newPageId, fromPdf: false }];
+      const newPage = { _id: newPageId, fromPdf: false };
+      const newPages = { [newPageId]: newPage };
       dispatch({ type: SET_PAGES, payload: newPages });
       
       dispatch({ type: SET_TOTAL_PAGES, payload: 1 })
       dispatch({ type: SET_CURRENT_PAGE, payload: 1 })
-      dispatch({ type: SET_CANVAS_ELEMENTS, payload: [] })
+      dispatch({ type: SET_CANVAS_ELEMENTS, payload: {} })
       dispatch({ type: SET_SELECTED_TEXT_ELEMENT, payload: null })
       dispatch(setIsUnsaved(false))
       dispatch({ type: SET_IS_LOADING, payload: false })
@@ -76,10 +77,10 @@ const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousCl
     dispatch(updateDocument({
       id: curDocument._id,
       name: docName,
-      signers: curDocument?.signers || [],
+      signers: curDocument?.signers || {},
       signingOrder: curDocument?.signingOrder || false,
-      canvasElements: canvasElements || [],
-      pages: pages || [],
+      canvasElements: canvasElements || {},
+      pages: pages || {},
       business_id
     }));
   };

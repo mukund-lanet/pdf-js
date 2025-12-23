@@ -17,7 +17,7 @@ const TextFormattingToolbar: React.FC = () => {
   const activeElementId = useSelector((state: RootState) => state?.contractManagement?.activeElementId);
   const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
 
-  const activeElement = canvasElements?.find(el => el.id === activeElementId);
+  const activeElement = activeElementId ? canvasElements?.[activeElementId] : undefined;
 
   if (!activeElement || (activeElement.type !== 'heading' && activeElement.type !== 'table')) {
     return null;

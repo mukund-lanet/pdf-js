@@ -3,7 +3,7 @@ import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
 import { DIALOG_DRAWER_NAMES, DocumentItem } from '../../utils/interface';
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page, Signer } from '../../utils/interface';
 
 // Action Types
 export const SET_DOCUMENTS_LIST = 'SET_DOCUMENTS_LIST';
@@ -188,7 +188,7 @@ interface SetUploadPdfUrlAction {
 
 interface SetPagesAction {
   type: typeof SET_PAGES;
-  payload: Page[];
+  payload: Record<string, Page>;
 }
 
 interface SetIsUnsavedAction {
@@ -244,7 +244,7 @@ interface SetCurrentPageAction {
 
 interface SetCanvasElementsAction {
   type: typeof SET_CANVAS_ELEMENTS;
-  payload: CanvasElement[];
+  payload: Record<string, CanvasElement>;
 }
 
 interface AddCanvasElementAction {
@@ -587,10 +587,10 @@ export const setActiveDocument = (document: any | null): AppDispatch => {
 export const updateDocument = (data: {
   id: string;
   name: string;
-  signers: any[];
+  signers: Record<string, Signer>;
   signingOrder: boolean;
-  canvasElements: CanvasElement[];
-  pages: Page[];
+  canvasElements: Record<string, CanvasElement>;
+  pages: Record<string, Page>;
   business_id: string;
 }): AppDispatch => {
   return async (dispatch: AppDispatch) => {
@@ -823,11 +823,11 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         
         dispatch({
           type: SET_TOTAL_PAGES,
-          payload: document.pages.length,
+          payload: Object.keys(document.pages || {}).length,
         });
       }
 
-      if (document.canvasElements && Array.isArray(document.canvasElements)) {
+      if (document.canvasElements) {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
           payload: document.canvasElements,
@@ -835,7 +835,7 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
       } else {
         dispatch({
           type: SET_CANVAS_ELEMENTS,
-          payload: [],
+          payload: {},
         });
       }
 

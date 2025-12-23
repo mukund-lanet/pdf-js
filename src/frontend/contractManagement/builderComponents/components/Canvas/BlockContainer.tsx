@@ -16,7 +16,7 @@ interface BlockContainerProps {
 const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
   const dispatch = useDispatch();
   const blocks = useSelector((state: RootState) =>
-    state?.contractManagement.canvasElements.filter(el => el.page === pageNumber && isBlockElement(el))
+    Object.values(state?.contractManagement?.canvasElements || {})?.filter(el => el.page === pageNumber && isBlockElement(el))
   ) as BlockElementType[];
 
   // sorting the blocks by the order
