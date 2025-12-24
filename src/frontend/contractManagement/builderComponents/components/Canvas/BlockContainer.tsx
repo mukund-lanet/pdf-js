@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+// @ts-ignore
 import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
@@ -68,7 +69,7 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
 
   return (
     <Droppable droppableId={`blocks-page-${pageNumber}`} type="BLOCK">
-      {(provided, snapshot) => (
+      {(provided: any, snapshot: any) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
@@ -86,7 +87,7 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
               draggableId={block.id}
               index={index}
             >
-              {(dragProvided, dragSnapshot) => (
+              {(dragProvided: any, dragSnapshot: any) => (
                 <div
                   ref={dragProvided.innerRef}
                   {...dragProvided.draggableProps}

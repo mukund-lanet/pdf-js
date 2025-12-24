@@ -26,6 +26,7 @@ const DocumentDrawer = () => {
   const documentDrawerMode = useSelector((state: RootState) => state?.contractManagement?.documentDrawerMode);
   const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
   const business_id = useSelector((state: any) => state?.auth?.business?.id);
+  const url_key = useSelector((state: any) => state?.auth?.business?.url_key);
   
   const isEditMode = documentDrawerMode === 'edit';
   const isUploadMode = documentDrawerMode === 'upload';
@@ -38,9 +39,9 @@ const DocumentDrawer = () => {
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      documentName: activeDocument?.name || '',
+      documentName: '',
       file: null as any,
-      signers: activeDocument?.signers || ([] as Signer[]),
+      signers: [] as Signer[],
       currentSignerName: '',
       currentSignerEmail: '',
       currentSignerType: 'signer' as 'signer' | 'approver' | 'cc',
@@ -68,6 +69,7 @@ const DocumentDrawer = () => {
         }),
       signers: Yup.array()
     }),
+
     onSubmit: async (values, { resetForm }) => {
       if (isEditMode && activeDocument) {
        dispatch(updateDocument({
@@ -96,6 +98,9 @@ const DocumentDrawer = () => {
         
         if (result && result._id) {
           dispatch(setActiveDocument(result));
+
+          const path = `/${url_key}/pdf-editor/builder/${result._id}`;
+          router.push(path);
           
           handleClose();
           resetForm();
@@ -120,6 +125,9 @@ const DocumentDrawer = () => {
         
         if (result && result._id) {
           dispatch(setActiveDocument(result));
+
+          const path = `/${url_key}/pdf-editor/builder/${result._id}`;
+          router.push(path);
           
           handleClose();
           resetForm();

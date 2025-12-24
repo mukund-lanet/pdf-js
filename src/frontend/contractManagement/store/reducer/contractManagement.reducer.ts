@@ -272,9 +272,9 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         status: 'draft',
         date: new Date().toISOString(),
         signers: action.payload.signers,
-        progress: 0, // Start at 0% for new documents
-        dueDate: 'No due date', // Default or calculate based on settings
-        createdBy: 'Current User', // Replace with actual user info if available
+        progress: 0, 
+        dueDate: 'No due date', 
+        createdBy: 'Current User', 
         signingOrder: action.payload.signingOrder || false,
       };
 

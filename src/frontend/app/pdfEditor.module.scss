@@ -432,7 +432,6 @@
     .leftSideDrawerWrapper {
       max-height: calc(100% - 24px);
       height: 100%;
-      width: 349px;
       background-color: #FFFFFF;
       display: flex;
       justify-content: center;
@@ -440,11 +439,15 @@
 
       &.leftSideDrawerElement {
         width: 370px;
+        min-width: 370px;
+        max-width: 370px;
       }
     }
 
     .rightSideBarDrawer {
       width: 350px;
+      min-width: 350px;
+      min-width: 350px;
       height: 100%;
       max-height: calc(100% - 24px);
       background-color: #FFFFFF;
@@ -644,7 +647,7 @@
       &:focus {
         outline: none;
         border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+        box-shadow: 0 0 0 2px #007bff1a;
       }
     }
 
@@ -796,10 +799,9 @@
   }
 
   .sectionTitle {
-    font-size: 12px;
     font-weight: 600;
     color: #6b7280;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
   }
 
@@ -948,16 +950,7 @@
       height: 100%;
 
       .variableItem {
-        margin-bottom: 20px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #f3f4f6;
-
-        &:last-child {
-          border-bottom: none;
-          margin-bottom: 0;
-          padding-bottom: 0;
-        }
-
+        
         .variableKey {
           font-size: 13px;
           color: #6b7280;
@@ -968,32 +961,28 @@
         .variableValueContainer {
           display: flex;
           align-items: center;
+          justify-content: space-between;
           gap: 8px;
 
-          .variableValue {
-            flex: 1;
-            padding: 10px 12px;
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #111827;
+          .inputField {
+            width: 100%;
           }
 
-          .copyButton {
-            padding: 10px;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            cursor: pointer;
+          .variableActions {
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+            gap: 8px;
 
-            &:hover {
-              background: #f9fafb;
-              border-color: #3b82f6;
+            .copyDeleteButton {
+              padding: 10px;
+              background: white;
+              border: 1px solid #d1d5db;
+              border-radius: 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s;
             }
           }
         }
@@ -1403,7 +1392,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0;
+  // margin-bottom: 4px;
 }
 
 .blockElement {
@@ -1412,7 +1401,7 @@
   max-width: calc(100% - 64px);
   min-height: 115px;
   height: auto;
-  border: 2px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
   transition: all 0.2s ease;
   overflow: visible;
@@ -1428,55 +1417,85 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
-  &.blockHovered {
-    border-color: #3b82f6;
-  }
-
   &.tableBlock {
     padding: 14px 10px 0 10px;
   }
-}
 
-.blockDragHandle {
-  position: absolute;
-  top: 0;
-  // left: -24px;
-  // width: 20px;
-  // height: 24px;
-  left: -31px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  .blockToolbar {
+    position: absolute;
+    top: -45px;
+    left: 6px;
+    display: flex;
+    gap: 4px;
+    background: transparent;
+    padding: 4px;
+    z-index: 10;
 
-  .blockElement:hover & {
-    opacity: 1;
+    .blockToolbarActions {
+      display: flex;
+      gap: 8px;
+
+      .blockTooltipIconWrapperCopy {
+        display: flex;
+        padding: 2px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50px;
+        width: 34px;
+        height: 34px;
+        box-shadow: 0 1px 18px #00000008, 0 6px 10px #0000001a, 0 3px 5px -1px #00000026, 0 0 4px #0000001a;
+        animation: popupAnimation 0.4s ease-out forwards;
+        background-image: linear-gradient(to right, rgb(16, 185, 129), rgb(5, 150, 105));
+
+        &:hover {
+          background-image: linear-gradient(to right, rgb(5, 150, 105), rgb(4, 120, 87))
+        }
+      }
+
+      .blockTooltipIconWrapperDel {
+        display: flex;
+        padding: 2px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50px;
+        width: 34px;
+        height: 34px;
+        box-shadow: 0 1px 18px #00000008, 0 6px 10px #0000001a, 0 3px 5px -1px #00000026, 0 0 4px #0000001a;
+        animation: popupAnimation 0.4s ease-out forwards;
+        background-image: linear-gradient(to right, rgb(239, 68, 68), rgb(220, 38, 38));
+
+        &:hover {
+          background-image: linear-gradient(to right, rgb(220, 38, 38), rgb(185, 28, 28))
+        }
+      }
+
+      .blockTooltipIconWrapper {
+        background-image: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
+        border-radius: 50px;
+        height: 34px;
+        width: 34px;
+
+        &:hover {
+          background-image: linear-gradient(to right, rgb(37, 99, 235), rgb(29, 78, 216))
+        }
+      }
+    }
   }
 
-  &:active {
-    cursor: grabbing;
+  .blockContent {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    background-color: #ffffff;
+  }
+
+  .activeBlockElement {
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
   }
 }
 
-.blockContent:hover .blockDragHandle {
-  opacity: 1;
-}
-
-.blockContent {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: flex;
-  background-color: #ffffff;
-}
 
 .blockHeadingContent {
   width: 100%;
@@ -1543,72 +1562,9 @@
   overflow: auto;
 }
 
-.blockTable {
-  width: 100%;
-  border-collapse: collapse;
-
-  td {
-    border: 1px solid #d1d5db;
-    padding: 8px;
-    min-width: 80px;
-    min-height: 40px;
-
-    &:focus {
-      outline: 2px solid #3b82f6;
-      outline-offset: -2px;
-    }
-  }
-}
-
 .blockTableCell {
   &:focus {
     background: #eff6ff;
-  }
-}
-
-.blockToolbar {
-  position: absolute;
-  // top: 8px;
-  // right: 8px;
-  top: 32px;
-  left: -30px;
-  display: flex;
-  gap: 4px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  border-radius: 6px;
-  padding: 4px;
-  z-index: 10;
-
-  .blockToolbarActions {
-    display: flex;
-    gap: 8px;
-    flex-direction: column;
-
-    .blockToolbarButton {
-      background: transparent;
-      border: none;
-      border-radius: 4px;
-      // width: 28px;
-      // height: 28px !important;
-      width: 16px;
-      height: 16px !important;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      padding: 0;
-      color: black;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
-
-      &:active {
-        background: rgba(255, 255, 255, 0.25);
-      }
-    }
   }
 }
 
@@ -1714,7 +1670,6 @@
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 12px;
   display: block;
 }
 
@@ -2471,75 +2426,6 @@
 
     &:hover .recipientActions {
       opacity: 1;
-    }
-  }
-
-  .addRecipientSection {
-    margin-top: auto;
-  }
-
-  .addRecipientForm {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-
-    .addClientLink {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      span {
-        font-size: 10px;
-        font-weight: 600;
-        color: #6b7280;
-      }
-    }
-
-    .clientList {
-      max-height: 200px;
-      overflow-y: auto;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-
-      .clientItem {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px 12px;
-        cursor: pointer;
-        transition: background 0.2s;
-
-        &:hover {
-          background: #f3f4f6;
-        }
-
-        .clientAvatar {
-          width: 32px;
-          height: 32px;
-          font-size: 12px;
-        }
-
-        .clientInfo {
-          flex: 1;
-          min-width: 0;
-
-          .clientName {
-            font-size: 13px;
-            font-weight: 500;
-            color: #111827;
-          }
-
-          .clientEmail {
-            font-size: 11px;
-            color: #6b7280;
-          }
-        }
-      }
     }
   }
 }

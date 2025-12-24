@@ -31,7 +31,6 @@ const BlockElement = ({
   dragHandleProps
 }: BlockElementProps) => {
   const dispatch = useDispatch();
-  const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -201,6 +200,8 @@ const BlockElement = ({
       case 'heading':
         return (
           <div
+            data-html2canvas-ignore
+            {...dragHandleProps}
             className={styles.blockHeadingContent}
             style={{
               height: '100%',
@@ -264,6 +265,8 @@ const BlockElement = ({
         const imageSource = element.imageUrl || element.imageData;
         return (
           <div
+            data-html2canvas-ignore
+            {...dragHandleProps}
             className={styles.blockImageContent}
             style={{
               ...((element.padding || element.margin) && {
@@ -304,6 +307,8 @@ const BlockElement = ({
 
         return (
           <div
+            data-html2canvas-ignore
+            {...dragHandleProps}
             className={styles.blockVideoContent}
             style={{
               ...((element.padding || element.margin) && {
@@ -353,6 +358,8 @@ const BlockElement = ({
       case 'table':
         return (
           <div
+            data-html2canvas-ignore
+            {...dragHandleProps}
             className={styles.blockTableContent}
             style={{
               ...((element.padding || element.margin) && {
@@ -413,10 +420,7 @@ const BlockElement = ({
   return (
     <div
       ref={elementRef}
-      className={`${styles.blockElement} ${isDragging ? styles.blockDragging : ''} ${isHovered ? styles.blockHovered : ''} ${element.type === 'table' ? styles.tableBlock : ''} `}
-      // style={{ height: `${height}px`, minHeight: `${MIN_HEIGHT}px` }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={`${styles.blockElement} ${isDragging ? styles.blockDragging : ''} ${element.type === 'table' ? styles.tableBlock : ''} `}
       onClick={handleBlockClick}
     >
       {/* the hover toolbar */}
@@ -424,76 +428,74 @@ const BlockElement = ({
         <div className={styles.blockToolbar} data-html2canvas-ignore>
           <div className={styles.blockToolbarActions} data-html2canvas-ignore>
             <Tooltip title="Copy" placement="top">
-              <Button
-                className={styles.blockToolbarButton}
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  onCopy(element);
-                }}
-              >
-                <CustomIcon iconName="copy" width={16} height={16} variant="black" />
-              </Button>
+              <span>
+                <Button
+                  className={styles.blockTooltipIconWrapperCopy}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    onCopy(element);
+                  }}
+                >
+                  <CustomIcon iconName="copy" width={16} height={16} variant="white" />
+                </Button>
+              </span>
             </Tooltip>
 
             <Tooltip title="Delete" placement="top">
-              <Button
-                className={styles.blockToolbarButton}
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  dispatch({
-                    type: DELETE_CANVAS_ELEMENT,
-                    payload: element.id
-                  });
-                }}
-              >
-                <CustomIcon iconName="trash2" width={16} height={16} variant="black" />
-              </Button>
+              <span>
+                <Button
+                  className={styles.blockTooltipIconWrapperDel}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    dispatch({
+                      type: DELETE_CANVAS_ELEMENT,
+                      payload: element.id
+                    });
+                  }}
+                >
+                  <CustomIcon iconName="trash2" width={16} height={16} variant="white" />
+                </Button>
+              </span>
             </Tooltip>
 
             {canMoveUp && onMoveUp && (
               <Tooltip title="Move Up" placement="top">
-                <Button
-                  className={styles.blockToolbarButton}
-                  onClick={(e: React.MouseEvent) => {
-                    e.stopPropagation();
-                    onMoveUp();
-                  }}
-                >
-                  <CustomIcon iconName="chevron-up" width={16} height={16} variant="black" />
-                </Button>
+                <span>
+                  <Button
+                    className={styles.blockTooltipIconWrapper}
+                    onClick={(e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      onMoveUp();
+                    }}
+                  >
+                    <CustomIcon iconName="chevron-up" width={16} height={16} variant="white" />
+                  </Button>
+                </span>
               </Tooltip>
             )}
 
             {canMoveDown && onMoveDown && (
               <Tooltip title="Move Down" placement="top">
-                <Button
-                  className={styles.blockToolbarButton}
-                  onClick={(e: React.MouseEvent) => {
-                    e.stopPropagation();
-                    onMoveDown();
-                  }}
-                >
-                  <CustomIcon iconName="chevron-down" width={16} height={16} variant="black" />
-                </Button>
+                <span>
+                  <Button
+                    className={styles.blockTooltipIconWrapper}
+                    onClick={(e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      onMoveDown();
+                    }}
+                  >
+                    <CustomIcon iconName="chevron-down" width={16} height={16} variant="white" />
+                  </Button>
+                </span>
               </Tooltip>
             )}
           </div>
         </div>
       )}
 
-      <div className={styles.blockContent} style={element.type === 'heading' ? {background: "transparent"} : {}} >
+      <div className={`${styles.blockContent}`} style={element.type === 'heading' ? {background: "transparent"} : {}} >
         {renderContent()}
       </div>
-
-      <Tooltip title="Drag to move" placement="top">
-        <div
-          className={styles.blockDragHandle}
-          data-html2canvas-ignore
-          {...dragHandleProps}
-        >
-          <CustomIcon iconName="grip-horizontal" width={16} height={16} />
-        </div>
-      </Tooltip>
     </div>
   );
 };

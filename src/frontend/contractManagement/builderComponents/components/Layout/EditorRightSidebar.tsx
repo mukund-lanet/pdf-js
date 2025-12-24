@@ -580,7 +580,8 @@ const EditorRightSidebar = () => {
         <div className={styles.infoBox}>
           <Typography className={styles.infoBoxTitle}>Supported providers:</Typography>
           <Typography className={styles.infoBoxContent}>
-            YouTube, Vimeo, Dailymotion, Wistia, Inc., Vidyard, loom
+            {/* YouTube, Vimeo, Dailymotion, Wistia, Inc., Vidyard, loom */}
+            YouTube
           </Typography>
         </div>
 
@@ -602,7 +603,8 @@ const EditorRightSidebar = () => {
             )}
           />
           <Typography className={styles.helperText}>
-            Paste a video URL to embed it in your document. YouTube, Vimeo, Wistia and Vidyard are supported.
+            Paste a video URL to embed it in your document. YouTube is supported.
+            {/* Paste a video URL to embed it in your document. YouTube, Vimeo, Wistia and Vidyard are supported. */}
           </Typography>
         </div>
 

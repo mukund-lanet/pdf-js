@@ -80,7 +80,7 @@ const ContractManagement = () => {
           icon={"file-text"}
         />
         <div className={styles.actionsBlock}>
-          <Button 
+          {/* <Button 
             variant="outlined" 
             color="secondary"
             onClick={() => dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.GLOBAL_DOCUMENT_SETTINGS_DIALOG, true))}
@@ -103,7 +103,7 @@ const ContractManagement = () => {
           >
             <CustomIcon iconName="shield" width={16} height={16} /> 
             <Typography>Identity Verification</Typography>
-          </Button>
+          </Button> */}
           <Button 
             variant="contained"
             color="primary"
