@@ -18,9 +18,7 @@ const PDFCanvasViewer = () => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state: RootState) => state?.contractManagement?.isLoading);
 
-
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
 
   const handleScrollToTop = () => {
     dispatch({ type: SET_CURRENT_PAGE, payload: 1 });

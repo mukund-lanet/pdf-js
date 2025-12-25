@@ -2,8 +2,8 @@ import React from 'react';
 import styles from '@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { setDocumentActiveFilter, setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, getDocumentById, deleteDocument, getDocuments, setDocumentFilters } from '../store/action/contractManagement.actions';
-import { noDocument, actionsMenuItems, documentTableHeaders } from '../utils/utils';
+import { setDocumentActiveFilter, setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, getDocuments, setDocumentFilters, upsertDocument } from '../store/action/contractManagement.actions';
+import { noDocument, documentTableHeaders } from '../utils/utils';
 import { DIALOG_DRAWER_NAMES } from '../utils/interface';
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
@@ -18,6 +18,7 @@ import MenuItem from '@trenchaant/pkg-ui-component-library/build/Components/Menu
 import CustomIcon from "@trenchaant/pkg-ui-component-library/build/Components/CustomIcon";
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
 import Dialog from "@trenchaant/pkg-ui-component-library/build/Components/Dialog";
+import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
 import {RootState} from "../store/reducer/contractManagement.reducer"
 
 const DocumentsViewer = () => {
@@ -28,6 +29,8 @@ const DocumentsViewer = () => {
   const business = useSelector((state: any) => state?.auth?.business);
   const documentCount = useSelector((state: RootState) => state?.contractManagement?.documentCount) || 0;
   const filters_state = useSelector((state: RootState) => state?.contractManagement?.filters) || { search: '', status: 'all', limit: 25, offset: 0 };
+
+  const isLoading = useSelector((state: RootState) => state.contractManagement?.isLoading);
 
   const { search = '', status = 'all', limit = 25, offset = 0 } = filters_state;
   const currentPage = offset / limit;
@@ -94,7 +97,11 @@ const DocumentsViewer = () => {
 
   const handleConfirmDelete = () => {
     if (documentToDelete) {
-      dispatch(deleteDocument(documentToDelete.id, documentToDelete.name, business?.id));
+      dispatch(upsertDocument({
+        id: documentToDelete.id,
+        name: documentToDelete.name,
+        business_id: business?.id,
+      }));
     }
     setDeleteDialogOpen(false);
     setDocumentToDelete(null);
@@ -167,7 +174,7 @@ const DocumentsViewer = () => {
                         <Typography 
                           onClick={() => {
                             router.push(`/${business?.url_key}/pdf-editor/builder/${doc._id}`);
-                            dispatch(setActiveDocument(doc));
+                            // dispatch(setActiveDocument(doc));
                           }}
                           className={styles.docName}
                         >{doc.name}</Typography>
@@ -223,9 +230,8 @@ const DocumentsViewer = () => {
               ))}
             </TableBody>
           </Table>
-        </div>
-
-      ) : (
+        </div>) 
+      : !isLoading ? (
         <div className={styles.emptyMsgComponentWrapper} >
             <EmptyMessageComponent 
               {...noDocument} 
@@ -236,8 +242,10 @@ const DocumentsViewer = () => {
                 onClick: () => dispatch(setDialogDrawerState(DIALOG_DRAWER_NAMES.PDF_BUILDER_DRAWER, true))
               }} 
             />
-        </div>
-      )}
+        </div>) 
+      : (<div>
+          <SimpleLoading />
+        </div>)}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

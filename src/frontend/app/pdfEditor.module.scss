@@ -1413,7 +1413,8 @@
   }
 
   &.blockDragging {
-    opacity: 0.5;
+    // opacity: 0.5;
+    border: 2px solid #3b82f6;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
@@ -1560,6 +1561,17 @@
   height: 100%;
   padding: 8px;
   overflow: auto;
+
+  tr {
+    width: 100%;
+    max-width: 714px;
+  }
+
+  td {
+    width: 50%;
+    // max-width: 50%;
+    max-width: 357px;
+  }
 }
 
 .blockTableCell {

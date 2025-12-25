@@ -377,9 +377,9 @@ const BlockElement = ({
             }}
           >
             <table className={styles.blockTable}>
-              <tbody>
+              <tbody contentEditable={true} suppressContentEditableWarning>
                 {Array.from({ length: element.rows }).map((_, rowIndex) => (
-                  <tr key={rowIndex}>
+                  <tr key={rowIndex} >
                     {Array.from({ length: element.columns }).map((_, colIndex) => (
                       <td
                         key={colIndex}

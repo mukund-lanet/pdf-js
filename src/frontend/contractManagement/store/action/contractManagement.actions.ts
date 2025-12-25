@@ -1,5 +1,4 @@
 import { AppDispatch } from '..';
-import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
 import { DIALOG_DRAWER_NAMES, CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
@@ -433,7 +432,7 @@ export const setContractActiveFilter = (filter: string): AppDispatch => {
   };
 };
 
-export const setDialogDrawerState = (dialogName: DialogName, isOpen: boolean): AppDispatch => {
+export const setDialogDrawerState = (dialogName: DIALOG_DRAWER_NAMES, isOpen: boolean): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
       type: SET_DIALOG_STATE,
@@ -469,182 +468,12 @@ export const setBrandingCustomizationSettings = (brandingCustomizationSettings: 
   };
 };
 
-
-export const createNewDocument = (data: { documentName: string; signers: any[]; signingOrder?: boolean, business_id: string, pages: Page[] }): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/create-esign-document?business_id=${data.business_id}`,
-        isFromLocal: true,
-        data: {
-          name: data.documentName,
-          signers: data.signers,
-          signingOrder: data.signingOrder || false,
-          status: 'draft',
-          documentType: 'new_document',
-          pages: convertListToObject(data.pages),
-        },
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: CREATE_NEW_DOCUMENT,
-          payload: response.data,
-        });
-
-        dispatch(showMessage({
-          message: `Document "${data.documentName}" created successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id: data.business_id }));
-
-        return response.data;
-      }
-    } catch (error: any) {
-      console.error('Create document error:', error);
-      console.error('Error response:', error.response);
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to create document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
-export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string; signers: any[]; business_id: string }): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/upload-esign-document?business_id=${data.business_id}`,
-        isFromLocal: true,
-        data: {
-          documentName: data.documentName,
-          signers: data.signers,
-          uploadPath: data.fileUrl || '',
-        },
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: UPLOAD_DOCUMENT_PDF,
-          payload: response.data,
-        });
-
-        dispatch(showMessage({
-          message: `Document "${data.documentName}" uploaded successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id: data.business_id }));
-
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to upload document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
 export const setActiveDocument = (document: any | null): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
       type: SET_ACTIVE_DOCUMENT,
       payload: document,
     });
-  };
-};
-
-export const updateDocument = (data: {
-  id: string;
-  name: string;
-  signers: any[];
-  signingOrder: boolean;
-  canvasElements: CanvasElement[];
-  pages: Page[];
-  business_id: string;
-}): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/update-esign-document/`,
-        isFromLocal: true,
-        data: {
-          id: data.id,
-          name: data.name,
-          signers: data.signers,
-          signingOrder: data.signingOrder,
-          canvasElements: convertListToObject(data.canvasElements),
-          pages: convertListToObject(data.pages),
-          business_id: data.business_id
-        },
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: UPDATE_DOCUMENT,
-          payload: response.data,
-        });
-
-        dispatch(setIsUnsaved(false));
-
-        dispatch(showMessage({
-          message: `Document "${data.name}" updated successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id: data.business_id }));
-
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to update document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
   };
 };
 
@@ -745,43 +574,6 @@ export const getDocuments = (filters?: { search?: string; status?: string; limit
         message: error.response?.data?.msg || 'Failed to fetch documents',
         variant: 'error',
       }));
-    }
-  };
-};
-
-export const getDocumentById = (id: string | undefined, business_id: string): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      console.log("busienssId, getDocById: ", business_id)
-
-      const response = await axiosInstance({
-        method: 'POST',
-        url: `http://localhost:8080/fetch-esign-document-by-id?business_id=${business_id}`,
-        isFromLocal: true,
-        data: { id }
-      });
-
-      if (response.status === 200 && response.data && response.data.data) {
-        const document = response.data.data[0]; 
-        dispatch(setActiveDocument(document));
-        return document;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.msg || 'Failed to fetch document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
     }
   };
 };
@@ -903,7 +695,19 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
   };
 };
 
-export const deleteDocument = (id: string, documentName: string, business_id: string): AppDispatch => {
+export const upsertDocument = (data: {
+  business_id: string;
+  id?: string;
+  is_delete?: boolean;
+  uploadPdfData?: any;
+  name?: string;
+  status?: string;
+  signers?: any[];
+  is_signing_order?: boolean;
+  pages?: Page[];
+  canvasElements?: CanvasElement[];
+  document_type?: string;
+}): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     try {
       dispatch({
@@ -912,26 +716,47 @@ export const deleteDocument = (id: string, documentName: string, business_id: st
       });
 
       const response = await axiosInstance({
-        method: 'POST',
-        url: `http://localhost:8080/delete-esign-document?business_id=${business_id}`,
+        method: 'post',
+        url: `http://localhost:8080/upsert-esign-document?business_id=${data.business_id}`,
         isFromLocal: true,
-        data: { id }
+        data: {
+          id: data.id,
+          is_delete: data.is_delete,
+          uploadPdfData: data.uploadPdfData,
+          name: data.name,
+          status: data.status,
+          signers: data.signers,
+          is_signing_order: data.is_signing_order,
+          canvasElements: convertListToObject(data.canvasElements),
+          pages: convertListToObject(data.pages),
+          document_type: data.document_type,
+        },
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 && response.data) {
+        dispatch({
+          type: UPDATE_DOCUMENT,
+          payload: response.data,
+        });
+
+        dispatch(setIsUnsaved(false));
+
         dispatch(showMessage({
-          message: `Document "${documentName}" deleted successfully`,
+          message: `Document "${data.name}" updated successfully`,
           variant: 'success',
         }));
 
         // Refresh documents list
-        dispatch(getDocuments({ business_id }));
+        dispatch(getDocuments({ business_id: data.business_id }));
+
+        return response.data;
       }
     } catch (error: any) {
       dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to delete document',
+        message: error.response?.data?.message || 'Failed to update document',
         variant: 'error',
       }));
+      return null;
     } finally {
       dispatch({
         type: SET_IS_LOADING,
