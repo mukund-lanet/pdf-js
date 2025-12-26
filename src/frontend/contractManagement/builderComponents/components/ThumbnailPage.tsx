@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { RootState } from '../../store/reducer/contractManagement.reducer';
-import { CanvasElement, isBlockElement, isFillableElement } from '../../utils/interface';
 import Typography from '@trenchaant/pkg-ui-component-library/build/Components/Typography';
 import { SET_CURRENT_PAGE } from '../../store/action/contractManagement.actions';
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
+// @ts-ignore
 import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
 interface ThumbnailPageProps {
@@ -17,33 +17,19 @@ interface ThumbnailPageProps {
 
 const ThumbnailPage = React.memo(({ pageNumber, isLoading, dragHandleProps }: ThumbnailPageProps) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const pages = useSelector((state: RootState) => state?.contractManagement?.pages || []);
   const dispatch = useDispatch();
   const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
 
-  // cleanup function
-  const cleanup = () => {
-    // clean up blob uri to prevent memory leaks
-    if (thumbnailUrl) {
-      URL.revokeObjectURL(thumbnailUrl);
-    }
-  };
-
-
-
   useEffect(() => {
-    // Check if we have pages data with imagePath
     if (pages && pages.length > 0 && pageNumber <= pages.length) {
-      const pageData = pages[pageNumber - 1]; // 0-based index
-      if (pageData && pageData.imagePath) {
-        // Use the imagePath directly for thumbnail
-        setThumbnailUrl(pageData.imagePath);
+      const pageData = pages[pageNumber - 1]; 
+      if (pageData && pageData.pageSrc) {
+        setThumbnailUrl(pageData.pageSrc);
         return;
       }
     }
 
-    // If no imagePath is available, set to null
     setThumbnailUrl(null);
   }, [pages, pageNumber]);
 

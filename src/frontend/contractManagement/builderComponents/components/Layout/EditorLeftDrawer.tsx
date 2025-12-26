@@ -6,141 +6,23 @@ import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Ty
 import EmptyMessageComponent from "@trenchaant/pkg-ui-component-library/build/Components/EmptyMessageComponent";
 import SimpleLoading from "@trenchaant/pkg-ui-component-library/build/Components/SimpleLoading";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import Avatar from "@trenchaant/pkg-ui-component-library/build/Components/Avatar";
 import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch";
-import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
 import IconButton from "@trenchaant/pkg-ui-component-library/build/Components/IconButton";
-import Divider from "@trenchaant/pkg-ui-component-library/build/Components/Divider";
-import Dialog from "@trenchaant/pkg-ui-component-library/build/Components/Dialog";
 import TeamUserComponent from "@trenchaant/common-component/dist/commonComponent/commonTeamUserComponent/commonTeamUserComponent"
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { DraggableBlockItemProps, DraggableToolbarItemProps, DRAWER_COMPONENT_CATEGORY, Signer } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
+// @ts-ignore
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
-import { ADD_DOCUMENT_VARIABLE, DELETE_DOCUMENT_VARIABLE, REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, SET_PAGES, TOOLBAR_ITEM, UPDATE_DOCUMENT, setDocumentVariables } from '@/components/contractManagement/store/action/contractManagement.actions';
+import { REORDER_PAGE_ELEMENTS, SET_ACTIVE_TOOL, SET_PAGES, TOOLBAR_ITEM, UPDATE_DOCUMENT } from '@/components/contractManagement/store/action/contractManagement.actions';
 import ThumbnailPage from '../ThumbnailPage';
 import { blocks, fillableFields, noPdfDocument } from '../../../utils/utils';
 import { useDrag } from 'react-dnd';
-import { showMessage } from '@/components/store/actions';
-import SearchBar from "@trenchaant/pkg-ui-component-library/build/Components/SearchBar";
 
 const EditorLeftDrawer: React.FC = () => {
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
-
-  const SettingsSidebar: React.FC = () => {
-    const [overrideEmail, setOverrideEmail] = useState(false);
-    const [enableRedirect, setEnableRedirect] = useState(false);
-    const [redirectUrl, setRedirectUrl] = useState('');
-    const [openInNewTab, setOpenInNewTab] = useState(false);
-
-    return (
-      <div className={styles.settingsSidebar}>
-        <div className={styles.settingSection}>
-          <div className={styles.switchRow}>
-            <Switch
-              checked={overrideEmail}
-              onChange={(e: any) => setOverrideEmail(e.target.checked)}
-              color='primary'
-            />
-            <Typography className={styles.settingLabel}>Override Email Configuration</Typography>
-            <CustomIcon iconName="info" width={16} height={16} variant="gray" />
-          </div>
-
-          {overrideEmail && (
-            <>
-              <div className={styles.inputGroup}>
-                <Typography className={styles.inputLabel}>From Name</Typography>
-                <input type="text" placeholder="Please Input" className={styles.textInput} />
-              </div>
-              <div className={styles.inputGroup}>
-                <Typography className={styles.inputLabel}>From Email</Typography>
-                <input type="text" placeholder="Please Input" className={styles.textInput} />
-              </div>
-            </>
-          )}
-
-          <div className={styles.inputGroup}>
-            <Typography className={styles.inputLabel}>Email Subject</Typography>
-            <div className={styles.inputWithIcon}>
-              <input type="text" defaultValue="{{location.name}} {{document.name}}" className={styles.textInput} />
-              <div className={styles.inputIcon}>
-                <CustomIcon iconName="tag" width={16} height={16} />
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.inputGroup}>
-            <Typography className={styles.inputLabel}>Email Template</Typography>
-            <select className={styles.selectInput}>
-              <option>Default</option>
-            </select>
-          </div>
-        </div>
-
-        <Divider horizontal />
-
-        <div className={styles.settingSection}>
-          <div className={styles.switchRow}>
-            <Switch
-              checked={enableRedirect}
-              onChange={(e: any) => setEnableRedirect(e.target.checked)}
-              color='primary'
-            />
-            <Typography className={styles.settingLabel}>Enable redirection to custom URL</Typography>
-          </div>
-
-          {enableRedirect && (
-            <div className={styles.redirectOptions}>
-              <div className={styles.inputGroup}>
-                <Typography className={styles.inputLabel}>Enter custom URL</Typography>
-                <input
-                  type="text"
-                  placeholder="https://example.com"
-                  className={styles.textInput}
-                  value={redirectUrl}
-                  onChange={(e) => setRedirectUrl(e.target.value)}
-                />
-              </div>
-              <div className={styles.radioGroup}>
-                <label className={styles.radioLabel}>
-                  <input
-                    type="radio"
-                    name="openTab"
-                    checked={!openInNewTab}
-                    onChange={() => setOpenInNewTab(false)}
-                  />
-                  Open in Existing Tab
-                </label>
-                <label className={styles.radioLabel}>
-                  <input
-                    type="radio"
-                    name="openTab"
-                    checked={openInNewTab}
-                    onChange={() => setOpenInNewTab(true)}
-                  />
-                  Open in New Tab
-                </label>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <Divider />
-
-        <div className={styles.settingSection}>
-          <div className={styles.sectionTitleRow}>
-            <Typography className={styles.settingLabel}>Add Attachments</Typography>
-            <CustomIcon iconName="info" width={16} height={16} variant="gray" />
-          </div>
-          <Button variant="outlined" className={styles.uploadButton} startIcon={<CustomIcon iconName="upload" width={16} height={16} />}>
-            Upload
-          </Button>
-        </div>
-      </div>
-    );
-  };
 
   const ElementsSidebar: React.FC = () => {
 
@@ -251,8 +133,6 @@ const EditorLeftDrawer: React.FC = () => {
   const RecipientsSidebar: React.FC = () => {
     const dispatch = useDispatch();
     const activeDocument = useSelector((state: RootState) => state?.contractManagement?.activeDocument);
-    const [isAddingRecipient, setIsAddingRecipient] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
     const [users, setUsers] = useState([]);
 
     const handleSigningOrderChange = (checked: boolean) => {
@@ -314,8 +194,8 @@ const EditorLeftDrawer: React.FC = () => {
               twoStepAssign={false}
               isMultiple
               componentName={"user"}
-              isCountPreview={true}
-              // isPreview={true}
+              // isCountPreview={true}
+              isPreview={true}
             />
           </div>
 
@@ -344,207 +224,7 @@ const EditorLeftDrawer: React.FC = () => {
               </div>
             ))}
           </div>
-
-          <div className={styles.addRecipientSection}>
-            {isAddingRecipient ? (
-              <div className={styles.addRecipientForm}>
-                <TextField
-                  placeholder="Search client"
-                  fullWidth
-                  value={searchTerm}
-                  onChange={(e: any) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: <CustomIcon iconName="search" height={16} width={16} variant="gray" />
-                  }}
-                />
-                <div className={styles.addClientLink}>
-                  <Typography variant="caption">LIST OF ALL CLIENTS</Typography>
-                  <Button variant="text" size="small" color="primary">Add New Client</Button>
-                </div>
-                {/* Mock List */}
-                <div className={styles.clientList}>
-                  <div className={styles.clientItem}>
-                    <Avatar className={styles.clientAvatar}>RM</Avatar>
-                    <div className={styles.clientInfo}>
-                      <Typography className={styles.clientName}>Rakholiya Mukund</Typography>
-                      <Typography className={styles.clientEmail}>mukurakholiya119@gmail.com</Typography>
-                    </div>
-                  </div>
-                </div>
-                <Button variant="outlined" fullWidth onClick={() => setIsAddingRecipient(false)}>Cancel</Button>
-              </div>
-            ) : (
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<CustomIcon iconName="plus" height={16} width={16} />}
-                onClick={() => setIsAddingRecipient(true)}
-              >
-                Add More Recipients
-              </Button>
-            )}
-          </div>
         </div>
-      </div>
-    );
-  };
-
-  const VariablesSidebar: React.FC = () => {
-    const dispatch = useDispatch();
-    const variables = useSelector((state: RootState) => state?.contractManagement?.documentVariables) || [];
-    const [variableState, setVariableState] = useState({
-      documentVariables: variables,
-      searchText: '',
-      isDialogOpen: false,
-    });
-
-    // Update local state when Redux variables change (e.g., initial load)
-    useEffect(() => {
-      setVariableState(prev => ({ ...prev, documentVariables: variables }));
-    }, [variables]);
-
-    const debouncedSyncToRedux = useDebouncedCallback((updatedVariables) => {
-      dispatch(setDocumentVariables(updatedVariables));
-    }, 500);
-
-    const filteredVariables = useMemo(() => {
-      const search = variableState.searchText.toLowerCase();
-      return variableState.documentVariables.filter(v =>
-        v.name.toLowerCase().includes(search) ||
-        String(v.value).toLowerCase().includes(search)
-      );
-    }, [variableState.documentVariables, variableState.searchText]);
-
-    const handleCopy = (text: string) => {
-      navigator.clipboard.writeText(text);
-      dispatch(showMessage({ message: "Variable copied to clipboard", variant: "success" }));
-    };
-
-    const handleDelete = (index: number) => {
-      // Find the actual variable to delete from the filtered list index
-      const variableToDelete = filteredVariables[index];
-      const updatedVariables = variableState.documentVariables.filter(v => v.name !== variableToDelete.name);
-      
-      setVariableState(prev => ({ ...prev, documentVariables: updatedVariables }));
-      dispatch(setDocumentVariables(updatedVariables));
-      dispatch(showMessage({ message: "Variable deleted successfully", variant: "success" }));
-    };
-
-    const handleValueChange = (name: string, newValue: string) => {
-      const updatedVariables = variableState.documentVariables.map(v => 
-        v.name === name ? { ...v, value: newValue } : v
-      );
-      setVariableState(prev => ({ ...prev, documentVariables: updatedVariables }));
-      debouncedSyncToRedux(updatedVariables);
-    };
-
-    const CreateVariableDialog: React.FC<{ isDialogOpen: boolean }> = ({ isDialogOpen }) => {
-      const [name, setName] = useState('');
-      const [value, setValue] = useState('');
-
-      const onClose = () => setVariableState(prev => ({ ...prev, isDialogOpen: false }));
-
-      const handleSave = () => {
-        if (name && value) {
-          const finalName = name.startsWith('document.') ? name : `document.${name}`;
-          const newVariable = { name: finalName, value, isSystem: false };
-          const updatedVariables = [...variableState.documentVariables, newVariable];
-          
-          setVariableState(prev => ({ 
-            ...prev, 
-            documentVariables: updatedVariables, 
-            isDialogOpen: false 
-          }));
-          dispatch(setDocumentVariables(updatedVariables));
-          dispatch(showMessage({ message: "Variable created successfully", variant: "success" }));
-          onClose();
-        }
-      };
-
-      return (
-        <Dialog
-          open={isDialogOpen}
-          label={"Create Document variable"}
-          description={"Create variable for your document"}
-          disableEscapeKeyDown
-          onClose={onClose}
-          submitBtn={{ onClick: handleSave, label: "Save" }}
-          cancelBtn={{ onClick: onClose, label: "Cancel" }}
-          className={styles.dialogMainWHoleWrapper}
-          classes={{ innerContent: styles.dialogContentWrapper }}
-        >
-          <div className={styles.dialogContent}>
-            <div className={styles.inputGroup}>
-              <Typography className={styles.typoLabel}>Variable name <span className={styles.required}>*</span></Typography>
-              <TextField
-                placeholder="Variable name"
-                value={name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <Typography className={styles.typoLabel}>Variable value <span className={styles.required}>*</span></Typography>
-              <TextField
-                placeholder="Variable value"
-                value={value}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
-              />
-            </div>
-          </div>
-        </Dialog>
-      );
-    };
-
-    return (
-      <div className={styles.variablesSidebar}>
-        <div className={styles.sidebarHeader}>
-          <Typography variant="h6" className={styles.sidebarTitle}>Document variables</Typography>
-        </div>
-
-        <div className={styles.searchContainer}>
-          <SearchBar
-            value={variableState.searchText}
-            placeholder={`Search variable`}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVariableState({ ...variableState, searchText: e.target.value })}
-          />
-          <Button
-            className={styles.addButton}
-            variant="outlined"
-            onClick={() => setVariableState({ ...variableState, isDialogOpen: true })}
-          >
-            <CustomIcon iconName="plus" width={20} height={20} />
-          </Button>
-        </div>
-
-        <div className={styles.variablesList}>
-          <div className={styles.variableItemsWrapper}>
-            {filteredVariables.map((variable, index) => (
-              <div key={variable.name} className={styles.variableItem}>
-                <Typography className={styles.variableKey}>{variable.name}</Typography>
-                <div className={styles.variableValueContainer}>
-                  <TextField
-                    className={styles.inputField}
-                    value={variable.value}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleValueChange(variable.name, e.target.value)}
-                  />
-                  <div className={styles.variableActions}>
-                    <Button className={styles.copyDeleteButton} onClick={() => handleCopy(variable.value)}>
-                      <CustomIcon iconName="copy" width={16} height={16} />
-                    </Button>
-                    {!variable.isSystem && (
-                      <Button className={styles.copyDeleteButton} onClick={() => handleDelete(index)}>
-                        <CustomIcon iconName="trash2" width={16} height={16} />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <CreateVariableDialog isDialogOpen={variableState.isDialogOpen} />
       </div>
     );
   };
@@ -635,6 +315,7 @@ const EditorLeftDrawer: React.FC = () => {
                   >
                     {pageIds.map((pageId, index) => (
                       <Draggable key={pageId} draggableId={pageId} index={index}>
+                        {/* @ts-ignore */}
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
@@ -674,18 +355,12 @@ const EditorLeftDrawer: React.FC = () => {
   };
 
   return (
-    <div className={`${styles.leftSideDrawerWrapper} ${drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS ? styles.leftSideDrawerElement : ''}`}>
+    <div className={`${styles.leftSideDrawerWrapper} ${drawerComponentType === DRAWER_COMPONENT_CATEGORY.PAGES ? styles.thumbnailWidth : ''}`}>
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS && (
         <ElementsSidebar />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.PAGES && (
         <ThumbnailSidebar />
-      )}
-      {drawerComponentType === DRAWER_COMPONENT_CATEGORY.DOCUMENT_VARIABLES && (
-        <VariablesSidebar />
-      )}
-      {drawerComponentType === DRAWER_COMPONENT_CATEGORY.SETTINGS && (
-        <SettingsSidebar />
       )}
       {drawerComponentType === DRAWER_COMPONENT_CATEGORY.RECIPIENTS && (
         <RecipientsSidebar />

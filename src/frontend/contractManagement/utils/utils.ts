@@ -201,8 +201,8 @@ export const blocks = [
   { type: 'image', label: 'Image', icon: 'image' },
   { type: 'video', label: 'Video', icon: 'video' },
   { type: 'table', label: 'Table', icon: 'table' },
-  { type: 'product-list', label: 'Product list', icon: 'file-text' },
-  { type: 'page-break', label: 'Page break', icon: 'scissors' },
+  // { type: 'product-list', label: 'Product list', icon: 'file-text' },
+  // { type: 'page-break', label: 'Page break', icon: 'scissors' },
 ];
 
 export const fillableFields = [
@@ -260,18 +260,6 @@ export const tabItems = {
     icon: "layers",
     title: "Page Manager",
     description: "Organize and manage document pages",
-  },
-  [DRAWER_COMPONENT_CATEGORY.DOCUMENT_VARIABLES]: {
-    name: "Variables",
-    icon: "braces",
-    title: "Document Variables",
-    description: "Create and manage dynamic variables",
-  },
-  [DRAWER_COMPONENT_CATEGORY.SETTINGS]: {
-    name: "Settings",
-    icon: "settings",
-    title: "Document Settings",
-    description: "Configure document preferences",
   },
   [DRAWER_COMPONENT_CATEGORY.RECIPIENTS]: {
     name: "Recipients",

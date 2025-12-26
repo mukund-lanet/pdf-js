@@ -10,7 +10,7 @@ import styles from 'app/(after-login)/(with-header)/contract-management/pdfEdito
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import IconButton from '@trenchaant/pkg-ui-component-library/build/Components/IconButton';
+import Checkbox from '@trenchaant/pkg-ui-component-library/build/Components/Checkbox';
 import Popover from "@trenchaant/pkg-ui-component-library/build/Components/Popover";
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -222,16 +222,13 @@ const DraggableElement = React.memo(({
 
       case 'checkbox':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
-            <IconButton color="secondary" onClick={handleChecked}>
-              <CustomIcon
-                iconName={element.checked ? "check-square" : "square"}
-                width={24}
-                height={24}
-                customColor="#00acc1"
-              />
-            </IconButton>
-          </div>
+          // <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
+            <Checkbox
+              className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}
+              checked={element.checked || false}
+              onChange={handleChecked}
+            />
+          // </div>
         );
 
       default:

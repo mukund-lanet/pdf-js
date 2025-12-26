@@ -39,15 +39,11 @@ export enum DIALOG_DRAWER_NAMES {
   BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen'
 }
 
-
 // pdf-editor
 export enum DRAWER_COMPONENT_CATEGORY {
   ADD_ELEMENTS = "add_elements",
-  PAGES = "Pages",
-  DOCUMENT_VARIABLES = "Document variables",
-  CONTENT_LIBRARY = "Content Library",
-  SETTINGS = "Settings",
-  RECIPIENTS = "Recipients"
+  PAGES = "pages",
+  RECIPIENTS = "recipients"
 }
 
 export interface TextElement {
@@ -206,12 +202,6 @@ export interface PageInfo {
   pageWidth: number;
   pageHeight: number;
   scale: number;
-}
-
-export interface DocumentVariable {
-  name: string;
-  value: string;
-  isSystem?: boolean;
 }
 
 export const isBlockElement = (element: CanvasElement): element is HeadingElement | ImageElement | VideoElement | TableElement => {

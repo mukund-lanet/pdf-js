@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import EditorHeader from './components/Layout/EditorHeader';
 import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
-import EditorMainArea from './components/Layout/EditorMainArea';
+import PDFCanvasViewer from './components/Canvas/PDFCanvasViewer';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
 import TextFormattingToolbar from './components/TextFormattingToolbar';
 import { RootState, contractManagementReducer } from '../store/reducer/contractManagement.reducer';
@@ -118,7 +118,7 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
 
           <div className={styles.mainContainer}>
             <EditorLeftDrawer />
-            <EditorMainArea />
+            <PDFCanvasViewer />
             <EditorRightSidebar />
           </div>
         </div>

@@ -162,14 +162,8 @@ const PDFPage = React.memo(({ pageNumber }: { pageNumber: number }) => {
   };
 
   return (
-    <div
-      id={`pdf-page-${pageNumber}`}
-      className={styles.pdfPageContainer}
-    >
-      <div
-        ref={containerRef}
-        className={styles.pdfCanvasViewer}
-      >
+    <div id={`pdf-page-${pageNumber}`} className={styles.pdfPageContainer} >
+      <div ref={containerRef} className={styles.pdfCanvasViewer} >
         <div
           onClick={handlePageClick}
           className={styles.canvasContainer}

@@ -1,7 +1,7 @@
 import { AppDispatch } from '..';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES, CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
+import { DIALOG_DRAWER_NAMES, CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, Page } from '../../utils/interface';
 import { convertObjectToList, convertListToObject } from '../../utils/utils';
 
 // Action Types
@@ -44,9 +44,6 @@ export const SET_DRAWER_COMPONENT_CATEGORY = 'SET_DRAWER_COMPONENT_CATEGORY';
 export const SET_DOCUMENT_FILTERS = 'SET_DOCUMENT_FILTERS';
 export const SET_FETCHING_DOCUMENTS = 'SET_FETCHING_DOCUMENTS';
 export const SET_ACTIVE_ELEMENT_ID = 'SET_ACTIVE_ELEMENT_ID';
-export const ADD_DOCUMENT_VARIABLE = 'ADD_DOCUMENT_VARIABLE';
-export const DELETE_DOCUMENT_VARIABLE = 'DELETE_DOCUMENT_VARIABLE';
-export const UPDATE_DOCUMENT_VARIABLE = 'UPDATE_DOCUMENT_VARIABLE';
 export const SET_PROPERTIES_DRAWER_STATE = 'SET_PROPERTIES_DRAWER_STATE';
 export const SET_PDF_MEDIA = 'SET_PDF_MEDIA';
 export const FILLABLE_ELEMENT = 'FILLABLE_ELEMENT';
@@ -55,7 +52,6 @@ export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
 export const SET_PAGES = 'SET_PAGES';
 export const SET_IS_UNSAVED = 'SET_IS_UNSAVED';
-export const SET_DOCUMENT_VARIABLES = 'SET_DOCUMENT_VARIABLES';
 
 
 // Dialog/Drawer Names Type
@@ -204,27 +200,6 @@ interface SetActiveElementIdAction {
   type: typeof SET_ACTIVE_ELEMENT_ID;
   payload: string | null;
 }
-
-interface AddDocumentVariableAction {
-  type: typeof ADD_DOCUMENT_VARIABLE;
-  payload: DocumentVariable;
-}
-
-interface DeleteDocumentVariableAction {
-  type: typeof DELETE_DOCUMENT_VARIABLE;
-  payload: string; // name
-}
-
-interface UpdateDocumentVariableAction {
-  type: typeof UPDATE_DOCUMENT_VARIABLE;
-  payload: DocumentVariable;
-}
-
-interface SetDocumentVariablesAction {
-  type: typeof SET_DOCUMENT_VARIABLES;
-  payload: DocumentVariable[];
-}
-
 
 interface SetIsLoadingAction {
   type: typeof SET_IS_LOADING;
@@ -394,9 +369,6 @@ export type ContractManagementAction =
   | SetIsLoadingAction
   | SetDrawerComponentCategoryAction
   | SetActiveElementIdAction
-  | AddDocumentVariableAction
-  | DeleteDocumentVariableAction
-  | UpdateDocumentVariableAction
   | SetPropertiesDrawerStateAction
   | SetPdfMediaAction
   | SetDocumentTypeAction
@@ -409,8 +381,7 @@ export type ContractManagementAction =
   | SetFetchingDocumentsAction
   | SetDocumentsListAction
   | SetContractsListAction
-  | SetSettingsDataAction
-  | SetDocumentVariablesAction;
+  | SetSettingsDataAction;
 
 
 // Action Creators
@@ -512,16 +483,6 @@ export const setIsUnsaved = (isUnsaved: boolean): AppDispatch => {
     });
   };
 };
-
-export const setDocumentVariables = (variables: DocumentVariable[]): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    dispatch({
-      type: SET_DOCUMENT_VARIABLES,
-      payload: variables,
-    });
-  };
-};
-
 
 // ============ Document API Actions ============
 
@@ -766,213 +727,213 @@ export const upsertDocument = (data: {
   };
 };
 
-// ============ Contract API Actions ============
+// // ============ Contract API Actions ============
 
-export const getContracts = (): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-      });
+// export const getContracts = (): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       const response = await axiosInstance({
+//         method: 'get',
+//         url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//       });
 
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: SET_CONTRACTS_LIST,
-          payload: response.data,
-        });
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch contracts:', error);
-    }
-  };
-};
+//       if (response.status === 200 && response.data) {
+//         dispatch({
+//           type: SET_CONTRACTS_LIST,
+//           payload: response.data,
+//         });
+//       }
+//     } catch (error: any) {
+//       console.error('Failed to fetch contracts:', error);
+//     }
+//   };
+// };
 
-export const createContract = (contractData: any): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
+// export const createContract = (contractData: any): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
 
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-        data: contractData,
-      });
+//       const response = await axiosInstance({
+//         method: 'post',
+//         url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//         data: contractData,
+//       });
 
-      if (response.status === 200 && response.data) {
-        dispatch(showMessage({
-          message: `Contract "${contractData.name}" created successfully`,
-          variant: 'success',
-        }));
+//       if (response.status === 200 && response.data) {
+//         dispatch(showMessage({
+//           message: `Contract "${contractData.name}" created successfully`,
+//           variant: 'success',
+//         }));
 
-        dispatch(getContracts());
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to create contract',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
+//         dispatch(getContracts());
+//         return response.data;
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to create contract',
+//         variant: 'error',
+//       }));
+//       return null;
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
 
-export const updateContract = (id: string, contractData: any): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
+// export const updateContract = (id: string, contractData: any): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
 
-      const response = await axiosInstance({
-        method: 'put',
-        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-        data: contractData,
-      });
+//       const response = await axiosInstance({
+//         method: 'put',
+//         url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//         data: contractData,
+//       });
 
-      if (response.status === 200 && response.data) {
-        dispatch(showMessage({
-          message: `Contract "${contractData.name}" updated successfully`,
-          variant: 'success',
-        }));
+//       if (response.status === 200 && response.data) {
+//         dispatch(showMessage({
+//           message: `Contract "${contractData.name}" updated successfully`,
+//           variant: 'success',
+//         }));
 
-        dispatch(getContracts());
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to update contract',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
+//         dispatch(getContracts());
+//         return response.data;
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to update contract',
+//         variant: 'error',
+//       }));
+//       return null;
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
 
-export const deleteContract = (id: string, contractName: string): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
+// export const deleteContract = (id: string, contractName: string): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
 
-      const response = await axiosInstance({
-        method: 'delete',
-        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-      });
+//       const response = await axiosInstance({
+//         method: 'delete',
+//         url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//       });
 
-      if (response.status === 200) {
-        dispatch(showMessage({
-          message: `Contract "${contractName}" deleted successfully`,
-          variant: 'success',
-        }));
+//       if (response.status === 200) {
+//         dispatch(showMessage({
+//           message: `Contract "${contractName}" deleted successfully`,
+//           variant: 'success',
+//         }));
 
-        dispatch(getContracts());
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to delete contract',
-        variant: 'error',
-      }));
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
+//         dispatch(getContracts());
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to delete contract',
+//         variant: 'error',
+//       }));
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
 
-// ============ Settings API Actions ============
+// // ============ Settings API Actions ============
 
-export const getSettings = (): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-      });
+// export const getSettings = (): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       const response = await axiosInstance({
+//         method: 'get',
+//         url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//       });
 
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: SET_SETTINGS_DATA,
-          payload: response.data,
-        });
+//       if (response.status === 200 && response.data) {
+//         dispatch({
+//           type: SET_SETTINGS_DATA,
+//           payload: response.data,
+//         });
 
-        // Also update individual settings in Redux
-        if (response.data.identityVerification) {
-          dispatch(setIdentityVerificationSettings(response.data.identityVerification));
-        }
-        if (response.data.globalDocument) {
-          dispatch(setGlobalDocumentSettings(response.data.globalDocument));
-        }
-        if (response.data.branding) {
-          dispatch(setBrandingCustomizationSettings(response.data.branding));
-        }
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch settings:', error);
-    }
-  };
-};
+//         // Also update individual settings in Redux
+//         if (response.data.identityVerification) {
+//           dispatch(setIdentityVerificationSettings(response.data.identityVerification));
+//         }
+//         if (response.data.globalDocument) {
+//           dispatch(setGlobalDocumentSettings(response.data.globalDocument));
+//         }
+//         if (response.data.branding) {
+//           dispatch(setBrandingCustomizationSettings(response.data.branding));
+//         }
+//       }
+//     } catch (error: any) {
+//       console.error('Failed to fetch settings:', error);
+//     }
+//   };
+// };
 
-export const updateSettings = (settingsData: any): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
+// export const updateSettings = (settingsData: any): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
 
-      const response = await axiosInstance({
-        method: 'put',
-        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-        data: settingsData,
-      });
+//       const response = await axiosInstance({
+//         method: 'put',
+//         url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//         data: settingsData,
+//       });
 
-      if (response.status === 200 && response.data) {
-        dispatch(showMessage({
-          message: 'Settings updated successfully',
-          variant: 'success',
-        }));
+//       if (response.status === 200 && response.data) {
+//         dispatch(showMessage({
+//           message: 'Settings updated successfully',
+//           variant: 'success',
+//         }));
 
-        dispatch(getSettings());
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to update settings',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
+//         dispatch(getSettings());
+//         return response.data;
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to update settings',
+//         variant: 'error',
+//       }));
+//       return null;
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
 

@@ -112,12 +112,7 @@ const FillableContainer = ({
                 height: defaultSize['text-field'].height,
                 content: 'Enter text here...',
                 page: pageNumber,
-                fontSize: 12,
-                color: '#000000',
-                fontWeight: 'normal',
-                fontStyle: 'normal',
-                textDecoration: 'none',
-                textAlign: 'left'
+                required: false
               }
             });
             break;
@@ -175,8 +170,9 @@ const FillableContainer = ({
                 y: y - defaultSize.signature.height / 2,
                 width: defaultSize.signature.width,
                 height: defaultSize.signature.height,
-                imageData: '',
-                page: pageNumber
+                page: pageNumber,
+                showSignerName: false,
+                content: '',
               }
             });
             break;
@@ -192,7 +188,8 @@ const FillableContainer = ({
                 width: defaultSize.date.width,
                 height: defaultSize.date.height,
                 value: '',
-                page: pageNumber
+                page: pageNumber,
+                required: false
               }
             });
             break;
@@ -224,6 +221,7 @@ const FillableContainer = ({
                 width: defaultSize.checkbox.width,
                 height: defaultSize.checkbox.height,
                 checked: false,
+                required: false,
                 page: pageNumber
               }
             });

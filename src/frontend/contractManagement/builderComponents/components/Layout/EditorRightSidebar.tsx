@@ -22,6 +22,7 @@ import {
   CanvasElement
 } from '../../../utils/interface';
 import TextField from "@trenchaant/pkg-ui-component-library/build/Components/TextField";
+import TeamUserComponent from "@trenchaant/common-component/dist/commonComponent/commonTeamUserComponent/commonTeamUserComponent"
 import InputAdornment from "@trenchaant/pkg-ui-component-library/build/Components/InputAdornment";
 import Popper from '@trenchaant/pkg-ui-component-library/build/Components/Popper';
 import ColorInput from '../Properties/ColorInput';
@@ -338,53 +339,53 @@ const EditorRightSidebar = () => {
         </div>
 
         <div className={styles.propertyGroup}>
-        {/* <div className={`${styles.propertyGroup} ${styles.propertyColorInput}`}> */}
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Subtitle color"
-            placeholder="Enter subtitle color"
-            hideBorder={true}
-            value={localElement.subtitleColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleColor: e.target.value })}
-            onBlur={handleBlur}
-            inputProps={{ className: 'py-10 text-13' }}
-            endAdornment={(
-              <InputAdornment position="end">
+          <div className={styles.propertyColorInput}>
+            <Typography className={styles.spanColorInputLabel} >Subtitle color</Typography>
+            <div className={styles.textClolorInputWrapperLabel} >
+              <span className={styles.spanColorInputWrapper} >
                 <ColorInput
                   value={localElement.subtitleColor || '#000000'}
                   onChange={(value) => updateElement({ subtitleColor: value })}
-                />  
-              </InputAdornment>
-            )}
-            className={styles.propertyColorTextField}
-          />
-          {/* <ColorInput
-            value={localElement.subtitleColor || '#000000'}
-            onChange={(value) => updateElement({ subtitleColor: value })}
-          /> */}
+                />
+              </span>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Enter subtitle color"
+                hideBorder={true}
+                value={localElement.subtitleColor || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ subtitleColor: e.target.value })}
+                onBlur={handleBlur}
+                inputProps={{ className: 'py-10 text-13' }}
+                className={styles.propertyColorTextField}
+              />
+            </div>
+          </div>
         </div>
 
         <div className={styles.propertyGroup}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Background color"
-            placeholder="Enter background color"
-            hideBorder={true}
-            value={localElement.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
-            onBlur={handleBlur}
-            inputProps={{ className: 'py-10 text-13' }}
-            endAdornment={(
-              <InputAdornment position="end">
+          <div className={styles.propertyColorInput} >
+            <Typography className={styles.spanColorInputLabel} >Background color</Typography>
+            <div className={styles.textClolorInputWrapperLabel} >
+              <span className={styles.spanColorInputWrapper} >
                 <ColorInput
                   value={localElement.backgroundColor || '#ffffff'}
                   onChange={(value) => updateElement({ backgroundColor: value })}
                 />
-              </InputAdornment>
-            )}
-          />
+              </span>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Enter background color"
+                hideBorder={true}
+                value={localElement.backgroundColor || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+                onBlur={handleBlur}
+                inputProps={{ className: 'py-10 text-13' }}
+                className={styles.propertyColorTextField}
+              />
+            </div>
+          </div>
         </div>
 
         <BoxModelControl
@@ -479,25 +480,28 @@ const EditorRightSidebar = () => {
         </div>
 
         <div className={styles.propertyGroup}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Background color"
-            placeholder="Enter background color"
-            hideBorder={true}
-            value={localElement.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
-            onBlur={handleBlur}
-            inputProps={{ className: 'py-10 text-13' }}
-            endAdornment={(
-              <InputAdornment position="end">
+          <div className={styles.propertyColorInput} >
+            <Typography className={styles.spanColorInputLabel} >Background color</Typography>
+            <div className={styles.textClolorInputWrapperLabel}>
+              <span className={styles.spanColorInputLabel} >
                 <ColorInput
                   value={localElement.backgroundColor || '#ffffff'}
-                  onChange={(backgroundColor) => updateElement({ backgroundColor })}
+                  onChange={(value) => updateElement({ backgroundColor: value })}
                 />
-              </InputAdornment>
-            )}
-          />
+              </span>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Enter background color"
+                hideBorder={true}
+                value={localElement.backgroundColor || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+                onBlur={handleBlur}
+                inputProps={{ className: 'py-10 text-13' }}
+                className={styles.propertyColorTextField}
+              />
+            </div>
+          </div>
         </div>
 
         <div className={styles.propertyGroup}>
@@ -609,25 +613,28 @@ const EditorRightSidebar = () => {
         </div>
 
         <div className={styles.propertyGroup}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Background color"
-            placeholder="Enter background color"
-            hideBorder={true}
-            value={localElement.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
-            onBlur={handleBlur}
-            inputProps={{ className: 'py-10 text-13' }}
-            endAdornment={(
-              <InputAdornment position="end">
+          <div className={styles.propertyColorInput} >
+            <Typography className={styles.spanColorInputLabel} >Background color</Typography>
+            <div className={styles.textClolorInputWrapperLabel}>
+              <span className={styles.spanColorInputWrapper} >
                 <ColorInput
                   value={localElement.backgroundColor || '#ffffff'}
                   onChange={(value) => updateElement({ backgroundColor: value })}
                 />
-              </InputAdornment>
-            )}
-          />
+              </span>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Enter background color"
+                hideBorder={true}
+                value={localElement.backgroundColor || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+                onBlur={handleBlur}
+                inputProps={{ className: 'py-10 text-13' }}
+                className={styles.propertyColorTextField}
+              />
+            </div>
+          </div>
         </div>
 
         <div className={styles.propertyGroup}>
@@ -708,25 +715,28 @@ const EditorRightSidebar = () => {
     return (
       <div className={styles.propertiesContentWrapper}>
         <div className={styles.propertyGroup}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Background color"
-            placeholder="Enter background color"
-            hideBorder={true}
-            value={localElement.backgroundColor || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
-            onBlur={handleBlur}
-            inputProps={{ className: 'py-10 text-13' }}
-            endAdornment={(
-              <InputAdornment position="end">
+          <div className={styles.propertyColorInput} >
+            <Typography className={styles.spanColorInputLabel} >Background color</Typography>
+            <div className={styles.textClolorInputWrapperLabel} >
+              <span className={styles.spanColorInputWrapper} >
                 <ColorInput
                   value={localElement.backgroundColor || '#ffffff'}
                   onChange={(value) => updateElement({ backgroundColor: value })}
                 />
-              </InputAdornment>
-            )}
-          />
+              </span>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Enter background color"
+                hideBorder={true}
+                value={localElement.backgroundColor || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ backgroundColor: e.target.value })}
+                onBlur={handleBlur}
+                inputProps={{ className: 'py-10 text-13' }}
+                className={styles.propertyColorTextField}
+              />
+            </div>
+          </div>
         </div>
 
         <BoxModelControl
@@ -759,48 +769,32 @@ const EditorRightSidebar = () => {
       forceUpdateRedux();
     };
 
-    const mockUser = {
-      name: 'John Doe',
-      email: 'johndoe12@gmail.com',
-      avatar: 'JD',
-      role: 'Primary',
-      type: 'Signer'
-    };
+    const [user, setUser] = useState(null);
 
     return (
       <div className={styles.propertiesContentWrapper}>
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>To be signed by</Typography>
-          <Select
-            fullWidth
-            value={mockUser.name}
-            onChange={() => { }}
-            size="small"
-          >
-            <MenuItem value={mockUser.name}>{mockUser.name}</MenuItem>
-          </Select>
-        </div>
-
-        <div className={styles.userInfoCard}>
-          <div className={styles.userAvatar}>{mockUser.avatar}</div>
-          <div className={styles.userDetails}>
-            <Typography className={styles.userName}>{mockUser.name}</Typography>
-            <Typography className={styles.userEmail}>{mockUser.email}</Typography>
-            <div className={styles.userBadges}>
-              <span className={styles.badgePrimary}>{mockUser.role}</span>
-              <span className={styles.badgeSigner}>{mockUser.type}</span>
-            </div>
-          </div>
+          <TeamUserComponent
+            value={user || []}
+            onChange={(selectedUser: any) => setUser(selectedUser)}
+            label={"To be signed by"}
+            twoStepAssign={false}
+            // isMultiple={false}
+            componentName={"user"}
+            // isCountPreview={true}
+            isPreview={true}
+          />
         </div>
 
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>Placeholder</Typography>
           <TextField
             fullWidth
             variant="outlined"
+            label="Placeholder"
             hideBorder={true}
             // @ts-ignore
-            value={localElement.content || 'Signature'}
+            value={localElement.content}
+            placeholder="Enter text here..."
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ content: e.target.value })}
             onBlur={handleBlur}
             inputProps={{ className: 'py-10 text-13' }}
@@ -826,51 +820,32 @@ const EditorRightSidebar = () => {
       forceUpdateRedux 
     } = useElementUpdate<TextElement>(element);
 
+    const [user, setUser] = useState(null);
+
     const handleBlur = () => {
       forceUpdateRedux();
-    };
-
-    const mockUser = {
-      name: 'John Doe',
-      email: 'johndoe12@gmail.com',
-      avatar: 'JD',
-      role: 'Primary',
-      type: 'Signer'
     };
 
     return (
       <div className={styles.propertiesContentWrapper}>
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>To be filled by</Typography>
-          <Select
-            fullWidth
-            value={mockUser.name}
-            onChange={() => { }}
-            size="small"
-          >
-            <MenuItem value={mockUser.name}>{mockUser.name}</MenuItem>
-          </Select>
+          <TeamUserComponent
+            value={user}
+            onChange={(selectedUser: any) => setUser(selectedUser)}
+            label={"To be signed by"}
+            twoStepAssign={false}
+            componentName={"user"}
+            // isMultiple
+            // isCountPreview={true}
+            isPreview={true}
+          />
         </div>
-
-        <div className={styles.userInfoCard}>
-          <div className={styles.userAvatar}>{mockUser.avatar}</div>
-          <div className={styles.userDetails}>
-            <Typography className={styles.userName}>{mockUser.name}</Typography>
-            <Typography className={styles.userEmail}>{mockUser.email}</Typography>
-            <div className={styles.userBadges}>
-              <span className={styles.badgePrimary}>{mockUser.role}</span>
-              <span className={styles.badgeSigner}>{mockUser.type}</span>
-            </div>
-          </div>
-        </div>
-
-        <Typography className={styles.sectionHeader}>OPTIONS</Typography>
 
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>Placeholder</Typography>
           <TextField
             fullWidth
             variant="outlined"
+            label="Placeholder"
             hideBorder={true}
             // @ts-ignore
             value={localElement.content !== undefined ? localElement.content : 'Enter value'}
@@ -888,8 +863,6 @@ const EditorRightSidebar = () => {
             label="Required"
           />
         </div>
-
-        <Typography className={styles.sectionHeader}>LINKED FIELDS</Typography>
 
         {/* <div className={styles.propertyGroup}>
           <Button
@@ -911,56 +884,32 @@ const EditorRightSidebar = () => {
       forceUpdateRedux 
     } = useElementUpdate<DateElement>(element);
 
+    const [user, setUser] = useState(null);
+
     const handleBlur = () => {
       forceUpdateRedux();
-    };
-
-    const mockUser = {
-      name: 'John Doe',
-      email: 'johndoe12@gmail.com',
-      avatar: 'JD',
-      role: 'Primary',
-      type: 'Signer'
     };
 
     return (
       <div className={styles.propertiesContentWrapper}>
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>To be filled by</Typography>
-          <Select
-            fullWidth
-            value={mockUser.name}
-            onChange={() => { }}
-            size="small"
-          >
-            <MenuItem value={mockUser.name}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div className={styles.userAvatarSmall}>{mockUser.avatar}</div>
-                <span>{mockUser.name}</span>
-              </div>
-            </MenuItem>
-          </Select>
+          <TeamUserComponent
+            value={user}
+            onChange={(selectedUser: any) => setUser(selectedUser)}
+            label={"To be signed by"}
+            twoStepAssign={false}
+            componentName={"user"}
+            // isMultiple
+            // isCountPreview={true}
+            isPreview={true}
+          />
         </div>
-
-        <div className={styles.userInfoCard}>
-          <div className={styles.userAvatar}>{mockUser.avatar}</div>
-          <div className={styles.userDetails}>
-            <Typography className={styles.userName}>{mockUser.name}</Typography>
-            <Typography className={styles.userEmail}>{mockUser.email}</Typography>
-            <div className={styles.userBadges}>
-              <span className={styles.badgePrimary}>{mockUser.role}</span>
-              <span className={styles.badgeSigner}>{mockUser.type}</span>
-            </div>
-          </div>
-        </div>
-
-        <Typography className={styles.sectionHeader}>OPTIONS</Typography>
 
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>Placeholder</Typography>
           <TextField
             fullWidth
             variant="outlined"
+            label="Placeholder"
             hideBorder={true}
             placeholder='Select date'
             value={localElement.placeholder}
@@ -971,9 +920,9 @@ const EditorRightSidebar = () => {
         </div>
 
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>Date Formats</Typography>
           <Select
             fullWidth
+            label="Date Format"
             value={localElement.dateFormat || 'YYYY-MM-DD'}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateElement({ dateFormat: e.target.value })}
             size="small"
@@ -985,8 +934,8 @@ const EditorRightSidebar = () => {
         </div>
 
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>Available Dates</Typography>
           <Select
+            label="Available Dates"
             fullWidth
             value={localElement.availableDates || 'Any Date'}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ availableDates: e.target.value })}
@@ -1005,18 +954,6 @@ const EditorRightSidebar = () => {
             label="Required"
           />
         </div>
-
-        {/* <Typography className={styles.sectionHeader}>LINKED FIELDS</Typography>
-
-        <div className={styles.propertyGroup}>
-          <Button
-            fullWidth
-            variant="text"
-            className={styles.addCustomFieldsBtn}
-          >
-            Add custom fields
-          </Button>
-        </div> */}
       </div>
     );
   };
@@ -1028,47 +965,30 @@ const EditorRightSidebar = () => {
       forceUpdateRedux 
     } = useElementUpdate<InitialsElement>(element);
 
+    const [user, setUser] = useState(null);
+    
     const handleBlur = () => {
       forceUpdateRedux();
-    };
-
-    const mockUser = {
-      name: 'John Doe',
-      email: 'johndoe12@gmail.com',
-      avatar: 'JD',
-      role: 'Primary',
-      type: 'Signer'
     };
 
     return (
       <div className={styles.propertiesContentWrapper}>
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>To be signed by</Typography>
-          <Select
-            fullWidth
-            value={mockUser.name}
-            onChange={() => { }}
-            size="small"
-          >
-            <MenuItem value={mockUser.name}>{mockUser.name}</MenuItem>
-          </Select>
-        </div>
-
-        <div className={styles.userInfoCard}>
-          <div className={styles.userAvatar}>{mockUser.avatar}</div>
-          <div className={styles.userDetails}>
-            <Typography className={styles.userName}>{mockUser.name}</Typography>
-            <Typography className={styles.userEmail}>{mockUser.email}</Typography>
-            <div className={styles.userBadges}>
-              <span className={styles.badgePrimary}>{mockUser.role}</span>
-              <span className={styles.badgeSigner}>{mockUser.type}</span>
-            </div>
-          </div>
+          <TeamUserComponent
+            value={user}
+            onChange={(selectedUser: any) => setUser(selectedUser)}
+            label={"To be signed by"}
+            twoStepAssign={false}
+            componentName={"user"}
+            // isMultiple
+            // isCountPreview={true}
+            isPreview={true}
+          />
         </div>
 
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>Placeholder</Typography>
           <TextField
+            label="Placeholder"
             fullWidth
             variant="outlined"
             hideBorder={true}
@@ -1086,6 +1006,8 @@ const EditorRightSidebar = () => {
   const CheckboxProperties: React.FC<{ element: CheckboxElement }> = ({ element }) => {
     const dispatch = useDispatch();
 
+    const [user, setUser] = useState(null);
+    
     const updateElement = (updates: Partial<CheckboxElement>) => {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
@@ -1093,41 +1015,20 @@ const EditorRightSidebar = () => {
       });
     };
 
-    const mockUser = {
-      name: 'John Doe',
-      email: 'johndoe12@gmail.com',
-      avatar: 'JD',
-      role: 'Primary',
-      type: 'Signer'
-    };
-
     return (
       <div className={styles.propertiesContentWrapper}>
         <div className={styles.propertyGroup}>
-          <Typography className={styles.propertyLabel}>To be filled by</Typography>
-          <Select
-            fullWidth
-            value={mockUser.name}
-            onChange={() => { }}
-            size="small"
-          >
-            <MenuItem value={mockUser.name}>{mockUser.name}</MenuItem>
-          </Select>
+          <TeamUserComponent
+            value={user}
+            onChange={(selectedUser: any) => setUser(selectedUser)}
+            label={"To be signed by"}
+            twoStepAssign={false}
+            componentName={"user"}
+            // isMultiple
+            // isCountPreview={true}
+            isPreview={true}
+          />
         </div>
-
-        <div className={styles.userInfoCard}>
-          <div className={styles.userAvatar}>{mockUser.avatar}</div>
-          <div className={styles.userDetails}>
-            <Typography className={styles.userName}>{mockUser.name}</Typography>
-            <Typography className={styles.userEmail}>{mockUser.email}</Typography>
-            <div className={styles.userBadges}>
-              <span className={styles.badgePrimary}>{mockUser.role}</span>
-              <span className={styles.badgeSigner}>{mockUser.type}</span>
-            </div>
-          </div>
-        </div>
-
-        <Typography className={styles.sectionHeader}>OPTIONS</Typography>
 
         <div className={styles.propertyGroup}>
           {element.type === 'checkbox' && (
@@ -1142,14 +1043,13 @@ const EditorRightSidebar = () => {
               label="Is checked"
             />
           )}
+          <br />
           <Checkbox
             checked={element.required || false}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateElement({ required: e.target.checked })}
             label="Required"
           />
         </div>
-
-        <Typography className={styles.sectionHeader}>LINKED FIELDS</Typography>
 
         {/* <div className={styles.propertyGroup}>
           <Button

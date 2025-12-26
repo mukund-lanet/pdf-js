@@ -5,7 +5,7 @@ import {
   ContractItem,
   Page
 } from '../../utils/interface';
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY } from '../../utils/interface';
 
 export interface ContractManagementState {
   pdfBuilderDrawerOpen: boolean;
@@ -100,7 +100,6 @@ export interface ContractManagementState {
   isLoading: boolean;
   drawerComponentCategory: DRAWER_COMPONENT_CATEGORY;
   activeElementId: string | null;
-  documentVariables: DocumentVariable[];
   propertiesDrawerState: {
     anchorEl: null | HTMLElement;
     isOpen: boolean;
@@ -212,7 +211,6 @@ const initialState: ContractManagementState = {
   isLoading: false,
   drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS,
   activeElementId: null,
-  documentVariables: [],
   propertiesDrawerState: {
     anchorEl: null,
     isOpen: false
@@ -319,13 +317,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       };
     }
 
-    // case Actions.SET_ACTIVE_DOCUMENT: {
-    //   return {
-    //     ...state,
-    //     activeDocument: action.payload,
-    //   };
-    // }
-
     case Actions.UPDATE_DOCUMENT: {
       const { documentId, documentName, signers, signingOrder, canvasElements } = action.payload;
       const updatedDocuments = state.documents.map(doc =>
@@ -337,11 +328,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         documents: updatedDocuments,
-        // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
         activeDocument: state.activeDocument && state.activeDocument._id === documentId
           ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements }
           : state.activeDocument,
-        isUnsaved: true,
+        isUnsaved: false,
       };
     }
 
@@ -387,36 +377,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         activeElementId: action.payload
-      };
-
-    case Actions.ADD_DOCUMENT_VARIABLE:
-      return {
-        ...state,
-        documentVariables: [...state.documentVariables, action.payload],
-        isUnsaved: true,
-      };
-
-    case Actions.DELETE_DOCUMENT_VARIABLE:
-      return {
-        ...state,
-        documentVariables: state.documentVariables.filter(v => v.name !== action.payload),
-        isUnsaved: true,
-      };
-
-    case Actions.UPDATE_DOCUMENT_VARIABLE:
-      return {
-        ...state,
-        documentVariables: state.documentVariables.map(v =>
-          v.name === action.payload.name ? action.payload : v
-        ),
-        isUnsaved: true,
-      };
-
-    case Actions.SET_DOCUMENT_VARIABLES:
-      return {
-        ...state,
-        documentVariables: action.payload,
-        isUnsaved: true,
       };
 
     case Actions.SET_IS_LOADING:
@@ -600,23 +560,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         isLoading: false,
         drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
         activeElementId: null,
-        documentVariables: [
-          {
-            name: 'document.createdDate',
-            value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            isSystem: true
-          },
-          {
-            name: 'document.refNumber',
-            value: `P${Math.floor(10000 + Math.random() * 90000)} `,
-            isSystem: true
-          },
-          {
-            name: 'document.subAccountName',
-            value: "CRMOne",
-            isSystem: true
-          },
-        ],
         propertiesDrawerState: {
           anchorEl: null,
           isOpen: false

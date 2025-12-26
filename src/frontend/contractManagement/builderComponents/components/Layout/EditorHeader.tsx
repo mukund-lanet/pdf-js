@@ -10,6 +10,7 @@ import TextField from '@trenchaant/pkg-ui-component-library/build/Components/Tex
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { SET_CANVAS_ELEMENTS, SET_CURRENT_PAGE, SET_IS_LOADING, SET_PAGES, SET_SELECTED_TEXT_ELEMENT, SET_TOTAL_PAGES, setIsUnsaved, upsertDocument } from '../../../store/action/contractManagement.actions';
+import Badge from "@trenchaant/pkg-ui-component-library/build/Components/Badge";
 
 const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousClick }) => {
   const dispatch = useDispatch();
@@ -87,10 +88,13 @@ const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousCl
     } 
   };
 
+  const handleSendDocument = () => {
+    
+  };
+
   // Keyboard shortcut: Ctrl+S / Cmd+S to save
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log({event})
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
         event.stopPropagation();
@@ -119,14 +123,26 @@ const EditorHeader: React.FC<{ onPreviousClick?: () => void }> = ({ onPreviousCl
         placeholder="Enter document name"
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocName(e.target.value)}
       />
-      <Button
-        variant={"contained"}
-        color={"primary"}
-        startIcon={<CustomIcon iconName='save' height={16} width={16} variant={"white"} />}
-        onClick={handleSaveDocument}
-      >
-        <Typography> Save </Typography>
-      </Button>
+      <div className={styles.saveSendBtnWrapper} >
+        <Badge color="primary" size="small" invisible={!isUnsaved} variant="dot">
+          <Button
+            variant={"outlined"}
+            startIcon={<CustomIcon iconName='save' height={16} width={16} />}
+            onClick={handleSaveDocument}
+            >
+            <Typography className={styles.sendBtnText} > Save </Typography>
+          </Button>
+        </Badge>
+
+        <Button
+          variant={"contained"}
+          color={"primary"}
+          startIcon={<CustomIcon iconName='send' height={16} width={16} variant={"white"} />}
+          onClick={handleSendDocument}
+        >
+          <Typography> Send </Typography>
+        </Button>
+      </div>
     </div>
   );
 };
