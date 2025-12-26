@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+// @ts-ignore
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -7,22 +8,23 @@ import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import EditorHeader from './components/Layout/EditorHeader';
 import EditorLeftDrawer from './components/Layout/EditorLeftDrawer';
-import EditorMainArea from './components/Layout/EditorMainArea';
 import EditorRightSidebar from './components/Layout/EditorRightSidebar';
 import TextFormattingToolbar from './components/TextFormattingToolbar';
 import { RootState, contractManagementReducer } from '../store/reducer/contractManagement.reducer';
 import { injectReducer } from '@/components/store';
 import { SET_DRAWER_COMPONENT_CATEGORY, UPDATE_MULTIPLE_ELEMENTS } from '../store/action/contractManagement.actions';
-import { DRAWER_COMPONENT_CATEGORY } from '../utils/interface';
+import { DRAWER_COMPONENT_CATEGORY, CanvasElement } from '../utils/interface';
 import Tabs from "@trenchaant/pkg-ui-component-library/build/Components/Tabs";
 import Tab from "@trenchaant/pkg-ui-component-library/build/Components/Tab";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import { tabItems } from '../utils/utils';
+import PDFCanvasViewer from './components/Canvas/PDFCanvasViewer';
 
 const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   const dispatch = useDispatch();
 
   const business_id = useSelector((state: any) => state?.auth?.business?.id);
+  const documents = useSelector((state: RootState) => state?.contractManagement?.documents);
 
   // Inject reducer to ensure state is available even on direct load
   React.useEffect(() => {
@@ -39,7 +41,8 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   }, [documentId, dispatch]);
 
   const drawerComponentType = useSelector((state: RootState) => state?.contractManagement?.drawerComponentCategory);
-  const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages);
+  const currentPage = useSelector((state: RootState) => state?.contractManagement?.currentPage);
   const isUnsaved = useSelector((state: RootState) => state?.contractManagement?.isUnsaved);
 
   React.useEffect(() => {
@@ -59,28 +62,31 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
-    const { source, destination, draggableId } = result;
+    const { source, destination} = result;
 
-    // only handle block reordering in the same page
+    // Handle block reordering within the same page
     if (source.droppableId === destination.droppableId && source.droppableId.startsWith('blocks-page-')) {
       if (source.index === destination.index) return;
 
-      // extract the page number from droppableId
-      const pageNumber = parseInt(source.droppableId.replace('blocks-page-', ''));
+      // Extract page ID from droppableId (format: blocks-page-{pageId})
+      const pageId = source.droppableId.replace('blocks-page-', '');
+      
+      // Get current page's elements
+      const page = pages.find(p => p.id === pageId);
+      if (!page) return;
 
-      // get all blocks for this page and sorted by order
-      const pageBlocks = canvasElements
-        .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
+      const pageBlocks = page.elements
+        .filter((el: CanvasElement) => ['heading', 'image', 'video', 'table'].includes(el.type))
         .sort((a: any, b: any) => a.order - b.order);
 
-      // reorder of the blocks
+      // Reorder blocks
       const [movedBlock] = pageBlocks.splice(source.index, 1);
       pageBlocks.splice(destination.index, 0, movedBlock);
 
-      // opdate orders
-      const updatedBlocks = pageBlocks.map((block, index) => ({
-        ...block,
-        order: index
+      // Update orders and dispatch
+      const updatedBlocks = pageBlocks.map((block: any, index: number) => ({
+        pageId,
+        element: { ...block, order: index }
       }));
 
       dispatch({ type: UPDATE_MULTIPLE_ELEMENTS, payload: updatedBlocks });
@@ -117,7 +123,7 @@ const PdfEditor: React.FC<{ documentId?: string }> = ({ documentId }) => {
 
           <div className={styles.mainContainer}>
             <EditorLeftDrawer />
-            <EditorMainArea />
+            <PDFCanvasViewer />
             <EditorRightSidebar />
           </div>
         </div>

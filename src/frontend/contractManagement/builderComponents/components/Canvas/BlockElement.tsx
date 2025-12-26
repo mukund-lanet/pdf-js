@@ -7,10 +7,11 @@ import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
 import Tooltip from '@trenchaant/pkg-ui-component-library/build/Components/Tooltip';
 import { BlockElement as BlockElementType } from '../../../utils/interface';
-import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, SET_PROPERTIES_DRAWER_STATE } from '../../../store/action/contractManagement.actions';
 
 interface BlockElementProps {
   element: BlockElementType;
+  pageId: string;
   onCopy: (element: BlockElementType) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -22,6 +23,7 @@ interface BlockElementProps {
 
 const BlockElement = ({
   element,
+  pageId,
   onCopy,
   onMoveUp,
   onMoveDown,
@@ -51,7 +53,10 @@ const BlockElement = ({
       if (element.type === 'heading') {
         dispatch({
           type: UPDATE_CANVAS_ELEMENT,
-          payload: { ...element, content: newContent }
+          payload: {
+            pageId,
+            element: { ...element, content: newContent }
+          }
         });
       }
     }, 500),
@@ -63,7 +68,10 @@ const BlockElement = ({
       if (element.type === 'heading') {
         dispatch({
           type: UPDATE_CANVAS_ELEMENT,
-          payload: { ...element, subtitle }
+          payload: {
+            pageId,
+            element: { ...element, subtitle }
+          }
         });
       }
     }, 500),
@@ -81,7 +89,10 @@ const BlockElement = ({
         
         dispatch({
           type: UPDATE_CANVAS_ELEMENT,
-          payload: { ...element, data: newData }
+          payload: {
+            pageId,
+            element: { ...element, data: newData }
+          }
         });
       }
     }, 500),
@@ -120,6 +131,10 @@ const BlockElement = ({
       type: SET_ACTIVE_ELEMENT_ID,
       payload: element.id
     });
+    dispatch({
+      type: SET_PROPERTIES_DRAWER_STATE,
+      payload: { anchorEl: e.currentTarget as HTMLElement, isOpen: true }
+    });
   };
 
   const getEmbedUrl = (url: string): string | null => {
@@ -141,50 +156,6 @@ const BlockElement = ({
 
         if (videoId) {
           return `https://www.youtube.com/embed/${videoId}`;
-        }
-      }
-
-      if (urlObj.hostname.includes('vimeo.com')) {
-        const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
-        if (videoId && urlObj.pathname.includes('/video/')) {
-          if (videoId) {
-            return `https://player.vimeo.com/video/${videoId}`;
-          }
-          return url;
-        }
-      }
-
-      if (urlObj.hostname.includes('dailymotion.com') || urlObj.hostname.includes('dai.ly')) {
-        let videoId = '';
-        if (urlObj.hostname.includes('dai.ly')) {
-          videoId = urlObj.pathname.slice(1);
-        } else {
-          videoId = urlObj.pathname.split('/').filter(Boolean).pop() || '';
-        }
-        if (videoId) {
-          return `https://www.dailymotion.com/embed/video/${videoId}`;
-        }
-      }
-
-      if (urlObj.hostname.includes('wistia.com')) {
-        const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
-        if (videoId) {
-          return `https://fast.wistia.net/embed/iframe/${videoId}`;
-        }
-      }
-
-      if (urlObj.hostname.includes('vidyard.com')) {
-        const videoId = urlObj.pathname.split('/').filter(Boolean).pop();
-        if (videoId) {
-          return `https://play.vidyard.com/${videoId}`;
-        }
-      }
-
-      if (urlObj.hostname.includes('loom.com')) {
-        const pathParts = urlObj.pathname.split('/').filter(Boolean);
-        const videoId = pathParts[pathParts.length - 1];
-        if (videoId) {
-          return `https://www.loom.com/embed/${videoId}`;
         }
       }
 
@@ -377,9 +348,9 @@ const BlockElement = ({
             }}
           >
             <table className={styles.blockTable}>
-              <tbody>
+              <tbody contentEditable={true} suppressContentEditableWarning>
                 {Array.from({ length: element.rows }).map((_, rowIndex) => (
-                  <tr key={rowIndex}>
+                  <tr key={rowIndex} >
                     {Array.from({ length: element.columns }).map((_, colIndex) => (
                       <td
                         key={colIndex}
@@ -449,7 +420,10 @@ const BlockElement = ({
                     e.stopPropagation();
                     dispatch({
                       type: DELETE_CANVAS_ELEMENT,
-                      payload: element.id
+                      payload: {
+                        pageId,
+                        elementId: element.id
+                      }
                     });
                   }}
                 >

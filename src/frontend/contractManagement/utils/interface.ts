@@ -39,15 +39,11 @@ export enum DIALOG_DRAWER_NAMES {
   BRANDING_CUSTOMIZATION_DIALOG = 'brandingCustomizationDialogOpen'
 }
 
-
 // pdf-editor
 export enum DRAWER_COMPONENT_CATEGORY {
   ADD_ELEMENTS = "add_elements",
-  PAGES = "Pages",
-  DOCUMENT_VARIABLES = "Document variables",
-  CONTENT_LIBRARY = "Content Library",
-  SETTINGS = "Settings",
-  RECIPIENTS = "Recipients"
+  PAGES = "pages",
+  RECIPIENTS = "recipients"
 }
 
 export interface TextElement {
@@ -62,7 +58,6 @@ export interface TextElement {
   width: number;
   height: number;
   content: string;
-  page: number;
   fontSize?: number;
   color?: string;
   required?: boolean;
@@ -77,7 +72,6 @@ export interface ImageElement extends BlockStyle {
   width?: number;
   imageData?: string;
   imageUrl?: string;
-  page: number;
   align?: 'left' | 'center' | 'right';
   imageEffect?: 'none' | 'grayscale';
 }
@@ -90,7 +84,6 @@ export interface SignatureElement {
   width: number;
   height: number;
   imageData: string;
-  page: number;
   content?: string;
   showSignerName?: boolean;
 }
@@ -103,7 +96,6 @@ export interface DateElement {
   width: number;
   height: number;
   value?: string;
-  page: number;
   placeholder?: string;
   dateFormat?: string;
   availableDates?: string;
@@ -118,7 +110,6 @@ export interface InitialsElement {
   width: number;
   height: number;
   content: string;
-  page: number;
 }
 
 export interface CheckboxElement {
@@ -129,7 +120,6 @@ export interface CheckboxElement {
   width: number;
   height: number;
   checked: boolean;
-  page: number;
   required?: boolean;
 }
 
@@ -153,7 +143,6 @@ export interface HeadingElement extends BlockStyle {
   height: number;
   content: string;
   subtitle?: string;
-  page: number;
   fontSize?: number;
   fontWeight?: string;
   subtitleFontSize?: number;
@@ -174,7 +163,6 @@ export interface VideoElement extends BlockStyle {
   height: number;
   width?: number;
   videoUrl?: string;
-  page: number;
 }
 
 export interface TableElement extends BlockStyle {
@@ -185,7 +173,6 @@ export interface TableElement extends BlockStyle {
   rows: number;
   columns: number;
   data?: string[][];
-  page: number;
 
   textAlign?: 'left' | 'center' | 'right';
   fontStyle?: 'normal' | 'italic';
@@ -206,12 +193,6 @@ export interface PageInfo {
   pageWidth: number;
   pageHeight: number;
   scale: number;
-}
-
-export interface DocumentVariable {
-  name: string;
-  value: string;
-  isSystem?: boolean;
 }
 
 export const isBlockElement = (element: CanvasElement): element is HeadingElement | ImageElement | VideoElement | TableElement => {
@@ -236,7 +217,7 @@ export interface DraggableToolbarItemProps {
 
 export interface Page {
   id?: string;
-  imagePath?: string;
-  imageUrl?: string;
+  pageSrc?: string;
   fromPdf?: boolean;
+  elements: CanvasElement[];
 }

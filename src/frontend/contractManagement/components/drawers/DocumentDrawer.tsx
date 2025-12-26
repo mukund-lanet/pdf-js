@@ -15,7 +15,7 @@ import Switch from "@trenchaant/pkg-ui-component-library/build/Components/Switch
 import MediaManagerList from "@trenchaant/common-component/dist/commonComponent/mediaManager";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from "../../store";
-import { setDialogDrawerState, createNewDocument, updateDocument, setActiveDocument, uploadDocumentPdf, setDocumentDrawerMode, setUploadPdfUrl, SET_DOCUMENT_TYPE } from "../../store/action/contractManagement.actions";
+import { setDialogDrawerState, setActiveDocument, setDocumentDrawerMode, setUploadPdfUrl, SET_DOCUMENT_TYPE, upsertDocument } from "../../store/action/contractManagement.actions";
 import { DIALOG_DRAWER_NAMES, Signer } from "../../utils/interface";
 import styles from "@/app/(after-login)/(with-header)/contract-management/contractManagement.module.scss";
 
@@ -72,11 +72,11 @@ const DocumentDrawer = () => {
 
     onSubmit: async (values, { resetForm }) => {
       if (isEditMode && activeDocument) {
-       dispatch(updateDocument({
-          documentId: activeDocument._id,
-          documentName: values.documentName,
+       dispatch(upsertDocument({
+          id: activeDocument._id,
+          name: values.documentName,
           signers: values.signers,
-          signingOrder: signingOrderEnabled,
+          is_signing_order: signingOrderEnabled,
           business_id,
         }));
         handleClose();
@@ -87,14 +87,12 @@ const DocumentDrawer = () => {
         
         dispatch({ type: SET_DOCUMENT_TYPE, payload: 'upload-existing' });
         
-        const result = await dispatch(uploadDocumentPdf({
-          documentName: values.documentName,
-          fileUrl: values.file.original_url,
+        const result = await dispatch(upsertDocument({
+          name: values.documentName,
+          uploadPdfData: { pdfUrl: values.file.original_url },
           signers: values.signers,
           business_id,
         }));
- 
-        console.log({result})
         
         if (result && result._id) {
           dispatch(setActiveDocument(result));
@@ -110,10 +108,10 @@ const DocumentDrawer = () => {
       } else if (isCreateMode) {
         dispatch({ type: 'SET_DOCUMENT_TYPE', payload: 'new_document' });
         
-        const result = await dispatch(createNewDocument({
-          documentName: values.documentName,
+        const result = await dispatch(upsertDocument({
+          name: values.documentName,
           signers: values.signers,
-          signingOrder: signingOrderEnabled,
+          is_signing_order: signingOrderEnabled,
           business_id,
           pages: [{
             id: `page_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,

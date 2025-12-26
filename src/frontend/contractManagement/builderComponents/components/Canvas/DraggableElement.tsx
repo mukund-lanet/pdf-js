@@ -10,20 +10,22 @@ import styles from 'app/(after-login)/(with-header)/contract-management/pdfEdito
 import Typography from "@trenchaant/pkg-ui-component-library/build/Components/Typography";
 import Button from "@trenchaant/pkg-ui-component-library/build/Components/Button";
 import CustomIcon from '@trenchaant/pkg-ui-component-library/build/Components/CustomIcon';
-import IconButton from '@trenchaant/pkg-ui-component-library/build/Components/IconButton';
+import Checkbox from '@trenchaant/pkg-ui-component-library/build/Components/Checkbox';
 import Popover from "@trenchaant/pkg-ui-component-library/build/Components/Popover";
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, FILLABLE_ELEMENT, ADD_CANVAS_ELEMENT } from '../../../store/action/contractManagement.actions';
+import { UPDATE_CANVAS_ELEMENT, SET_ACTIVE_ELEMENT_ID, DELETE_CANVAS_ELEMENT, FILLABLE_ELEMENT, ADD_CANVAS_ELEMENT, SET_PROPERTIES_DRAWER_STATE } from '../../../store/action/contractManagement.actions';
 
 interface DraggableElementProps {
   element: FillableFieldElement;
+  pageId: string;
   isSelected: boolean;
   onSelect: (id: string, multi: boolean) => void;
 }
 
 const DraggableElement = React.memo(({
   element,
+  pageId,
   isSelected,
   onSelect
 }: DraggableElementProps) => {
@@ -63,12 +65,23 @@ const DraggableElement = React.memo(({
       type: SET_ACTIVE_ELEMENT_ID,
       payload: element.id
     });
+    
+    dispatch({
+      type: SET_PROPERTIES_DRAWER_STATE,
+      payload: { anchorEl: e.currentTarget as HTMLElement, isOpen: true }
+    });
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch({ type: DELETE_CANVAS_ELEMENT, payload: element.id });
+    dispatch({ 
+      type: DELETE_CANVAS_ELEMENT, 
+      payload: {
+        pageId,
+        elementId: element.id
+      }
+    });
   };
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -81,7 +94,13 @@ const DraggableElement = React.memo(({
       x: element.x + 20,
       y: element.y + 20
     };
-    dispatch({ type: ADD_CANVAS_ELEMENT, payload: copiedElement });
+    dispatch({ 
+      type: ADD_CANVAS_ELEMENT, 
+      payload: {
+        pageId,
+        element: copiedElement
+      }
+    });
   };
 
   const handleChecked = (e: React.MouseEvent) => {
@@ -98,7 +117,10 @@ const DraggableElement = React.memo(({
     if (element.type === 'checkbox') {
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, checked: !element.checked },
+        payload: {
+          pageId,
+          element: { ...element, checked: !element.checked }
+        },
       });
     }
   };
@@ -133,7 +155,10 @@ const DraggableElement = React.memo(({
 
       dispatch({
         type: UPDATE_CANVAS_ELEMENT,
-        payload: { ...element, value: formattedDate },
+        payload: {
+          pageId,
+          element: { ...element, value: formattedDate }
+        },
       });
     }
     setDatePickerAnchor(null);
@@ -222,16 +247,13 @@ const DraggableElement = React.memo(({
 
       case 'checkbox':
         return (
-          <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
-            <IconButton color="secondary" onClick={handleChecked}>
-              <CustomIcon
-                iconName={element.checked ? "check-square" : "square"}
-                width={24}
-                height={24}
-                customColor="#00acc1"
-              />
-            </IconButton>
-          </div>
+          // <div className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}>
+            <Checkbox
+              className={`${styles.renderContentCommonDiv} ${isDragging ? styles.isGrabbing : ''} `}
+              checked={element.checked || false}
+              onChange={handleChecked}
+            />
+          // </div>
         );
 
       default:
@@ -266,9 +288,12 @@ const DraggableElement = React.memo(({
             dispatch({
               type: UPDATE_CANVAS_ELEMENT,
               payload: {
-                ...element,
-                width: data.size.width,
-                height: data.size.height
+                pageId,
+                element: {
+                  ...element,
+                  width: data.size.width,
+                  height: data.size.height
+                }
               }
             });
           }}

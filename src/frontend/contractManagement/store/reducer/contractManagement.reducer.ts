@@ -5,7 +5,7 @@ import {
   ContractItem,
   Page
 } from '../../utils/interface';
-import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable } from '../../utils/interface';
+import { CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY } from '../../utils/interface';
 
 export interface ContractManagementState {
   pdfBuilderDrawerOpen: boolean;
@@ -91,7 +91,6 @@ export interface ContractManagementState {
   // PDF Editor State
   totalPages: number;
   currentPage: number;
-  canvasElements: CanvasElement[];
   activeTool: null | 'text' | 'image' | 'signature';
   media: any;
   selectedTextElement: TextElement | null;
@@ -100,7 +99,6 @@ export interface ContractManagementState {
   isLoading: boolean;
   drawerComponentCategory: DRAWER_COMPONENT_CATEGORY;
   activeElementId: string | null;
-  documentVariables: DocumentVariable[];
   propertiesDrawerState: {
     anchorEl: null | HTMLElement;
     isOpen: boolean;
@@ -203,7 +201,6 @@ const initialState: ContractManagementState = {
   // PDF Editor State
   totalPages: 0,
   currentPage: 1,
-  canvasElements: [],
   activeTool: null,
   media: null,
   selectedTextElement: null,
@@ -212,7 +209,6 @@ const initialState: ContractManagementState = {
   isLoading: false,
   drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.ADD_ELEMENTS,
   activeElementId: null,
-  documentVariables: [],
   propertiesDrawerState: {
     anchorEl: null,
     isOpen: false
@@ -319,13 +315,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       };
     }
 
-    // case Actions.SET_ACTIVE_DOCUMENT: {
-    //   return {
-    //     ...state,
-    //     activeDocument: action.payload,
-    //   };
-    // }
-
     case Actions.UPDATE_DOCUMENT: {
       const { documentId, documentName, signers, signingOrder, canvasElements } = action.payload;
       const updatedDocuments = state.documents.map(doc =>
@@ -337,11 +326,10 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       return {
         ...state,
         documents: updatedDocuments,
-        // Update activeDocument if it's the one being modified, otherwise keep it as is (or null)
         activeDocument: state.activeDocument && state.activeDocument._id === documentId
           ? { ...state.activeDocument, name: documentName, signers, signingOrder, canvasElements }
           : state.activeDocument,
-        isUnsaved: true,
+        isUnsaved: false,
       };
     }
 
@@ -389,36 +377,6 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         activeElementId: action.payload
       };
 
-    case Actions.ADD_DOCUMENT_VARIABLE:
-      return {
-        ...state,
-        documentVariables: [...state.documentVariables, action.payload],
-        isUnsaved: true,
-      };
-
-    case Actions.DELETE_DOCUMENT_VARIABLE:
-      return {
-        ...state,
-        documentVariables: state.documentVariables.filter(v => v.name !== action.payload),
-        isUnsaved: true,
-      };
-
-    case Actions.UPDATE_DOCUMENT_VARIABLE:
-      return {
-        ...state,
-        documentVariables: state.documentVariables.map(v =>
-          v.name === action.payload.name ? action.payload : v
-        ),
-        isUnsaved: true,
-      };
-
-    case Actions.SET_DOCUMENT_VARIABLES:
-      return {
-        ...state,
-        documentVariables: action.payload,
-        isUnsaved: true,
-      };
-
     case Actions.SET_IS_LOADING:
       return {
         ...state,
@@ -440,113 +398,156 @@ export const contractManagementReducer = (state = initialState, action: Actions.
       };
 
     case Actions.SET_CANVAS_ELEMENTS:
+      // Payload: { pageId, elements }
       return {
         ...state,
-        canvasElements: action.payload,
+        pages: state.pages.map(page =>
+          page.id === action.payload.pageId
+            ? { ...page, elements: action.payload.elements }
+            : page
+        ),
         isUnsaved: true,
       };
 
     case Actions.ADD_CANVAS_ELEMENT:
+      // Payload: { pageId, element }
       return {
         ...state,
-        canvasElements: [...state.canvasElements, action.payload],
+        pages: state.pages.map(page =>
+          page.id === action.payload.pageId
+            ? { ...page, elements: [...page.elements, action.payload.element] }
+            : page
+        ),
         isUnsaved: true,
       };
 
     case Actions.UPDATE_CANVAS_ELEMENT:
+      // Payload: { pageId, element }
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el =>
-          el.id === action.payload.id ? action.payload : el
+        pages: state.pages.map(page =>
+          page.id === action.payload.pageId
+            ? {
+                ...page,
+                elements: page.elements.map(el =>
+                  el.id === action.payload.element.id ? action.payload.element : el
+                )
+              }
+            : page
         ),
-        // also update the selectedTextElement if its the one being updated
         selectedTextElement:
-          state.selectedTextElement && state.selectedTextElement.id === action.payload.id && action.payload.type === 'text-field'
-            ? (action.payload as TextElement)
+          state.selectedTextElement && state.selectedTextElement.id === action.payload.element.id && action.payload.element.type === 'text-field'
+            ? (action.payload.element as TextElement)
             : state.selectedTextElement,
         isUnsaved: true,
       };
 
     case Actions.DELETE_CANVAS_ELEMENT:
-      const filteredElements = state.canvasElements.filter(el => el.id !== action.payload);
+      // Payload: { pageId, elementId }
       return {
         ...state,
-        canvasElements: filteredElements,
-        // clear the selected text element if it's the one being deleted
+        pages: state.pages.map(page =>
+          page.id === action.payload.pageId
+            ? {
+                ...page,
+                elements: page.elements.filter(el => el.id !== action.payload.elementId)
+              }
+            : page
+        ),
         selectedTextElement:
-          state.selectedTextElement && state.selectedTextElement.id === action.payload
+          state.selectedTextElement && state.selectedTextElement.id === action.payload.elementId
             ? null
             : state.selectedTextElement,
-        activeElementId: state.activeElementId === action.payload ? null : state.activeElementId,
+        activeElementId: state.activeElementId === action.payload.elementId ? null : state.activeElementId,
         isUnsaved: true,
       };
 
     case Actions.ADD_BLOCK_ELEMENT: {
-      const { element, pageNumber } = action.payload;
-      // calculate the next order for this page
-      const pageBlocks = state.canvasElements.filter(
-        el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type)
-      );
-      const maxOrder = pageBlocks.length > 0
-        ? Math.max(...pageBlocks.map((el: any) => el.order || 0))
-        : -1;
-
-      const blockWithOrder = {
-        ...element,
-        order: maxOrder + 1
-      };
-
+      // Payload: { pageId, element }
+      const { pageId, element } = action.payload;
+      
       return {
         ...state,
-        canvasElements: [...state.canvasElements, blockWithOrder],
+        pages: state.pages.map(page => {
+          if (page.id !== pageId) return page;
+          
+          const pageBlocks = page.elements.filter(
+            el => ['heading', 'image', 'video', 'table'].includes(el.type)
+          );
+          const maxOrder = pageBlocks.length > 0
+            ? Math.max(...pageBlocks.map((el: any) => el.order || 0))
+            : -1;
+
+          const blockWithOrder = {
+            ...element,
+            order: maxOrder + 1
+          };
+
+          return {
+            ...page,
+            elements: [...page.elements, blockWithOrder]
+          };
+        }),
         isUnsaved: true,
       };
     }
 
     case Actions.REORDER_BLOCK_ELEMENTS: {
-      const { pageNumber, sourceIndex, destinationIndex } = action.payload;
-
-      // get all blocks for this page and sorted by order
-      const pageBlocks = state.canvasElements
-        .filter(el => el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
-        .sort((a: any, b: any) => a.order - b.order);
-
-      // get non-block elements
-      const otherElements = state.canvasElements.filter(
-        el => !(el.page === pageNumber && ['heading', 'image', 'video', 'table'].includes(el.type))
-      );
-
-      // reorder the blocks
-      const [movedBlock] = pageBlocks.splice(sourceIndex, 1);
-      pageBlocks.splice(destinationIndex, 0, movedBlock);
-
-      // update the orders
-      const updatedBlocks = pageBlocks.map((block, index) => ({
-        ...block,
-        order: index
-      }));
+      // Payload: { pageId, sourceIndex, destinationIndex }
+      const { pageId, sourceIndex, destinationIndex } = action.payload;
 
       return {
         ...state,
-        canvasElements: [...otherElements, ...updatedBlocks],
+        pages: state.pages.map(page => {
+          if (page.id !== pageId) return page;
+
+          const pageBlocks = page.elements
+            .filter((el: CanvasElement) => ['heading', 'image', 'video', 'table'].includes(el.type))
+            .sort((a: any, b: any) => a.order - b.order);
+
+          const otherElements = page.elements.filter(
+            (el: CanvasElement) => !['heading', 'image', 'video', 'table'].includes(el.type)
+          );
+
+          const [movedBlock] = pageBlocks.splice(sourceIndex, 1);
+          pageBlocks.splice(destinationIndex, 0, movedBlock);
+
+          const updatedBlocks = pageBlocks.map((block: any, index: number) => ({
+            ...block,
+            order: index
+          }));
+
+          return {
+            ...page,
+            elements: [...otherElements, ...updatedBlocks]
+          };
+        }),
         isUnsaved: true,
       };
     }
 
     case Actions.UPDATE_BLOCK_ORDER: {
-      const { pageNumber, blockOrders } = action.payload;
-      const orderMap = new Map(blockOrders.map(item => [item.id, item.order]));
+      // Payload: { pageId, blockOrders }
+      const { pageId, blockOrders } = action.payload;
+      const orderMap = new Map(blockOrders.map((item: any) => [item.id, item.order]));
 
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el => {
-          if (el.page === pageNumber && orderMap.has(el.id)) {
-            return {
-              ...el,
-              order: orderMap.get(el.id)!
-            };
-          }
-          return el;
+        pages: state.pages.map(page => {
+          if (page.id !== pageId) return page;
+
+          return {
+            ...page,
+            elements: page.elements.map((el: CanvasElement) => {
+              if (orderMap.has(el.id)) {
+                return {
+                  ...el,
+                  order: orderMap.get(el.id)!
+                } as any;
+              }
+              return el;
+            })
+          };
         }),
         isUnsaved: true,
       };
@@ -576,22 +577,32 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         signatureForElement: action.payload
       };
 
-    case Actions.UPDATE_MULTIPLE_ELEMENTS:
+    case Actions.UPDATE_MULTIPLE_ELEMENTS: {
+      // Payload: [{ pageId, element }, ...]
       const updates = action.payload;
-      const updateMap = new Map(updates.map((el: CanvasElement) => [el.id, el]));
-
+      
       return {
         ...state,
-        canvasElements: state.canvasElements.map(el => updateMap.get(el.id) || el),
+        pages: state.pages.map(page => {
+          const pageUpdates = updates.filter((u: any) => u.pageId === page.id);
+          if (pageUpdates.length === 0) return page;
+          
+          const updateMap = new Map(pageUpdates.map((u: any) => [u.element.id, u.element]));
+          
+          return {
+            ...page,
+            elements: page.elements.map((el: CanvasElement) => updateMap.get(el.id) || el)
+          };
+        }),
         isUnsaved: true,
       };
+    }
 
     case Actions.RESET_EDITOR:
       return {
         ...state,
         totalPages: 0,
         currentPage: 1,
-        canvasElements: [],
         activeTool: null,
         media: null,
         selectedTextElement: null,
@@ -600,77 +611,54 @@ export const contractManagementReducer = (state = initialState, action: Actions.
         isLoading: false,
         drawerComponentCategory: DRAWER_COMPONENT_CATEGORY.PAGES,
         activeElementId: null,
-        documentVariables: [
-          {
-            name: 'document.createdDate',
-            value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            isSystem: true
-          },
-          {
-            name: 'document.refNumber',
-            value: `P${Math.floor(10000 + Math.random() * 90000)} `,
-            isSystem: true
-          },
-          {
-            name: 'document.subAccountName',
-            value: "CRMOne",
-            isSystem: true
-          },
-        ],
         propertiesDrawerState: {
           anchorEl: null,
           isOpen: false
         },
+        pages: [],
         isUnsaved: false,
       };
 
     case Actions.SET_PAGES:
+      // Ensure all pages have elements array
+      const pagesWithElements = action.payload.map((page: Page) => ({
+        ...page,
+        elements: page.elements || []
+      }));
+      
       return {
         ...state,
-        pages: action.payload,
+        pages: pagesWithElements,
         isUnsaved: true,
       };
 
     case Actions.REORDER_PAGE_ELEMENTS: {
       const { sourceIndex, destinationIndex } = action.payload;
-      const sourcePage = sourceIndex + 1;
-      const destPage = destinationIndex + 1;
+      
+      // Simply reorder pages - elements stay within their pages
+      const newPages = [...state.pages];
+      const [movedPage] = newPages.splice(sourceIndex, 1);
+      newPages.splice(destinationIndex, 0, movedPage);
 
-      // Update Canvas Elements
-      const updatedElements = state.canvasElements.map(el => {
-        if (el.page === sourcePage) {
-          return { ...el, page: destPage };
-        }
-
-        if (sourcePage < destPage) {
-          if (el.page > sourcePage && el.page <= destPage) {
-            return { ...el, page: el.page - 1 };
-          }
-        } else {
-          if (el.page >= destPage && el.page < sourcePage) {
-            return { ...el, page: el.page + 1 };
-          }
-        }
-
-        return el;
-      });
-
+      // Update current page tracking
       let newCurrentPage = state.currentPage;
-      if (state.currentPage === sourcePage) {
-        newCurrentPage = destPage;
-      } else if (sourcePage < destPage) {
-        if (state.currentPage > sourcePage && state.currentPage <= destPage) {
+      const currentPageIndex = state.currentPage - 1;
+      
+      if (currentPageIndex === sourceIndex) {
+        newCurrentPage = destinationIndex + 1;
+      } else if (sourceIndex < destinationIndex) {
+        if (currentPageIndex > sourceIndex && currentPageIndex <= destinationIndex) {
           newCurrentPage = state.currentPage - 1;
         }
       } else {
-        if (state.currentPage >= destPage && state.currentPage < sourcePage) {
+        if (currentPageIndex >= destinationIndex && currentPageIndex < sourceIndex) {
           newCurrentPage = state.currentPage + 1;
         }
       }
 
       return {
         ...state,
-        canvasElements: updatedElements,
+        pages: newPages,
         currentPage: newCurrentPage,
         isUnsaved: true,
       };

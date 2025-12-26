@@ -1,8 +1,7 @@
 import { AppDispatch } from '..';
-import { RootState } from '../reducer/contractManagement.reducer';
 import { axiosInstance } from 'components/util/axiosConfig';
 import { showMessage } from 'components/store/actions';
-import { DIALOG_DRAWER_NAMES, CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, DocumentVariable, Page } from '../../utils/interface';
+import { DIALOG_DRAWER_NAMES, CanvasElement, TextElement, DRAWER_COMPONENT_CATEGORY, Page } from '../../utils/interface';
 import { convertObjectToList, convertListToObject } from '../../utils/utils';
 
 // Action Types
@@ -45,9 +44,6 @@ export const SET_DRAWER_COMPONENT_CATEGORY = 'SET_DRAWER_COMPONENT_CATEGORY';
 export const SET_DOCUMENT_FILTERS = 'SET_DOCUMENT_FILTERS';
 export const SET_FETCHING_DOCUMENTS = 'SET_FETCHING_DOCUMENTS';
 export const SET_ACTIVE_ELEMENT_ID = 'SET_ACTIVE_ELEMENT_ID';
-export const ADD_DOCUMENT_VARIABLE = 'ADD_DOCUMENT_VARIABLE';
-export const DELETE_DOCUMENT_VARIABLE = 'DELETE_DOCUMENT_VARIABLE';
-export const UPDATE_DOCUMENT_VARIABLE = 'UPDATE_DOCUMENT_VARIABLE';
 export const SET_PROPERTIES_DRAWER_STATE = 'SET_PROPERTIES_DRAWER_STATE';
 export const SET_PDF_MEDIA = 'SET_PDF_MEDIA';
 export const FILLABLE_ELEMENT = 'FILLABLE_ELEMENT';
@@ -56,7 +52,6 @@ export const SET_DOCUMENT_TYPE = 'SET_DOCUMENT_TYPE';
 export const SET_UPLOAD_PDF_URL = 'SET_UPLOAD_PDF_URL';
 export const SET_PAGES = 'SET_PAGES';
 export const SET_IS_UNSAVED = 'SET_IS_UNSAVED';
-export const SET_DOCUMENT_VARIABLES = 'SET_DOCUMENT_VARIABLES';
 
 
 // Dialog/Drawer Names Type
@@ -206,27 +201,6 @@ interface SetActiveElementIdAction {
   payload: string | null;
 }
 
-interface AddDocumentVariableAction {
-  type: typeof ADD_DOCUMENT_VARIABLE;
-  payload: DocumentVariable;
-}
-
-interface DeleteDocumentVariableAction {
-  type: typeof DELETE_DOCUMENT_VARIABLE;
-  payload: string; // name
-}
-
-interface UpdateDocumentVariableAction {
-  type: typeof UPDATE_DOCUMENT_VARIABLE;
-  payload: DocumentVariable;
-}
-
-interface SetDocumentVariablesAction {
-  type: typeof SET_DOCUMENT_VARIABLES;
-  payload: DocumentVariable[];
-}
-
-
 interface SetIsLoadingAction {
   type: typeof SET_IS_LOADING;
   payload: boolean;
@@ -244,36 +218,48 @@ interface SetCurrentPageAction {
 
 interface SetCanvasElementsAction {
   type: typeof SET_CANVAS_ELEMENTS;
-  payload: CanvasElement[];
+  payload: {
+    pageId: string;
+    elements: CanvasElement[];
+  };
 }
 
 interface AddCanvasElementAction {
   type: typeof ADD_CANVAS_ELEMENT;
-  payload: CanvasElement;
+  payload: {
+    pageId: string;
+    element: CanvasElement;
+  };
 }
 
 interface UpdateCanvasElementAction {
   type: typeof UPDATE_CANVAS_ELEMENT;
-  payload: CanvasElement;
+  payload: {
+    pageId: string;
+    element: CanvasElement;
+  };
 }
 
 interface DeleteCanvasElementAction {
   type: typeof DELETE_CANVAS_ELEMENT;
-  payload: string;
+  payload: {
+    pageId: string;
+    elementId: string;
+  };
 }
 
 interface AddBlockElementAction {
   type: typeof ADD_BLOCK_ELEMENT;
   payload: {
+    pageId: string;
     element: CanvasElement;
-    pageNumber: number;
   };
 }
 
 interface ReorderBlockElementsAction {
   type: typeof REORDER_BLOCK_ELEMENTS;
   payload: {
-    pageNumber: number;
+    pageId: string;
     sourceIndex: number;
     destinationIndex: number;
   };
@@ -282,7 +268,7 @@ interface ReorderBlockElementsAction {
 interface UpdateBlockOrderAction {
   type: typeof UPDATE_BLOCK_ORDER;
   payload: {
-    pageNumber: number;
+    pageId: string;
     blockOrders: { id: string; order: number }[];
   };
 }
@@ -309,7 +295,7 @@ interface SetSignatureForElementAction {
 
 interface UpdateMultipleElementsAction {
   type: typeof UPDATE_MULTIPLE_ELEMENTS;
-  payload: CanvasElement[];
+  payload: { pageId: string; element: CanvasElement }[];
 }
 
 interface ResetEditorAction {
@@ -395,9 +381,6 @@ export type ContractManagementAction =
   | SetIsLoadingAction
   | SetDrawerComponentCategoryAction
   | SetActiveElementIdAction
-  | AddDocumentVariableAction
-  | DeleteDocumentVariableAction
-  | UpdateDocumentVariableAction
   | SetPropertiesDrawerStateAction
   | SetPdfMediaAction
   | SetDocumentTypeAction
@@ -410,8 +393,7 @@ export type ContractManagementAction =
   | SetFetchingDocumentsAction
   | SetDocumentsListAction
   | SetContractsListAction
-  | SetSettingsDataAction
-  | SetDocumentVariablesAction;
+  | SetSettingsDataAction;
 
 
 // Action Creators
@@ -433,7 +415,7 @@ export const setContractActiveFilter = (filter: string): AppDispatch => {
   };
 };
 
-export const setDialogDrawerState = (dialogName: DialogName, isOpen: boolean): AppDispatch => {
+export const setDialogDrawerState = (dialogName: DIALOG_DRAWER_NAMES, isOpen: boolean): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
       type: SET_DIALOG_STATE,
@@ -469,182 +451,12 @@ export const setBrandingCustomizationSettings = (brandingCustomizationSettings: 
   };
 };
 
-
-export const createNewDocument = (data: { documentName: string; signers: any[]; signingOrder?: boolean, business_id: string, pages: Page[] }): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/create-esign-document?business_id=${data.business_id}`,
-        isFromLocal: true,
-        data: {
-          name: data.documentName,
-          signers: data.signers,
-          signingOrder: data.signingOrder || false,
-          status: 'draft',
-          documentType: 'new_document',
-          pages: convertListToObject(data.pages),
-        },
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: CREATE_NEW_DOCUMENT,
-          payload: response.data,
-        });
-
-        dispatch(showMessage({
-          message: `Document "${data.documentName}" created successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id: data.business_id }));
-
-        return response.data;
-      }
-    } catch (error: any) {
-      console.error('Create document error:', error);
-      console.error('Error response:', error.response);
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to create document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
-export const uploadDocumentPdf = (data: { documentName: string; fileUrl: string; signers: any[]; business_id: string }): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/upload-esign-document?business_id=${data.business_id}`,
-        isFromLocal: true,
-        data: {
-          documentName: data.documentName,
-          signers: data.signers,
-          uploadPath: data.fileUrl || '',
-        },
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: UPLOAD_DOCUMENT_PDF,
-          payload: response.data,
-        });
-
-        dispatch(showMessage({
-          message: `Document "${data.documentName}" uploaded successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id: data.business_id }));
-
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to upload document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
 export const setActiveDocument = (document: any | null): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     dispatch({
       type: SET_ACTIVE_DOCUMENT,
       payload: document,
     });
-  };
-};
-
-export const updateDocument = (data: {
-  id: string;
-  name: string;
-  signers: any[];
-  signingOrder: boolean;
-  canvasElements: CanvasElement[];
-  pages: Page[];
-  business_id: string;
-}): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'post',
-        url: `http://localhost:8080/update-esign-document/`,
-        isFromLocal: true,
-        data: {
-          id: data.id,
-          name: data.name,
-          signers: data.signers,
-          signingOrder: data.signingOrder,
-          canvasElements: convertListToObject(data.canvasElements),
-          pages: convertListToObject(data.pages),
-          business_id: data.business_id
-        },
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: UPDATE_DOCUMENT,
-          payload: response.data,
-        });
-
-        dispatch(setIsUnsaved(false));
-
-        dispatch(showMessage({
-          message: `Document "${data.name}" updated successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id: data.business_id }));
-
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to update document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
   };
 };
 
@@ -683,16 +495,6 @@ export const setIsUnsaved = (isUnsaved: boolean): AppDispatch => {
     });
   };
 };
-
-export const setDocumentVariables = (variables: DocumentVariable[]): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    dispatch({
-      type: SET_DOCUMENT_VARIABLES,
-      payload: variables,
-    });
-  };
-};
-
 
 // ============ Document API Actions ============
 
@@ -749,43 +551,6 @@ export const getDocuments = (filters?: { search?: string; status?: string; limit
   };
 };
 
-export const getDocumentById = (id: string | undefined, business_id: string): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      console.log("busienssId, getDocById: ", business_id)
-
-      const response = await axiosInstance({
-        method: 'POST',
-        url: `http://localhost:8080/fetch-esign-document-by-id?business_id=${business_id}`,
-        isFromLocal: true,
-        data: { id }
-      });
-
-      if (response.status === 200 && response.data && response.data.data) {
-        const document = response.data.data[0]; 
-        dispatch(setActiveDocument(document));
-        return document;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.msg || 'Failed to fetch document',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
 export const loadDocumentById = (id: string, business_id: string): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     try {
@@ -816,9 +581,39 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
       dispatch(setActiveDocument(document));
 
       if (document.pages) {
-        const pagesArray = typeof document.pages === 'object' && !Array.isArray(document.pages)
+        let pagesArray = typeof document.pages === 'object' && !Array.isArray(document.pages)
           ? convertObjectToList(document.pages)
           : document.pages;
+        
+        // MIGRATION: If document has old format (separate canvasElements), migrate to new format
+        if (document.canvasElements) {
+          const canvasElementsArray = typeof document.canvasElements === 'object' && !Array.isArray(document.canvasElements)
+            ? convertObjectToList(document.canvasElements)
+            : document.canvasElements || [];
+          
+          // Group canvas elements by page and add to pages
+          pagesArray = pagesArray.map((page: Page, index: number) => {
+            const pageNumber = index + 1;
+            const pageElements = canvasElementsArray.filter((el: any) => el.page === pageNumber);
+            
+            // Remove page property from elements as it's no longer needed
+            const elementsWithoutPageProp = pageElements.map((el: any) => {
+              const { page, ...rest } = el;
+              return rest;
+            });
+            
+            return {
+              ...page,
+              elements: elementsWithoutPageProp
+            };
+          });
+        } else {
+          // Ensure all pages have elements array
+          pagesArray = pagesArray.map((page: Page) => ({
+            ...page,
+            elements: page.elements || []
+          }));
+        }
         
         dispatch({
           type: SET_PAGES,
@@ -828,18 +623,6 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
         dispatch({
           type: SET_TOTAL_PAGES,
           payload: pagesArray.length,
-        });
-      }
-
-      if (document.canvasElements && typeof document.canvasElements === 'object' && !Array.isArray(document.canvasElements)) {
-        dispatch({
-          type: SET_CANVAS_ELEMENTS,
-          payload: convertObjectToList(document.canvasElements),
-        });
-      } else {
-        dispatch({
-          type: SET_CANVAS_ELEMENTS,
-          payload: [],
         });
       }
 
@@ -903,68 +686,18 @@ export const loadDocumentById = (id: string, business_id: string): AppDispatch =
   };
 };
 
-export const deleteDocument = (id: string, documentName: string, business_id: string): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'POST',
-        url: `http://localhost:8080/delete-esign-document?business_id=${business_id}`,
-        isFromLocal: true,
-        data: { id }
-      });
-
-      if (response.status === 200) {
-        dispatch(showMessage({
-          message: `Document "${documentName}" deleted successfully`,
-          variant: 'success',
-        }));
-
-        // Refresh documents list
-        dispatch(getDocuments({ business_id }));
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to delete document',
-        variant: 'error',
-      }));
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
-// ============ Contract API Actions ============
-
-export const getContracts = (): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch({
-          type: SET_CONTRACTS_LIST,
-          payload: response.data,
-        });
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch contracts:', error);
-    }
-  };
-};
-
-export const createContract = (contractData: any): AppDispatch => {
+export const upsertDocument = (data: {
+  business_id: string;
+  id?: string;
+  is_delete?: boolean;
+  uploadPdfData?: any;
+  name?: string;
+  status?: string;
+  signers?: any[];
+  is_signing_order?: boolean;
+  pages?: Page[];
+  document_type?: string;
+}): AppDispatch => {
   return async (dispatch: AppDispatch) => {
     try {
       dispatch({
@@ -974,171 +707,42 @@ export const createContract = (contractData: any): AppDispatch => {
 
       const response = await axiosInstance({
         method: 'post',
-        url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+        url: `http://localhost:8080/upsert-esign-document?business_id=${data.business_id}`,
         isFromLocal: true,
-        data: contractData,
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch(showMessage({
-          message: `Contract "${contractData.name}" created successfully`,
-          variant: 'success',
-        }));
-
-        dispatch(getContracts());
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to create contract',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
-export const updateContract = (id: string, contractData: any): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'put',
-        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-        data: contractData,
-      });
-
-      if (response.status === 200 && response.data) {
-        dispatch(showMessage({
-          message: `Contract "${contractData.name}" updated successfully`,
-          variant: 'success',
-        }));
-
-        dispatch(getContracts());
-        return response.data;
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to update contract',
-        variant: 'error',
-      }));
-      return null;
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
-export const deleteContract = (id: string, contractName: string): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'delete',
-        url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-      });
-
-      if (response.status === 200) {
-        dispatch(showMessage({
-          message: `Contract "${contractName}" deleted successfully`,
-          variant: 'success',
-        }));
-
-        dispatch(getContracts());
-      }
-    } catch (error: any) {
-      dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to delete contract',
-        variant: 'error',
-      }));
-    } finally {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: false,
-      });
-    }
-  };
-};
-
-// ============ Settings API Actions ============
-
-export const getSettings = (): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      const response = await axiosInstance({
-        method: 'get',
-        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
+        data: {
+          id: data.id,
+          is_delete: data.is_delete,
+          uploadPdfData: data.uploadPdfData,
+          name: data.name,
+          status: data.status,
+          signers: data.signers,
+          is_signing_order: data.is_signing_order,
+          pages: convertListToObject(data.pages),
+          document_type: data.document_type,
+        },
       });
 
       if (response.status === 200 && response.data) {
         dispatch({
-          type: SET_SETTINGS_DATA,
+          type: UPDATE_DOCUMENT,
           payload: response.data,
         });
 
-        // Also update individual settings in Redux
-        if (response.data.identityVerification) {
-          dispatch(setIdentityVerificationSettings(response.data.identityVerification));
-        }
-        if (response.data.globalDocument) {
-          dispatch(setGlobalDocumentSettings(response.data.globalDocument));
-        }
-        if (response.data.branding) {
-          dispatch(setBrandingCustomizationSettings(response.data.branding));
-        }
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch settings:', error);
-    }
-  };
-};
+        dispatch(setIsUnsaved(false));
 
-export const updateSettings = (settingsData: any): AppDispatch => {
-  return async (dispatch: AppDispatch) => {
-    try {
-      dispatch({
-        type: SET_IS_LOADING,
-        payload: true,
-      });
-
-      const response = await axiosInstance({
-        method: 'put',
-        url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
-        isFromLocal: true,
-        data: settingsData,
-      });
-
-      if (response.status === 200 && response.data) {
         dispatch(showMessage({
-          message: 'Settings updated successfully',
+          message: `Document "${data.name}" updated successfully`,
           variant: 'success',
         }));
 
-        dispatch(getSettings());
+        // Refresh documents list
+        dispatch(getDocuments({ business_id: data.business_id }));
+
         return response.data;
       }
     } catch (error: any) {
       dispatch(showMessage({
-        message: error.response?.data?.message || 'Failed to update settings',
+        message: error.response?.data?.message || 'Failed to update document',
         variant: 'error',
       }));
       return null;
@@ -1150,4 +754,214 @@ export const updateSettings = (settingsData: any): AppDispatch => {
     }
   };
 };
+
+// // ============ Contract API Actions ============
+
+// export const getContracts = (): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       const response = await axiosInstance({
+//         method: 'get',
+//         url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//       });
+
+//       if (response.status === 200 && response.data) {
+//         dispatch({
+//           type: SET_CONTRACTS_LIST,
+//           payload: response.data,
+//         });
+//       }
+//     } catch (error: any) {
+//       console.error('Failed to fetch contracts:', error);
+//     }
+//   };
+// };
+
+// export const createContract = (contractData: any): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
+
+//       const response = await axiosInstance({
+//         method: 'post',
+//         url: `http://localhost:8080/api/contracts?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//         data: contractData,
+//       });
+
+//       if (response.status === 200 && response.data) {
+//         dispatch(showMessage({
+//           message: `Contract "${contractData.name}" created successfully`,
+//           variant: 'success',
+//         }));
+
+//         dispatch(getContracts());
+//         return response.data;
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to create contract',
+//         variant: 'error',
+//       }));
+//       return null;
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
+
+// export const updateContract = (id: string, contractData: any): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
+
+//       const response = await axiosInstance({
+//         method: 'put',
+//         url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//         data: contractData,
+//       });
+
+//       if (response.status === 200 && response.data) {
+//         dispatch(showMessage({
+//           message: `Contract "${contractData.name}" updated successfully`,
+//           variant: 'success',
+//         }));
+
+//         dispatch(getContracts());
+//         return response.data;
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to update contract',
+//         variant: 'error',
+//       }));
+//       return null;
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
+
+// export const deleteContract = (id: string, contractName: string): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
+
+//       const response = await axiosInstance({
+//         method: 'delete',
+//         url: `http://localhost:8080/api/contracts/${id}?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//       });
+
+//       if (response.status === 200) {
+//         dispatch(showMessage({
+//           message: `Contract "${contractName}" deleted successfully`,
+//           variant: 'success',
+//         }));
+
+//         dispatch(getContracts());
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to delete contract',
+//         variant: 'error',
+//       }));
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
+
+// // ============ Settings API Actions ============
+
+// export const getSettings = (): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       const response = await axiosInstance({
+//         method: 'get',
+//         url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//       });
+
+//       if (response.status === 200 && response.data) {
+//         dispatch({
+//           type: SET_SETTINGS_DATA,
+//           payload: response.data,
+//         });
+
+//         // Also update individual settings in Redux
+//         if (response.data.identityVerification) {
+//           dispatch(setIdentityVerificationSettings(response.data.identityVerification));
+//         }
+//         if (response.data.globalDocument) {
+//           dispatch(setGlobalDocumentSettings(response.data.globalDocument));
+//         }
+//         if (response.data.branding) {
+//           dispatch(setBrandingCustomizationSettings(response.data.branding));
+//         }
+//       }
+//     } catch (error: any) {
+//       console.error('Failed to fetch settings:', error);
+//     }
+//   };
+// };
+
+// export const updateSettings = (settingsData: any): AppDispatch => {
+//   return async (dispatch: AppDispatch) => {
+//     try {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: true,
+//       });
+
+//       const response = await axiosInstance({
+//         method: 'put',
+//         url: `http://localhost:8080/api/settings?business_id=${"HY7IAUl86AUMMqVbzGKn"}`,
+//         isFromLocal: true,
+//         data: settingsData,
+//       });
+
+//       if (response.status === 200 && response.data) {
+//         dispatch(showMessage({
+//           message: 'Settings updated successfully',
+//           variant: 'success',
+//         }));
+
+//         dispatch(getSettings());
+//         return response.data;
+//       }
+//     } catch (error: any) {
+//       dispatch(showMessage({
+//         message: error.response?.data?.message || 'Failed to update settings',
+//         variant: 'error',
+//       }));
+//       return null;
+//     } finally {
+//       dispatch({
+//         type: SET_IS_LOADING,
+//         payload: false,
+//       });
+//     }
+//   };
+// };
 

@@ -5,20 +5,22 @@ import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from 'app/(after-login)/(with-header)/contract-management/pdfEditor.module.scss';
 import BlockElement from './BlockElement';
-import { BlockElement as BlockElementType, isBlockElement } from '../../../utils/interface';
+import { BlockElement as BlockElementType, isBlockElement, CanvasElement } from '../../../utils/interface';
 import { RootState } from '../../../store/reducer/contractManagement.reducer';
 import { ADD_CANVAS_ELEMENT, UPDATE_MULTIPLE_ELEMENTS } from '../../../store/action/contractManagement.actions';
 
 interface BlockContainerProps {
+  pageId: string;
   pageNumber: number;
   pageWidth: number;
+  elements: CanvasElement[];
 }
 
-const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
+const BlockContainer = ({ pageId, pageNumber, pageWidth, elements }: BlockContainerProps) => {
   const dispatch = useDispatch();
-  const blocks = useSelector((state: RootState) =>
-    state?.contractManagement.canvasElements.filter(el => el.page === pageNumber && isBlockElement(el))
-  ) as BlockElementType[];
+  
+  // Filter to get only block elements from the page's elements
+  const blocks = elements.filter(el => isBlockElement(el)) as BlockElementType[];
 
   // sorting the blocks by the order
   const sortedBlocks = [...blocks].sort((a, b) => a.order - b.order);
@@ -30,7 +32,13 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
       id: `element_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
       order: maxOrder + 1
     };
-    dispatch({ type: ADD_CANVAS_ELEMENT, payload: copiedBlock });
+    dispatch({ 
+      type: ADD_CANVAS_ELEMENT, 
+      payload: {
+        pageId,
+        element: copiedBlock
+      }
+    });
   };
 
   const handleMoveUp = (currentOrder: number) => {
@@ -44,8 +52,8 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
     dispatch({
       type: UPDATE_MULTIPLE_ELEMENTS,
       payload: [
-        { ...currentBlock, order: prevBlock.order },
-        { ...prevBlock, order: currentBlock.order }
+        { pageId, element: { ...currentBlock, order: prevBlock.order } },
+        { pageId, element: { ...prevBlock, order: currentBlock.order } }
       ]
     });
   };
@@ -61,14 +69,14 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
     dispatch({
       type: UPDATE_MULTIPLE_ELEMENTS,
       payload: [
-        { ...currentBlock, order: nextBlock.order },
-        { ...nextBlock, order: currentBlock.order }
+        { pageId, element: { ...currentBlock, order: nextBlock.order } },
+        { pageId, element: { ...nextBlock, order: currentBlock.order } }
       ]
     });
   };
 
   return (
-    <Droppable droppableId={`blocks-page-${pageNumber}`} type="BLOCK">
+    <Droppable droppableId={`blocks-page-${pageId}`} type="BLOCK">
       {(provided: any, snapshot: any) => (
         <div
           ref={provided.innerRef}
@@ -95,6 +103,7 @@ const BlockContainer = ({ pageNumber, pageWidth }: BlockContainerProps) => {
                 >
                   <BlockElement
                     element={block}
+                    pageId={pageId}
                     onCopy={handleCopy}
                     onMoveUp={() => handleMoveUp(block.order)}
                     onMoveDown={() => handleMoveDown(block.order)}

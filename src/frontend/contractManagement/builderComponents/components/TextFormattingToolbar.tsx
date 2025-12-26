@@ -7,7 +7,7 @@ import Select from "@trenchaant/pkg-ui-component-library/build/Components/Select
 import MenuItem from "@trenchaant/pkg-ui-component-library/build/Components/MenuItem";
 import Divider from '@trenchaant/pkg-ui-component-library/build/Components/Divider';
 import { RootState } from '../../store/reducer/contractManagement.reducer';
-import { HeadingElement, TableElement } from '../../utils/interface';
+import { CanvasElement, HeadingElement, TableElement } from '../../utils/interface';
 import ColorInput from './Properties/ColorInput';
 import { fontSizeList, fontFamilyList, headingLevels } from '../../utils/utils';
 import { UPDATE_CANVAS_ELEMENT } from '../../store/action/contractManagement.actions';
@@ -15,15 +15,15 @@ import { UPDATE_CANVAS_ELEMENT } from '../../store/action/contractManagement.act
 const TextFormattingToolbar: React.FC = () => {
   const dispatch = useDispatch();
   const activeElementId = useSelector((state: RootState) => state?.contractManagement?.activeElementId);
-  const canvasElements = useSelector((state: RootState) => state?.contractManagement?.canvasElements);
+  const pages = useSelector((state: RootState) => state?.contractManagement?.pages);
 
-  const activeElement = canvasElements?.find(el => el.id === activeElementId);
+  const activeElement: CanvasElement = pages?.find(page => page?.elements?.find(el => el.id === activeElementId));
 
   if (!activeElement || (activeElement.type !== 'heading' && activeElement.type !== 'table')) {
     return null;
   }
 
-  const element = activeElement as HeadingElement | TableElement;
+  const element = activeElement;
 
   const updateElement = (updates: Partial<HeadingElement | TableElement>) => {
     dispatch({
